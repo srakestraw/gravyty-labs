@@ -1,0 +1,14 @@
+{
+  "name": "Gravyty Labs",
+  "short_name": "Gravyty Labs",
+  "description": "Integrated platform for admissions management, student information systems, and AI-powered automation",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0052CC",
+  "orientation": "portrait-primary",
+  "icons": [],
+  "categories": ["education", "productivity", "business"],
+  "lang": "en",
+  "dir": "ltr"
+}
