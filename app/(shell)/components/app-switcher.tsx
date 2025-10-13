@@ -9,16 +9,24 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 import { useRouter } from 'next/navigation';
 import { usePlatformStore } from '@/lib/store';
+import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 
 const apps = [
+  {
+    id: 'dashboard',
+    name: 'Dashboard',
+    shortName: 'Dashboard',
+    icon: 'fa-solid fa-house',
+    color: '#3B82F6',
+    path: '/dashboard',
+  },
   {
     id: 'admissions',
     name: 'Admissions Management',
     shortName: 'Admissions',
-    icon: 'fa-clipboard-check',
+    icon: 'fa-solid fa-clipboard-check',
     color: '#00B8D9',
     path: '/admissions',
   },
@@ -26,17 +34,25 @@ const apps = [
     id: 'sis',
     name: 'Student Information System',
     shortName: 'SIS',
-    icon: 'fa-graduation-cap',
-    color: '#0052CC',
+    icon: 'fa-solid fa-graduation-cap',
+    color: '#7C3AED',
     path: '/sis',
   },
   {
     id: 'ai-teammates',
     name: 'AI Teammates',
     shortName: 'AI',
-    icon: 'fa-robot',
-    color: '#6554C0',
+    icon: 'fa-solid fa-robot',
+    color: '#059669',
     path: '/ai-teammates',
+  },
+  {
+    id: 'admin',
+    name: 'Admin Panel',
+    shortName: 'Admin',
+    icon: 'fa-solid fa-cog',
+    color: '#DC2626',
+    path: '/admin',
   },
 ];
 
@@ -52,7 +68,7 @@ export function AppSwitcher() {
           size="icon"
           className="h-8 w-8"
         >
-          <FontAwesomeIcon icon="fa-grid" className="h-5 w-5" />
+          <FontAwesomeIcon icon="fa-solid fa-grid" className="h-5 w-5" />
         </Button>
       </DropdownMenuTrigger>
       
@@ -77,7 +93,7 @@ export function AppSwitcher() {
                 className="flex flex-col items-start p-3 h-auto cursor-pointer relative bg-white hover:bg-gray-50 border border-transparent hover:border-gray-200 rounded-lg"
               >
                 {isActive && (
-                  <FontAwesomeIcon icon="fa-check" className="absolute top-2 right-2 h-4 w-4 text-primary" />
+                  <FontAwesomeIcon icon="fa-solid fa-check" className="absolute top-2 right-2 h-4 w-4 text-primary" />
                 )}
                 
                 <div 

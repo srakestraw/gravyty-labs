@@ -9,6 +9,7 @@ export interface App {
   id: string;
   name: string;
   shortName: string;
+  icon: string; // Font Awesome class string
   color: string;
   path: string;
 }

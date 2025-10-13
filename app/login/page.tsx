@@ -16,7 +16,7 @@ export default function LoginPage() {
       setLoading(true);
       setError('');
       await signInWithGoogle();
-      router.push('/admissions');
+      router.push('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {

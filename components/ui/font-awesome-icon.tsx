@@ -5,31 +5,45 @@ import { useEffect, useState } from 'react';
 interface FontAwesomeIconProps {
   icon: string;
   className?: string;
+  size?: string;
   style?: React.CSSProperties;
+  'aria-hidden'?: boolean;
 }
 
-export function FontAwesomeIcon({ icon, className, style }: FontAwesomeIconProps) {
-  const [isLoaded, setIsLoaded] = useState(false);
+export function FontAwesomeIcon({ 
+  icon, 
+  className = '', 
+  size, 
+  style, 
+  'aria-hidden': ariaHidden = true 
+}: FontAwesomeIconProps) {
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    // Check if Font Awesome is loaded
-    const checkFontAwesome = () => {
-      if (typeof window !== 'undefined' && (window as any).FontAwesome) {
-        setIsLoaded(true);
-      } else {
-        // Retry after a short delay
-        setTimeout(checkFontAwesome, 100);
-      }
-    };
-
-    checkFontAwesome();
+    setIsClient(true);
   }, []);
 
-  if (!isLoaded) {
-    // Return a placeholder div with the same dimensions
-    return <div className={className} style={{ width: '1em', height: '1em', ...style }} />;
+  // During SSR, render a placeholder div with the same dimensions
+  if (!isClient) {
+    return (
+      <div 
+        className={`inline-block ${className}`}
+        style={{
+          width: size === 'lg' ? '24px' : size === '2x' ? '32px' : '16px',
+          height: size === 'lg' ? '24px' : size === '2x' ? '32px' : '16px',
+          ...style
+        }}
+        aria-hidden={ariaHidden}
+      />
+    );
   }
 
-  // Use the script-based approach with the kit
-  return <i className={`fas ${icon} ${className || ''}`} style={style} />;
+  // On client side, render the actual Font Awesome icon
+  return (
+    <i 
+      className={`${icon} ${className}`}
+      style={style}
+      aria-hidden={ariaHidden}
+    />
+  );
 }

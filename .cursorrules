@@ -1,1 +1,54 @@
+# Gravyty Labs - Cursor Rules
 
+## Icon System
+
+### Font Awesome Pro Kit (Required)
+- **Kit URL**: https://kit.fontawesome.com/a983b74f3b.js
+- **License**: Pro (includes all icon styles)
+- **Usage**: Use FontAwesomeIcon component to prevent hydration issues
+- **Component**: Import from `@/components/ui/font-awesome-icon`
+
+**Correct Usage:**
+```typescript
+import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
+
+// Solid icons (default)
+<FontAwesomeIcon icon="fa-solid fa-house" />
+<FontAwesomeIcon icon="fa-solid fa-users" className="h-5 w-5" />
+
+// Regular icons
+<FontAwesomeIcon icon="fa-regular fa-circle-check" />
+
+// Light icons (Pro only)
+<FontAwesomeIcon icon="fa-light fa-house" />
+
+// Thin icons (Pro only)
+<FontAwesomeIcon icon="fa-thin fa-house" />
+
+// Duotone icons (Pro only)
+<FontAwesomeIcon icon="fa-duotone fa-house" />
+
+// With sizing
+<FontAwesomeIcon icon="fa-solid fa-house" size="lg" />
+<FontAwesomeIcon icon="fa-solid fa-house" size="2x" />
+
+// With colors
+<FontAwesomeIcon icon="fa-solid fa-house" className="text-primary" />
+```
+
+**Icon Naming:**
+- Use `fa-solid` prefix for solid icons
+- Use `fa-regular` prefix for regular icons
+- Use `fa-light` prefix for light icons (Pro)
+- Use `fa-thin` prefix for thin icons (Pro)
+- Use `fa-duotone` prefix for duotone icons (Pro)
+- Icon names use hyphens: `fa-house`, `fa-circle-check`, `fa-graduation-cap`
+
+**NEVER use raw `<i>` tags** - Always use FontAwesomeIcon component to prevent hydration errors.
+
+## Project Structure
+- Next.js 14 with App Router
+- TypeScript + Tailwind CSS
+- Firebase Authentication
+- Zustand for state management
+- Multi-app platform (Admissions, SIS, AI Teammates)

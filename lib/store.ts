@@ -9,11 +9,12 @@ interface PlatformStore {
 }
 
 const defaultApp: App = {
-  id: 'admissions',
-  name: 'Admissions Management',
-  shortName: 'Admissions',
-  color: '#00B8D9',
-  path: '/admissions',
+  id: 'dashboard',
+  name: 'Dashboard',
+  shortName: 'Dashboard',
+  icon: 'fa-solid fa-house',
+  color: '#3B82F6',
+  path: '/dashboard',
 };
 
 export const usePlatformStore = create<PlatformStore>((set) => ({
