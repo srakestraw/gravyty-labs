@@ -37,35 +37,35 @@ export function AppHeader() {
 
   return (
     <header className="fixed top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-14 items-center px-4 gap-4">
+      <div className="flex h-14 items-center px-2 sm:px-4 gap-2 sm:gap-4">
         {/* Left Section */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           <Button
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
             className="h-8 w-8"
           >
-            <FontAwesomeIcon icon="fa-solid fa-bars" className="h-5 w-5" />
+            <FontAwesomeIcon icon="fa-solid fa-bars" className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
 
           <AppSwitcher />
 
-          <div className="flex items-center gap-2 px-2">
+          <div className="flex items-center gap-1 sm:gap-2 px-1 sm:px-2">
             <div 
-              className="h-6 w-6 rounded flex items-center justify-center text-xs font-bold text-white"
+              className="h-5 w-5 sm:h-6 sm:w-6 rounded flex items-center justify-center text-xs font-bold text-white"
               style={{ backgroundColor: activeApp.color }}
             >
               {activeApp.shortName.substring(0, 2).toUpperCase()}
             </div>
-            <span className="font-semibold text-sm hidden sm:inline">
+            <span className="font-semibold text-xs sm:text-sm hidden sm:inline">
               {activeApp.shortName}
             </span>
           </div>
         </div>
 
-        {/* Center Section - Search */}
-        <div className="flex-1 flex justify-center max-w-2xl mx-auto">
+        {/* Center Section - Search (hidden on mobile) */}
+        <div className="hidden md:flex flex-1 justify-center max-w-2xl mx-auto">
           <div className="relative w-full">
             <FontAwesomeIcon icon="fa-solid fa-search" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
@@ -77,25 +77,30 @@ export function AppHeader() {
         </div>
 
         {/* Right Section */}
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <FontAwesomeIcon icon="fa-solid fa-bell" className="h-5 w-5" />
+        <div className="flex items-center gap-0 sm:gap-1 ml-auto">
+          {/* Mobile search button */}
+          <Button variant="ghost" size="icon" className="h-8 w-8 md:hidden">
+            <FontAwesomeIcon icon="fa-solid fa-search" className="h-4 w-4" />
           </Button>
           
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <FontAwesomeIcon icon="fa-solid fa-circle-question" className="h-5 w-5" />
+          <Button variant="ghost" size="icon" className="h-8 w-8 hidden sm:flex">
+            <FontAwesomeIcon icon="fa-solid fa-bell" className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
           
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <FontAwesomeIcon icon="fa-solid fa-gear" className="h-5 w-5" />
+          <Button variant="ghost" size="icon" className="h-8 w-8 hidden lg:flex">
+            <FontAwesomeIcon icon="fa-solid fa-circle-question" className="h-4 w-4 sm:h-5 sm:w-5" />
+          </Button>
+          
+          <Button variant="ghost" size="icon" className="h-8 w-8 hidden lg:flex">
+            <FontAwesomeIcon icon="fa-solid fa-gear" className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full ml-2">
-                <Avatar className="h-8 w-8">
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full ml-1 sm:ml-2">
+                <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
                   <AvatarImage src={user?.photoURL || undefined} alt={user?.displayName || 'User'} />
-                  <AvatarFallback>
+                  <AvatarFallback className="text-xs">
                     {user?.displayName ? getInitials(user.displayName) : 'GL'}
                   </AvatarFallback>
                 </Avatar>

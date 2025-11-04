@@ -1,11 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    appDir: true,
-  },
   images: {
-    domains: ['localhost'],
+    domains: ['localhost', 'gravyty-labs.web.app'],
+    unoptimized: true
   },
+  output: 'export',
+  trailingSlash: true,
+  distDir: 'out',
+  assetPrefix: '',
 };
 
 module.exports = nextConfig;

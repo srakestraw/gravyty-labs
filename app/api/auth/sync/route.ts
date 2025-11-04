@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     
     // Validate email domain on backend as well
     if (body.email) {
-      const allowedDomains = ['gravyty.com', 'rakestraw.com'];
+      const allowedDomains = ['gravyty.com', 'rakestraw.com', 'gravytylabs.com'];
       const domain = body.email.split('@')[1];
       
       if (!allowedDomains.includes(domain)) {

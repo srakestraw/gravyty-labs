@@ -25,10 +25,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-center text-2xl sm:text-3xl font-extrabold text-gray-900">
             Sign in to Gravyty Labs
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
@@ -38,14 +38,14 @@ export default function LoginPage() {
         
         <div className="mt-8 space-y-6">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
               {error}
             </div>
           )}
           
           <Button
             type="button"
-            className="w-full"
+            className="w-full py-3 text-base font-medium"
             onClick={handleGoogleSignIn}
             disabled={loading}
           >
@@ -53,7 +53,7 @@ export default function LoginPage() {
           </Button>
           
           <p className="text-xs text-gray-500 mt-1 text-center">
-            Access restricted to gravyty.com and rakestraw.com domains
+            Access restricted to gravyty.com domain
           </p>
         </div>
       </div>

@@ -9,6 +9,7 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Gravyty Labs",
   description: "Integrated platform for admissions management, student information systems, and AI-powered automation",
+  viewport: "width=device-width, initial-scale=1",
   icons: {
     icon: [
       { url: '/assets/favicons/favicon-16x16.png', sizes: '16x16', type: 'image/png' },

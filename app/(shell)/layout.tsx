@@ -19,10 +19,13 @@ export default function ShellLayout({
       <main 
         className={cn(
           'pt-14 min-h-screen transition-all duration-300',
-          sidebarOpen ? 'pl-64' : 'pl-16'
+          // Mobile: no padding when sidebar is closed
+          'md:pl-16',
+          // Desktop: adjust padding based on sidebar state
+          sidebarOpen ? 'md:pl-64' : 'md:pl-16'
         )}
       >
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {children}
         </div>
       </main>
