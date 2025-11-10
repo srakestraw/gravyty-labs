@@ -1,0 +1,3 @@
+# 05 – Synthetic Data Engine Plan (Affinity University)
+
+... (content truncated for brevity) ...

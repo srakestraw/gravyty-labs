@@ -1,0 +1,3 @@
+# 06 – SIS Cursor Execution Playbook
+
+... (content truncated for brevity) ...

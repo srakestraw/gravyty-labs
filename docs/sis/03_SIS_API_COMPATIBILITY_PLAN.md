@@ -1,0 +1,3 @@
+# 03 – Banner-Compatible API Layer Plan
+
+... (content truncated for brevity) ...
