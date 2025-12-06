@@ -5,6 +5,8 @@ import { usePlatformStore } from '@/lib/store';
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { canAccessAIAssistants } from '@/lib/roles';
+import { useFeatureFlag } from '@/lib/features';
 
 const apps = [
   {
@@ -35,6 +37,16 @@ const apps = [
     description: 'AI-powered automation and intelligent assistance'
   },
   {
+    id: 'ai-assistants',
+    name: 'AI Assistants',
+    shortName: 'AI Assistants',
+    icon: 'fa-solid fa-user-robot',
+    color: '#8B5CF6',
+    path: '/ai-assistants',
+    description: 'Configure and monitor AI-driven assistants across the student and alumni lifecycle.',
+    requiresRole: true
+  },
+  {
     id: 'admin',
     name: 'Administration',
     shortName: 'Admin',
@@ -48,10 +60,19 @@ const apps = [
 export default function DashboardPage() {
   const { user } = useAuth();
   const { setActiveApp } = usePlatformStore();
+  const aiAssistantsEnabled = useFeatureFlag('ai_assistants');
 
   const handleAppClick = (app: typeof apps[0]) => {
     setActiveApp(app);
   };
+
+  // Filter apps based on feature flags and roles
+  const visibleApps = apps.filter(app => {
+    if (app.id === 'ai-assistants') {
+      return aiAssistantsEnabled && canAccessAIAssistants(user?.email || user?.uid);
+    }
+    return true;
+  });
 
   return (
     <div>
@@ -107,7 +128,7 @@ export default function DashboardPage() {
       <div className="mb-8">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Applications</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {apps.map((app) => (
+          {visibleApps.map((app) => (
             <Link
               key={app.id}
               href={app.path}

@@ -5,10 +5,15 @@ import { usePlatformStore } from '@/lib/store';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
+import { useAuth } from '@/lib/firebase/auth-context';
+import { canAccessAIAssistants } from '@/lib/roles';
+import { useFeatureFlag } from '@/lib/features';
 
 export function AppSidebar() {
   const { sidebarOpen, activeApp } = usePlatformStore();
   const pathname = usePathname();
+  const { user } = useAuth();
+  const aiAssistantsEnabled = useFeatureFlag('ai_assistants');
 
   // Navigation items
   const navigation = [
@@ -16,6 +21,9 @@ export function AppSidebar() {
     { name: 'Admissions', href: '/admissions', icon: 'fa-solid fa-clipboard-check' },
     { name: 'SIS', href: '/sis', icon: 'fa-solid fa-graduation-cap' },
     { name: 'AI Teammates', href: '/ai-teammates', icon: 'fa-solid fa-robot' },
+    ...(aiAssistantsEnabled && canAccessAIAssistants(user?.email || user?.uid)
+      ? [{ name: 'AI Assistants', href: '/ai-assistants', icon: 'fa-solid fa-user-robot' }]
+      : []),
     { name: 'Admin', href: '/admin', icon: 'fa-solid fa-cog' },
   ];
 

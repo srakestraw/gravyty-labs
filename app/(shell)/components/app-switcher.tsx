@@ -12,6 +12,9 @@ import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { usePlatformStore } from '@/lib/store';
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
+import { useAuth } from '@/lib/firebase/auth-context';
+import { canAccessAIAssistants } from '@/lib/roles';
+import { useFeatureFlag } from '@/lib/features';
 
 const apps = [
   {
@@ -47,6 +50,15 @@ const apps = [
     path: '/ai-teammates',
   },
   {
+    id: 'ai-assistants',
+    name: 'AI Assistants',
+    shortName: 'Assistants',
+    icon: 'fa-solid fa-user-robot',
+    color: '#8B5CF6',
+    path: '/ai-assistants',
+    requiresRole: true,
+  },
+  {
     id: 'admin',
     name: 'Admin Panel',
     shortName: 'Admin',
@@ -59,6 +71,16 @@ const apps = [
 export function AppSwitcher() {
   const router = useRouter();
   const { activeApp, setActiveApp } = usePlatformStore();
+  const { user } = useAuth();
+  const aiAssistantsEnabled = useFeatureFlag('ai_assistants');
+
+  // Filter apps based on feature flags and roles
+  const visibleApps = apps.filter(app => {
+    if (app.id === 'ai-assistants') {
+      return aiAssistantsEnabled && canAccessAIAssistants(user?.email || user?.uid);
+    }
+    return true;
+  });
 
   return (
     <DropdownMenu>
@@ -80,7 +102,7 @@ export function AppSwitcher() {
         <DropdownMenuSeparator />
         
         <div className="grid grid-cols-3 gap-2 p-2">
-          {apps.map((app) => {
+          {visibleApps.map((app) => {
             const isActive = activeApp.id === app.id;
             
             return (
