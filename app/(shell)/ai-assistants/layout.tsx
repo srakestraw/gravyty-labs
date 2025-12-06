@@ -20,7 +20,7 @@ export default function AIAssistantsLayout({
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
           <p className="text-gray-600">
-            You don't have permission to access AI Assistants.
+            You don't have permission to access AI Command Center.
           </p>
         </div>
       </div>
@@ -36,10 +36,10 @@ export default function AIAssistantsLayout({
             <FontAwesomeIcon icon="fa-solid fa-user-robot" className="h-8 w-8 text-[#8B5CF6]" />
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                AI Assistants
+                AI Command Center
               </h1>
               <p className="text-gray-600 mt-1">
-                Configure and monitor AI-driven assistants
+                Your daily AI Command Center for insights, risks, and assistant-powered actions
               </p>
             </div>
           </div>
