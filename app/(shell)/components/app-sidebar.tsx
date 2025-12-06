@@ -35,6 +35,7 @@ export function AppSidebar() {
     // If in AI Assistants app, show sub-navigation
     if (isInAIAssistants) {
       return [
+        { name: 'AI Command Center', href: '/ai-assistants', icon: 'fa-solid fa-compass' },
         { name: 'Assistants', href: '/ai-assistants', icon: 'fa-solid fa-user-robot' },
         { name: 'Guardrails', href: '/ai-assistants/guardrails', icon: 'fa-solid fa-shield-halved' },
         { name: 'Eval & Logs', href: '/ai-assistants/eval', icon: 'fa-solid fa-chart-line' },
