@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-static';
+
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 
 const integrations = [

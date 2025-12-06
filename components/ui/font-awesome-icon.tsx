@@ -1,7 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
 interface FontAwesomeIconProps {
   icon: string;
   className?: string;
@@ -17,36 +15,21 @@ export function FontAwesomeIcon({
   style, 
   'aria-hidden': ariaHidden = true 
 }: FontAwesomeIconProps) {
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  // During SSR, render a placeholder div with the same dimensions
-  if (!isClient) {
-    return (
-      <div 
-        className={`inline-block ${className}`}
-        style={{
-          width: size === 'lg' ? '24px' : size === '2x' ? '32px' : '16px',
-          height: size === 'lg' ? '24px' : size === '2x' ? '32px' : '16px',
-          ...style
-        }}
-        aria-hidden={ariaHidden}
-      />
-    );
-  }
-
-  // On client side, render the actual Font Awesome icon
+  // Always render with the icon class - Font Awesome will handle rendering
+  // Using suppressHydrationWarning to prevent warnings about class differences
+  // between server and client (Font Awesome loads on client)
+  const combinedClassName = `${icon} ${className}`.trim();
+  
   return (
     <i 
-      className={`${icon} ${className}`}
+      className={combinedClassName}
       style={style}
       aria-hidden={ariaHidden}
+      suppressHydrationWarning
     />
   );
 }
+
 
 
 

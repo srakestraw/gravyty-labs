@@ -3,19 +3,7 @@
 import { useAuth } from '@/lib/firebase/auth-context';
 import { canAccessAIAssistants } from '@/lib/roles';
 import { useFeatureFlag } from '@/lib/features';
-import { usePathname } from 'next/navigation';
-import Link from 'next/link';
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
-import { cn } from '@/lib/utils';
-
-const navigation = [
-  { name: 'Assistants', href: '/ai-assistants', icon: 'fa-solid fa-user-robot' },
-  { name: 'Guardrails', href: '/ai-assistants/guardrails', icon: 'fa-solid fa-shield-halved' },
-  { name: 'Eval & Logs', href: '/ai-assistants/eval', icon: 'fa-solid fa-chart-line' },
-  { name: 'Templates', href: '/ai-assistants/templates', icon: 'fa-solid fa-file-lines' },
-  { name: 'Permissions', href: '/ai-assistants/permissions', icon: 'fa-solid fa-key' },
-  { name: 'Settings', href: '/ai-assistants/settings', icon: 'fa-solid fa-cog' },
-];
 
 export default function AIAssistantsLayout({
   children,
@@ -23,7 +11,6 @@ export default function AIAssistantsLayout({
   children: React.ReactNode;
 }) {
   const { user } = useAuth();
-  const pathname = usePathname();
   const aiAssistantsEnabled = useFeatureFlag('ai_assistants');
 
   // Check access
@@ -64,37 +51,10 @@ export default function AIAssistantsLayout({
         </div>
       </div>
 
-      <div className="flex gap-6">
-        {/* Left Nav */}
-        <aside className="w-64 flex-shrink-0">
-          <nav className="space-y-1">
-            {navigation.map((item) => {
-              const isActive = pathname === item.href || 
-                (item.href !== '/ai-assistants' && pathname?.startsWith(item.href));
-              
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={cn(
-                    'flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition-colors',
-                    'hover:bg-gray-100 text-gray-700',
-                    isActive && 'bg-purple-50 text-purple-700 font-medium'
-                  )}
-                >
-                  <FontAwesomeIcon icon={item.icon} className="h-5 w-5" />
-                  <span>{item.name}</span>
-                </Link>
-              );
-            })}
-          </nav>
-        </aside>
-
-        {/* Content Area */}
-        <main className="flex-1 min-w-0">
-          {children}
-        </main>
-      </div>
+      {/* Content Area - navigation is now in the main sidebar */}
+      <main className="flex-1 min-w-0">
+        {children}
+      </main>
     </div>
   );
 }
