@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     ],
     other: [
       { url: '/assets/favicons/safari-pinned-tab.svg', rel: 'mask-icon', color: '#0052CC' }
-    ]
+    ],
   },
   manifest: '/assets/favicons/site.webmanifest',
 };

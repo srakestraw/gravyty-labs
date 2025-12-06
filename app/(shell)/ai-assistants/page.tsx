@@ -18,6 +18,17 @@ type Persona =
   | 'alumni-engagement'
   | 'advancement';
 
+type GoalStatus = 'on-track' | 'slightly-behind' | 'at-risk';
+
+interface GoalTrackerItem {
+  id: string;
+  label: string;
+  current: number;
+  target: number;
+  unitLabel: string; // e.g. "$", "donors", "proposals", "meetings"
+  status: GoalStatus;
+}
+
 interface PersonaConfig {
   label: string;
   description: string;
@@ -65,7 +76,44 @@ interface PersonaConfig {
     momentumScore?: number;
   };
   coachMessage?: string;
+  goals?: GoalTrackerItem[];
 }
+
+// Goal Tracker mock data for Advancement
+const advancementGoals: GoalTrackerItem[] = [
+  {
+    id: 'giving-goal',
+    label: 'Quarterly Giving Goal',
+    current: 1.2,
+    target: 2.0,
+    unitLabel: '$M',
+    status: 'on-track',
+  },
+  {
+    id: 'lybunt-recovery',
+    label: 'LYBUNT Recovery',
+    current: 89,
+    target: 150,
+    unitLabel: 'donors',
+    status: 'slightly-behind',
+  },
+  {
+    id: 'proposals-advanced',
+    label: 'Key Proposals Advanced',
+    current: 18,
+    target: 25,
+    unitLabel: 'proposals',
+    status: 'on-track',
+  },
+  {
+    id: 'donor-meetings',
+    label: 'Strategic Donor Meetings',
+    current: 6,
+    target: 15,
+    unitLabel: 'meetings',
+    status: 'at-risk',
+  },
+];
 
 // Mock data for each persona
 const personaConfigs: Record<Persona, PersonaConfig> = {
@@ -967,7 +1015,9 @@ const personaConfigs: Record<Persona, PersonaConfig> = {
     ],
     snapshotMetrics: [
       { label: 'Active donors', value: '5,678' },
-      { label: 'LYBUNT recovery', value: '89' },
+      { label: 'LYBUNT recovery', value: '89 / 150' },
+      { label: 'Key proposals progressed', value: '18 / 25' },
+      { label: 'Strategic donor meetings', value: '6 / 15' },
     ],
     assistants: [
       {
@@ -1066,8 +1116,9 @@ const personaConfigs: Record<Persona, PersonaConfig> = {
         assistantName: 'New Donor Nurture Assistant',
       },
     ],
+    goals: advancementGoals,
     coachMessage:
-      'Your meeting prep today is crucial. Advancing key proposals will help bring you back on pace for your quarterly targets and keep your momentum streak going.',
+      "You're on track for your quarterly giving goal, but LYBUNT recovery is falling behind pace. Today's Game Plan prioritizes LYBUNT outreach and stalled proposals so you can close the gap and keep your momentum streak alive.",
   },
 };
 
@@ -1122,6 +1173,89 @@ export default function AssistantsHomePage() {
     if (hour < 17) return 'Good afternoon';
     return 'Good evening';
   };
+
+  const getStatusStyles = (status: GoalStatus) => {
+    switch (status) {
+      case 'on-track':
+        return {
+          bar: 'bg-emerald-500',
+          pill: 'bg-emerald-50 text-emerald-700 border border-emerald-100',
+          label: 'On track',
+        };
+      case 'slightly-behind':
+        return {
+          bar: 'bg-amber-500',
+          pill: 'bg-amber-50 text-amber-700 border border-amber-100',
+          label: 'Slightly behind',
+        };
+      case 'at-risk':
+        return {
+          bar: 'bg-rose-500',
+          pill: 'bg-rose-50 text-rose-700 border border-rose-100',
+          label: 'At risk',
+        };
+      default:
+        return {
+          bar: 'bg-slate-400',
+          pill: 'bg-slate-50 text-slate-700 border border-slate-100',
+          label: 'Unknown',
+        };
+    }
+  };
+
+  const GoalTrackerCard = ({ goals }: { goals: GoalTrackerItem[] }) => (
+    <div className="bg-white border border-gray-200 rounded-lg p-5">
+      <div className="flex items-center justify-between gap-4 mb-4">
+        <div>
+          <h3 className="text-base font-semibold text-gray-900">Goal Tracker</h3>
+          <p className="text-sm text-gray-500">
+            How you're performing against this week's key goals.
+          </p>
+        </div>
+        <button className="rounded-full border border-gray-200 px-3 py-1 text-xs font-medium text-gray-600 bg-gray-50">
+          This week
+        </button>
+      </div>
+
+      <div className="space-y-4">
+        {goals.map((goal) => {
+          const pct = Math.min((goal.current / goal.target) * 100, 120);
+          const { bar, pill, label } = getStatusStyles(goal.status);
+
+          return (
+            <div key={goal.id} className="space-y-1">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">
+                    {goal.label}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {goal.unitLabel === '$M'
+                      ? `$${goal.current.toFixed(1)}M / $${goal.target.toFixed(1)}M`
+                      : `${goal.current} / ${goal.target} ${goal.unitLabel}`}
+                  </p>
+                </div>
+                <span
+                  className={cn(
+                    'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium',
+                    pill
+                  )}
+                >
+                  {label}
+                </span>
+              </div>
+              <div className="h-2 rounded-full bg-gray-100">
+                <div
+                  className={cn('h-2 rounded-full', bar)}
+                  style={{ width: `${Math.min(pct, 100)}%` }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -1225,6 +1359,11 @@ export default function AssistantsHomePage() {
                   </div>
                 </div>
               </div>
+            )}
+
+            {/* Goal Tracker - Only for Advancement */}
+            {selectedPersona === 'advancement' && persona.goals && persona.goals.length > 0 && (
+              <GoalTrackerCard goals={persona.goals} />
             )}
 
             {/* Daily Focus Summary */}
