@@ -7,8 +7,9 @@ export interface Assistant {
   id: string;
   name: string;
   goal: string;
-  status: 'active' | 'inactive' | 'draft';
+  status: 'active' | 'paused' | 'draft';
   owner: string;
+  lastUpdated: string;
   template: string;
   scope: {
     program?: string;
@@ -54,12 +55,13 @@ export interface Template {
 export const mockAssistants: Assistant[] = [
   {
     id: '1',
-    name: 'Admissions Outreach Assistant',
-    goal: 'Engage prospective students and answer admissions questions',
+    name: 'Admissions Assistant – MBA Fall 2026',
+    goal: 'Reduce stalled applicants and improve application completion',
     status: 'active',
     owner: 'Sarah Johnson',
+    lastUpdated: '2024-01-15T10:30:00Z',
     template: 'admissions',
-    scope: { program: 'All Programs' },
+    scope: { program: 'MBA', term: 'Fall 2026' },
     guardrails: {
       messageLimit: 2,
       quietHours: { start: '22:00', end: '08:00' },
@@ -73,10 +75,11 @@ export const mockAssistants: Assistant[] = [
   },
   {
     id: '2',
-    name: 'Student Success Advisor',
-    goal: 'Provide academic support and identify at-risk students',
+    name: 'Student Success Assistant – First-Year Cohort',
+    goal: 'Detect at-risk students early and support them with timely outreach',
     status: 'active',
     owner: 'Michael Chen',
+    lastUpdated: '2024-01-14T09:15:00Z',
     template: 'student-success',
     scope: { term: 'Fall 2024' },
     guardrails: {
@@ -92,11 +95,12 @@ export const mockAssistants: Assistant[] = [
   },
   {
     id: '3',
-    name: 'Registration Helper',
-    goal: 'Assist with course registration and schedule planning',
-    status: 'draft',
+    name: 'Advancement Assistant – LYBUNT Recovery',
+    goal: 'Improve donor retention and identify giving opportunities',
+    status: 'active',
     owner: 'Emily Rodriguez',
-    template: 'registration',
+    lastUpdated: '2024-01-13T14:20:00Z',
+    template: 'advancement',
     scope: {},
     guardrails: {
       messageLimit: 2,
@@ -104,9 +108,9 @@ export const mockAssistants: Assistant[] = [
       canEscalate: false,
     },
     performance: {
-      messagesSent: 0,
-      responsesGenerated: 0,
-      satisfactionScore: 0,
+      messagesSent: 654,
+      responsesGenerated: 612,
+      satisfactionScore: 4.3,
     },
   },
 ];
@@ -157,37 +161,37 @@ export const mockTemplates: Template[] = [
   {
     id: 'admissions',
     name: 'Admissions Assistant',
-    description: 'Engage prospective students and answer admissions questions',
+    description: 'Reduce stalled applicants and improve application completion.',
     category: 'Admissions',
     icon: 'fa-solid fa-clipboard-check',
   },
   {
-    id: 'registration',
-    name: 'Registration Assistant',
-    description: 'Help students with course registration and schedule planning',
-    category: 'Registration',
-    icon: 'fa-solid fa-calendar-check',
-  },
-  {
     id: 'student-success',
     name: 'Student Success Assistant',
-    description: 'Provide academic support and identify at-risk students',
+    description: 'Detect at-risk students early and support them with timely outreach.',
     category: 'Student Success',
     icon: 'fa-solid fa-graduation-cap',
   },
   {
     id: 'advancement',
     name: 'Advancement Assistant',
-    description: 'Engage alumni and support fundraising efforts',
+    description: 'Improve donor retention and identify giving opportunities.',
     category: 'Advancement',
     icon: 'fa-solid fa-hand-holding-dollar',
   },
   {
     id: 'alumni',
     name: 'Alumni Engagement Assistant',
-    description: 'Maintain relationships with alumni and promote engagement',
+    description: 'Re-engage dormant alumni and personalize communications.',
     category: 'Alumni',
     icon: 'fa-solid fa-users',
+  },
+  {
+    id: 'registration',
+    name: 'Registration Assistant',
+    description: 'Help students with course registration and schedule planning.',
+    category: 'Registration',
+    icon: 'fa-solid fa-calendar-check',
   },
 ];
 
