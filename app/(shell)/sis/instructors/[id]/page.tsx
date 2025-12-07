@@ -1,8 +1,11 @@
-export async function generateStaticParams() {
+import { InstructorDetailClient } from './InstructorDetailClient';
+
+export const dynamic = 'force-static';
+
+// Required for static export with dynamic routes
+export function generateStaticParams() {
   return [];
 }
-
-import { InstructorDetailClient } from './InstructorDetailClient';
 
 interface PageProps {
   params: {
