@@ -331,7 +331,7 @@ export function HumanEscalationSection({ rules, onChange, canEdit }: HumanEscala
                       Escalation steps
                     </p>
                     <div className="space-y-2">
-                      {ruleWithDefaults.targets.map((target, index) => (
+                      {ruleWithDefaults.targets?.map((target, index) => (
                         <div
                           key={target.id || index}
                           className="rounded-md border border-gray-100 bg-white p-2 space-y-1"

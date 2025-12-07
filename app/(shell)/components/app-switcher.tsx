@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,17 +43,9 @@ const apps = [
     path: '/sis',
   },
   {
-    id: 'ai-teammates',
-    name: 'AI Teammates',
-    shortName: 'AI',
-    icon: 'fa-solid fa-robot',
-    color: '#059669',
-    path: '/ai-teammates',
-  },
-  {
     id: 'ai-assistants',
     name: 'AI Assistants',
-    shortName: 'Assistants',
+    shortName: 'AI Assistants',
     icon: 'fa-solid fa-user-robot',
     color: '#8B5CF6',
     path: '/ai-assistants',
@@ -71,6 +64,7 @@ const apps = [
 export function AppSwitcher() {
   const { activeApp, setActiveApp } = usePlatformStore();
   const { user } = useAuth();
+  const router = useRouter();
   const aiAssistantsEnabled = useFeatureFlag('ai_assistants');
   const [open, setOpen] = useState(false);
 
@@ -88,18 +82,13 @@ export function AppSwitcher() {
     e.preventDefault();
     e.stopPropagation();
     
-    // Close dropdown first and wait for it to fully close
+    // Close dropdown first
     setOpen(false);
     setActiveApp(app);
     
-    // Use requestAnimationFrame to ensure dropdown cleanup completes
-    // before navigation
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        // Use window.location for full page reload to avoid React cleanup issues
-        window.location.href = app.path;
-      });
-    });
+    // Use Next.js router for smooth client-side navigation
+    // This prevents the error page flash that occurs with window.location
+    router.push(app.path);
   };
 
   return (

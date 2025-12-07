@@ -4,8 +4,14 @@ export const dynamic = 'force-static';
 
 // Required for static export with dynamic routes
 export function generateStaticParams() {
-  // Return empty array - this route will be handled dynamically in dev
-  return [];
+  // Return known agent IDs for static generation
+  return [
+    { id: 'agent-transcript-helper' },
+    { id: 'agent-registration-requirements' },
+    { id: 'agent-high-intent-prospect' },
+    { id: 'agent-donor-warmup' },
+    { id: 'agent-international-visa' },
+  ];
 }
 
 interface AgentPageProps {

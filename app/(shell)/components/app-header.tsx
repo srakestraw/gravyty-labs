@@ -44,17 +44,9 @@ const apps: App[] = [
     path: '/sis',
   },
   {
-    id: 'ai-teammates',
-    name: 'AI Teammates',
-    shortName: 'AI',
-    icon: 'fa-solid fa-robot',
-    color: '#059669',
-    path: '/ai-teammates',
-  },
-  {
     id: 'ai-assistants',
     name: 'AI Assistants',
-    shortName: 'Assistants',
+    shortName: 'AI Assistants',
     icon: 'fa-solid fa-user-robot',
     color: '#8B5CF6',
     path: '/ai-assistants',

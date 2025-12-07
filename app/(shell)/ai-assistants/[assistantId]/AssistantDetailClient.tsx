@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 import { Button } from '@/components/ui/button';
 import { mockAssistants, mockLogs } from '../lib/data';
@@ -167,7 +168,16 @@ export function AssistantDetailClient({ assistantId }: AssistantDetailClientProp
 
         {activeTab === 'logs' && (
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Activity Logs</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">Activity Logs</h3>
+              <Link
+                href={`/ai-assistants/logs?scope=agent&agentId=${assistantId}`}
+                className="text-xs text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1"
+              >
+                View this agent in Logs
+                <FontAwesomeIcon icon="fa-solid fa-arrow-right" className="h-3 w-3" />
+              </Link>
+            </div>
             {assistantLogs.length === 0 ? (
               <p className="text-gray-500">No logs available for this assistant.</p>
             ) : (

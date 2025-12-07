@@ -67,7 +67,6 @@ export function AppSidebar() {
       { name: 'Dashboard', href: '/dashboard', icon: 'fa-solid fa-house' },
       { name: 'Admissions', href: '/admissions', icon: 'fa-solid fa-clipboard-check' },
       { name: 'SIS', href: '/sis', icon: 'fa-solid fa-graduation-cap' },
-      { name: 'AI Teammates', href: '/ai-teammates', icon: 'fa-solid fa-robot' },
     ];
 
     // Add AI Assistants if enabled and user has access

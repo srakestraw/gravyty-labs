@@ -28,15 +28,6 @@ const apps = [
     description: 'Student records, enrollment, and academic management'
   },
   {
-    id: 'ai-teammates',
-    name: 'AI Teammates',
-    shortName: 'AI Teammates',
-    icon: 'fa-solid fa-robot',
-    color: '#059669',
-    path: '/ai-teammates',
-    description: 'AI-powered automation and intelligent assistance'
-  },
-  {
     id: 'ai-assistants',
     name: 'AI Assistants',
     shortName: 'AI Assistants',

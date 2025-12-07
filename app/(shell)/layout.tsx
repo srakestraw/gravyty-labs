@@ -13,19 +13,19 @@ export default function ShellLayout({
   const { sidebarOpen } = usePlatformStore();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex flex-col h-screen bg-background overflow-hidden">
       <AppHeader />
       <AppSidebar />
       <main 
         className={cn(
-          'pt-14 min-h-screen transition-all duration-300',
+          'flex-1 pt-14 overflow-hidden transition-all duration-300',
           // Mobile: no padding when sidebar is closed
           'md:pl-16',
           // Desktop: adjust padding based on sidebar state
           sidebarOpen ? 'md:pl-64' : 'md:pl-16'
         )}
       >
-        <div className="p-4 sm:p-6">
+        <div className="h-full p-4 sm:p-6 overflow-auto">
           {children}
         </div>
       </main>
