@@ -30,23 +30,34 @@ export function AppSidebar() {
   // Check if we're in the AI Assistants app
   const isInAIAssistants = pathname?.startsWith('/ai-assistants');
 
+  type NavItem = { name: string; href: string; icon: string };
+  type Navigation = 
+    | { topLevel: NavItem[]; adminTools: NavItem[] }
+    | NavItem[];
+
   // Build navigation items - use useMemo to prevent recreation on every render
-  const navigation = useMemo(() => {
+  const navigation: Navigation = useMemo(() => {
     // If in AI Assistants app, show sub-navigation
     if (isInAIAssistants) {
-      return [
-        { name: 'AI Command Center', href: '/ai-assistants', icon: 'fa-solid fa-compass' },
-        { name: 'Assistants', href: '/ai-assistants', icon: 'fa-solid fa-user-robot' },
-        { name: 'Guardrails', href: '/ai-assistants/guardrails', icon: 'fa-solid fa-shield-halved' },
-        { name: 'Eval & Logs', href: '/ai-assistants/eval', icon: 'fa-solid fa-chart-line' },
-        { name: 'Templates', href: '/ai-assistants/templates', icon: 'fa-solid fa-file-lines' },
-        { name: 'Permissions', href: '/ai-assistants/permissions', icon: 'fa-solid fa-key' },
-        { name: 'Settings', href: '/ai-assistants/settings', icon: 'fa-solid fa-cog' },
-      ];
+      return {
+        topLevel: [
+          { name: 'AI Command Center', href: '/ai-assistants', icon: 'fa-solid fa-compass' },
+          { name: 'AI Assistant', href: '/ai-assistants/assistant', icon: 'fa-solid fa-comments' },
+          { name: 'Agents', href: '/ai-assistants/agents', icon: 'fa-solid fa-bolt' },
+        ],
+        adminTools: [
+          { name: 'Guardrails', href: '/ai-assistants/guardrails', icon: 'fa-solid fa-shield-halved' },
+          { name: 'Do Not Engage', href: '/ai-assistants/do-not-engage', icon: 'fa-solid fa-user-slash' },
+          { name: 'Eval & Logs', href: '/ai-assistants/eval', icon: 'fa-solid fa-chart-line' },
+          { name: 'Templates', href: '/ai-assistants/templates', icon: 'fa-solid fa-file-lines' },
+          { name: 'Permissions', href: '/ai-assistants/permissions', icon: 'fa-solid fa-key' },
+          { name: 'Settings', href: '/ai-assistants/settings', icon: 'fa-solid fa-cog' },
+        ],
+      };
     }
 
     // Otherwise, show main app navigation
-    const baseNav = [
+    const baseNav: NavItem[] = [
       { name: 'Dashboard', href: '/dashboard', icon: 'fa-solid fa-house' },
       { name: 'Admissions', href: '/admissions', icon: 'fa-solid fa-clipboard-check' },
       { name: 'SIS', href: '/sis', icon: 'fa-solid fa-graduation-cap' },
@@ -82,36 +93,102 @@ export function AppSidebar() {
         )}
       >
         <nav className="flex flex-col gap-1 p-2">
-          {navigation.map((item) => {
-            // For AI Assistants sub-navigation, check if pathname matches or starts with href
-            // For main navigation, check exact match
-            const isActive = isInAIAssistants
-              ? (pathname === item.href || (item.href !== '/ai-assistants' && pathname?.startsWith(item.href)))
-              : pathname === item.href;
-            
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={cn(
-                  'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
-                  'hover:bg-gray-100 text-gray-700',
-                  isActive && (isInAIAssistants ? 'bg-purple-50 text-purple-700 font-medium' : 'bg-blue-50 text-primary font-medium')
-                )}
-                onClick={() => {
-                  // Close sidebar on mobile when navigating
-                  if (isMobile) {
-                    usePlatformStore.getState().toggleSidebar();
-                  }
-                }}
-              >
-                <FontAwesomeIcon icon={item.icon} className="h-5 w-5 flex-shrink-0" />
-                {(sidebarOpen || isMobile) && (
-                  <span className="truncate">{item.name}</span>
-                )}
-              </Link>
-            );
-          })}
+          {isInAIAssistants && !Array.isArray(navigation) ? (
+            <>
+              {/* Top-level navigation items */}
+              {navigation.topLevel.map((item) => {
+                // For /ai-assistants, only exact match. For others, exact match or starts with href + '/'
+                const isActive = item.href === '/ai-assistants'
+                  ? pathname === item.href
+                  : pathname === item.href || pathname?.startsWith(item.href + '/');
+                
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={cn(
+                      'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
+                      'hover:bg-gray-100 text-gray-700',
+                      isActive && 'bg-purple-50 text-purple-700 font-medium'
+                    )}
+                    onClick={() => {
+                      // Close sidebar on mobile when navigating
+                      if (isMobile) {
+                        usePlatformStore.getState().toggleSidebar();
+                      }
+                    }}
+                  >
+                    <FontAwesomeIcon icon={item.icon} className="h-5 w-5 flex-shrink-0" />
+                    {(sidebarOpen || isMobile) && (
+                      <span className="truncate">{item.name}</span>
+                    )}
+                  </Link>
+                );
+              })}
+              
+              {/* Admin Tools section */}
+              {(sidebarOpen || isMobile) && (
+                <div className="mt-4 px-3 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                  Admin Tools
+                </div>
+              )}
+              
+              {navigation.adminTools.map((item) => {
+                const isActive = pathname === item.href || pathname?.startsWith(item.href);
+                
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={cn(
+                      'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
+                      'hover:bg-gray-100 text-gray-700',
+                      isActive && 'bg-purple-50 text-purple-700 font-medium'
+                    )}
+                    onClick={() => {
+                      // Close sidebar on mobile when navigating
+                      if (isMobile) {
+                        usePlatformStore.getState().toggleSidebar();
+                      }
+                    }}
+                  >
+                    <FontAwesomeIcon icon={item.icon} className="h-5 w-5 flex-shrink-0" />
+                    {(sidebarOpen || isMobile) && (
+                      <span className="truncate">{item.name}</span>
+                    )}
+                  </Link>
+                );
+              })}
+            </>
+          ) : (
+            // Main app navigation (non-AI Assistants)
+            Array.isArray(navigation) && navigation.map((item) => {
+              const isActive = pathname === item.href;
+              
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={cn(
+                    'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
+                    'hover:bg-gray-100 text-gray-700',
+                    isActive && 'bg-blue-50 text-primary font-medium'
+                  )}
+                  onClick={() => {
+                    // Close sidebar on mobile when navigating
+                    if (isMobile) {
+                      usePlatformStore.getState().toggleSidebar();
+                    }
+                  }}
+                >
+                  <FontAwesomeIcon icon={item.icon} className="h-5 w-5 flex-shrink-0" />
+                  {(sidebarOpen || isMobile) && (
+                    <span className="truncate">{item.name}</span>
+                  )}
+                </Link>
+              );
+            })
+          )}
         </nav>
       </aside>
     </>

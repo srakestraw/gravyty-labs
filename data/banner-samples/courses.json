@@ -1,0 +1,83 @@
+[
+  {
+    "id": "880e8400-e29b-41d4-a716-446655440001",
+    "subject": {
+      "code": "CS",
+      "title": "Computer Science"
+    },
+    "number": "101",
+    "title": "Introduction to Computer Science",
+    "description": "Fundamental concepts of computer science including programming, algorithms, and data structures.",
+    "credits": {
+      "creditType": "institutional",
+      "minimum": 3,
+      "maximum": 3,
+      "increment": 1
+    },
+    "courseLevel": "undergraduate",
+    "status": "active",
+    "effectiveStartDate": "2020-08-01",
+    "effectiveEndDate": null,
+    "catalogYear": "2024-2025",
+    "prerequisites": [],
+    "corequisites": []
+  },
+  {
+    "id": "880e8400-e29b-41d4-a716-446655440002",
+    "subject": {
+      "code": "MATH",
+      "title": "Mathematics"
+    },
+    "number": "201",
+    "title": "Calculus I",
+    "description": "Limits, continuity, derivatives, and applications of derivatives.",
+    "credits": {
+      "creditType": "institutional",
+      "minimum": 4,
+      "maximum": 4,
+      "increment": 1
+    },
+    "courseLevel": "undergraduate",
+    "status": "active",
+    "effectiveStartDate": "2019-08-01",
+    "effectiveEndDate": null,
+    "catalogYear": "2024-2025",
+    "prerequisites": [
+      {
+        "course": {
+          "id": "880e8400-e29b-41d4-a716-446655440003"
+        }
+      }
+    ],
+    "corequisites": []
+  },
+  {
+    "id": "880e8400-e29b-41d4-a716-446655440003",
+    "subject": {
+      "code": "MATH",
+      "title": "Mathematics"
+    },
+    "number": "120",
+    "title": "Precalculus",
+    "description": "Algebra, trigonometry, and analytic geometry preparation for calculus.",
+    "credits": {
+      "creditType": "institutional",
+      "minimum": 3,
+      "maximum": 3,
+      "increment": 1
+    },
+    "courseLevel": "undergraduate",
+    "status": "active",
+    "effectiveStartDate": "2018-08-01",
+    "effectiveEndDate": null,
+    "catalogYear": "2024-2025",
+    "prerequisites": [],
+    "corequisites": []
+  }
+]
+
+
+
+
+
+

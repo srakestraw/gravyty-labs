@@ -15,9 +15,9 @@ export default function AIAssistantsLayout({
   const aiAssistantsEnabled = useFeatureFlag('ai_assistants');
   const pathname = usePathname();
   
-  // Hide header on Agents list page and all agent detail/edit pages
-  const isAgentsPage = pathname?.startsWith('/ai-assistants/agents');
-  const showHeader = !isAgentsPage;
+  // Show header ONLY on the main /ai-assistants page, hide on all other pages
+  const isMainPage = pathname === '/ai-assistants' || pathname === '/ai-assistants/';
+  const showHeader = isMainPage;
 
   // Wait for auth to load before checking access
   if (loading) {
@@ -46,7 +46,7 @@ export default function AIAssistantsLayout({
 
   return (
     <div className="space-y-6">
-      {/* Top Bar - Hidden on Agents page */}
+      {/* Top Bar - Only shown on main /ai-assistants page */}
       {showHeader && (
         <div className="border-b border-gray-200 pb-4">
           <div className="flex items-center justify-between">

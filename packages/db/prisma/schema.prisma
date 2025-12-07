@@ -1,0 +1,442 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// Person & Contact Information
+// ============================================================================
+
+model Person {
+  id                String    @id @default(uuid())
+  birthDate         DateTime? @db.Date
+  gender            String?
+  citizenshipStatus String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  names             PersonName[]
+  emails            EmailAddress[]
+  phones            Phone[]
+  addresses        Address[]
+  student           Student?
+  sections          Section[] @relation("SectionInstructor")
+  doNotEngageGlobal DoNotEngageGlobal?
+  doNotEngageAgents DoNotEngageAgent[]
+
+  @@map("persons")
+}
+
+model PersonName {
+  id        String   @id @default(uuid())
+  personId  String
+  given     String
+  middle    String?
+  family    String
+  type      String   // legal, preferred, nickname, etc.
+  preferred Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  person Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@map("person_names")
+}
+
+model EmailAddress {
+  id        String   @id @default(uuid())
+  personId  String
+  address   String
+  type      String   // personal, institutional, work, etc.
+  preferred Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  person Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@unique([personId, address])
+  @@map("email_addresses")
+}
+
+model Phone {
+  id        String   @id @default(uuid())
+  personId  String
+  number    String
+  extension String?
+  type      String   // mobile, home, work, etc.
+  preferred Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  person Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@map("phones")
+}
+
+model Address {
+  id         String   @id @default(uuid())
+  personId   String
+  type       String   // home, mailing, billing, etc.
+  line1      String
+  line2      String?
+  city       String
+  state      String
+  postalCode String
+  country    String   @default("USA")
+  createdAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  person Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@map("addresses")
+}
+
+// ============================================================================
+// Do-Not-Engage (DNE) Framework
+// ============================================================================
+
+model DoNotEngageGlobal {
+  id           String   @id @default(uuid())
+  personId     String   @unique
+  person       Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  emailBlocked Boolean  @default(false)
+  smsBlocked   Boolean  @default(false)
+  phoneBlocked Boolean  @default(false)
+  source       String   // e.g. "user_opt_out", "admin", "import"
+  reason       String?  // free-text notes
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  updatedById  String?  // admin user id if available
+
+  @@map("do_not_engage_global")
+}
+
+model DoNotEngageAgent {
+  id         String   @id @default(uuid())
+  personId   String
+  person     Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  agentId    String   // Agent identifier (string ID, not FK since Agent model doesn't exist yet)
+  createdAt  DateTime @default(now())
+  createdById String?  // admin user id
+
+  @@unique([personId, agentId])
+  @@map("do_not_engage_agents")
+}
+
+// ============================================================================
+// Student
+// ============================================================================
+
+model Student {
+  id                      String   @id @default(uuid())
+  personId                String   @unique
+  type                    String   // undergraduate, graduate, etc.
+  status                  String   // active, inactive, graduated, etc.
+  startOn                 DateTime @db.Date
+  entryAcademicPeriodId   String?
+  academicLevel           String?  // freshman, sophomore, etc.
+  residency               String?  // in-state, out-of-state, etc.
+  studentClassification   String?  // full-time, part-time, etc.
+  studentLoad             String?  // full-time, part-time
+  academicStandingCode    String?
+  studentNumber            String   @unique
+  // Risk & Behavior fields (Phase 05)
+  isFirstGen              Boolean  @default(false)
+  isPellEligible          Boolean  @default(false)
+  isInState              Boolean  @default(true)
+  workHoursPerWeek        Int      @default(0)
+  commuteMinutes          Int      @default(0)
+  hasHousingInstability    Boolean  @default(false)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  // Relations
+  person                  Person                    @relation(fields: [personId], references: [id], onDelete: Cascade)
+  entryAcademicPeriod     AcademicPeriod?           @relation("StudentEntryPeriod", fields: [entryAcademicPeriodId], references: [id])
+  sectionRegistrations    SectionRegistration[]
+  studentAcademicPrograms StudentAcademicProgram[]
+  academicCredentials     AcademicCredential[]
+  transcriptGrades         StudentTranscriptGrade[]
+  studentRisks            StudentRisk[]
+
+  @@map("students")
+}
+
+// ============================================================================
+// Academic Periods
+// ============================================================================
+
+model AcademicPeriod {
+  id                  String   @id @default(uuid())
+  code                String   @unique // e.g., "2024FA", "2025SP"
+  title               String   // e.g., "Fall 2024"
+  type                String   // term, year, etc.
+  startOn             DateTime @db.Date
+  endOn               DateTime @db.Date
+  censusOn            DateTime? @db.Date
+  registrationStartOn DateTime? @db.Date
+  registrationEndOn   DateTime? @db.Date
+  academicYear        String   // e.g., "2024-2025"
+  status              String   // active, closed, etc.
+  createdAt           DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relations
+  sections            Section[]
+  sectionRegistrations SectionRegistration[]
+  transcriptGrades    StudentTranscriptGrade[]
+  entryStudents       Student[]                @relation("StudentEntryPeriod")
+  credentialPeriods   AcademicCredential[]      @relation("CredentialPeriod")
+  studentRisks        StudentRisk[]            @relation("StudentRiskPeriod")
+
+  @@map("academic_periods")
+}
+
+// ============================================================================
+// Courses & Sections
+// ============================================================================
+
+model Course {
+  id                String   @id @default(uuid())
+  subjectCode       String   // e.g., "CS", "MATH"
+  number            String   // e.g., "101", "201"
+  title             String
+  description       String?
+  creditType        String   // institutional, transfer, etc.
+  creditsMinimum    Decimal  @db.Decimal(5, 2)
+  creditsMaximum    Decimal  @db.Decimal(5, 2)
+  creditsIncrement  Decimal? @db.Decimal(5, 2)
+  courseLevel       String   // undergraduate, graduate
+  status            String   // active, inactive
+  effectiveStartDate DateTime? @db.Date
+  effectiveEndDate   DateTime? @db.Date
+  catalogYear       String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  sections          Section[]
+  transcriptGrades  StudentTranscriptGrade[]
+
+  @@unique([subjectCode, number, catalogYear])
+  @@map("courses")
+}
+
+model Section {
+  id                    String   @id @default(uuid())
+  courseId              String
+  academicPeriodId      String
+  number                String   // e.g., "001", "002"
+  title                 String?
+  crn                   String   // Course Reference Number
+  startOn               DateTime @db.Date
+  endOn                 DateTime @db.Date
+  status                String   // open, closed, cancelled
+  capacity              Int
+  enrolled              Int      @default(0)
+  available             Int      @default(0)
+  waitlistCapacity      Int?
+  waitlistEnrolled      Int?     @default(0)
+  instructionalMethodCode String?
+  daysOfWeek            String[] // Array of day names
+  startTime             String?
+  endTime               String?
+  building              String?
+  roomNumber            String?
+  creditType            String
+  creditsMinimum        Decimal  @db.Decimal(5, 2)
+  creditsMaximum        Decimal  @db.Decimal(5, 2)
+  instructorPersonId    String?  // Optional instructor (Person, not Student)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  // Relations
+  course                Course                 @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  academicPeriod        AcademicPeriod         @relation(fields: [academicPeriodId], references: [id], onDelete: Cascade)
+  instructor            Person?                 @relation("SectionInstructor", fields: [instructorPersonId], references: [id], onDelete: SetNull)
+  sectionRegistrations  SectionRegistration[]
+  transcriptGrades       StudentTranscriptGrade[]
+
+  @@unique([academicPeriodId, crn])
+  @@map("sections")
+}
+
+// ============================================================================
+// Enrollment & Grades
+// ============================================================================
+
+model SectionRegistration {
+  id                  String   @id @default(uuid())
+  studentId           String
+  sectionId           String
+  academicPeriodId    String
+  statusCode          String   // REG, DROP, WITHDRAW, etc.
+  registrationDate   DateTime
+  registeredOn        DateTime @db.Date
+  creditType          String
+  credits             Decimal  @db.Decimal(5, 2)
+  gradingOptionCode   String?
+  academicLoad        String?
+  residencyStatus     String?
+  // Attendance & Grades (Phase 05)
+  attendanceRate      Float?   @default(1.0) // 0-1, percentage of classes attended
+  midtermGrade        String?  // A, B, C, D, F, W, or null
+  finalGrade          String?  // A, B, C, D, F, W, or null
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relations
+  student             Student                 @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  section             Section                  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  academicPeriod      AcademicPeriod          @relation(fields: [academicPeriodId], references: [id], onDelete: Cascade)
+  transcriptGrade     StudentTranscriptGrade?
+
+  @@unique([studentId, sectionId])
+  @@map("section_registrations")
+}
+
+model StudentTranscriptGrade {
+  id                    String   @id @default(uuid())
+  studentId             String
+  sectionRegistrationId String   @unique
+  sectionId             String
+  academicPeriodId      String
+  courseId              String
+  gradeSchemeCode       String?
+  gradeValue            String?  // A, B+, C, etc.
+  gradePoints           Decimal? @db.Decimal(3, 2)
+  qualityPoints         Decimal? @db.Decimal(6, 2)
+  creditsAttempted      Decimal  @db.Decimal(5, 2)
+  creditsEarned         Decimal  @db.Decimal(5, 2)
+  finalGradeDate        DateTime? @db.Date
+  status                String   // final, in-progress, incomplete
+  incomplete            Boolean  @default(false)
+  repeat                Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  // Relations
+  student               Student              @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  sectionRegistration   SectionRegistration @relation(fields: [sectionRegistrationId], references: [id], onDelete: Cascade)
+  section               Section              @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  academicPeriod        AcademicPeriod       @relation(fields: [academicPeriodId], references: [id], onDelete: Cascade)
+  course                Course               @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@map("student_transcript_grades")
+}
+
+// ============================================================================
+// Academic Programs
+// ============================================================================
+
+model AcademicProgram {
+  id                String   @id @default(uuid())
+  code              String   @unique // e.g., "CS-BS", "MATH-BS"
+  title             String
+  type              String   // major, minor, certificate
+  level             String   // undergraduate, graduate
+  degreeCode        String?  // BS, BA, MS, etc.
+  status            String   // active, inactive
+  startOn           DateTime? @db.Date
+  endOn             DateTime? @db.Date
+  accreditationCode String?
+  creditsRequired   Int
+  description       String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  studentPrograms   StudentAcademicProgram[]
+  credentials       AcademicCredential[]
+
+  @@map("academic_programs")
+}
+
+model StudentAcademicProgram {
+  id                String   @id @default(uuid())
+  studentId         String
+  academicProgramId String
+  startOn           DateTime @db.Date
+  endOn             DateTime? @db.Date
+  status            String   // active, completed, withdrawn
+  catalogYear       String?
+  primary           Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  student           Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  academicProgram   AcademicProgram @relation(fields: [academicProgramId], references: [id], onDelete: Cascade)
+
+  @@map("student_academic_programs")
+}
+
+model AcademicCredential {
+  id                String   @id @default(uuid())
+  studentId         String
+  credentialCode    String   // BS, BA, MS, etc.
+  academicProgramId String?
+  awardedOn         DateTime @db.Date
+  status            String   // awarded, pending, revoked
+  academicPeriodId  String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  student           Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  academicProgram   AcademicProgram? @relation(fields: [academicProgramId], references: [id], onDelete: SetNull)
+  academicPeriod    AcademicPeriod?  @relation("CredentialPeriod", fields: [academicPeriodId], references: [id], onDelete: SetNull)
+
+  @@map("academic_credentials")
+}
+
+// ============================================================================
+// Risk & Simulation (Phase 05)
+// ============================================================================
+
+enum RiskBucket {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model StudentRisk {
+  id                      String     @id @default(uuid())
+  studentId               String
+  academicPeriodId        String
+  attendanceRiskScore     Float      // 0-1, higher = more risk
+  academicSupportRiskScore Float     // 0-1, higher = more risk
+  overallRiskBucket       RiskBucket
+  updatedAt               DateTime   @updatedAt
+  createdAt               DateTime   @default(now())
+
+  // Relations
+  student                 Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  academicPeriod          AcademicPeriod  @relation("StudentRiskPeriod", fields: [academicPeriodId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, academicPeriodId])
+  @@map("student_risks")
+}
+
+model SimulationState {
+  id                String   @id @default(uuid())
+  currentSimDate    DateTime @db.Date
+  lastTickDate       DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("simulation_state")
+}
+

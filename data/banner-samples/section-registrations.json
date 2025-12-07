@@ -1,0 +1,89 @@
+[
+  {
+    "id": "bb0e8400-e29b-41d4-a716-446655440001",
+    "student": {
+      "id": "660e8400-e29b-41d4-a716-446655440001"
+    },
+    "section": {
+      "id": "990e8400-e29b-41d4-a716-446655440001"
+    },
+    "academicPeriod": {
+      "id": "770e8400-e29b-41d4-a716-446655440001",
+      "code": "2024FA"
+    },
+    "status": {
+      "code": "REG",
+      "title": "Registered"
+    },
+    "registrationDate": "2024-04-15T10:30:00Z",
+    "registeredOn": "2024-04-15",
+    "creditType": "institutional",
+    "credits": 3,
+    "gradingOption": {
+      "code": "GRAD",
+      "title": "Graded"
+    },
+    "academicLoad": "full-time",
+    "residencyStatus": "in-state"
+  },
+  {
+    "id": "bb0e8400-e29b-41d4-a716-446655440002",
+    "student": {
+      "id": "660e8400-e29b-41d4-a716-446655440002"
+    },
+    "section": {
+      "id": "990e8400-e29b-41d4-a716-446655440002"
+    },
+    "academicPeriod": {
+      "id": "770e8400-e29b-41d4-a716-446655440001",
+      "code": "2024FA"
+    },
+    "status": {
+      "code": "REG",
+      "title": "Registered"
+    },
+    "registrationDate": "2024-04-12T14:20:00Z",
+    "registeredOn": "2024-04-12",
+    "creditType": "institutional",
+    "credits": 4,
+    "gradingOption": {
+      "code": "GRAD",
+      "title": "Graded"
+    },
+    "academicLoad": "full-time",
+    "residencyStatus": "in-state"
+  },
+  {
+    "id": "bb0e8400-e29b-41d4-a716-446655440003",
+    "student": {
+      "id": "660e8400-e29b-41d4-a716-446655440001"
+    },
+    "section": {
+      "id": "990e8400-e29b-41d4-a716-446655440003"
+    },
+    "academicPeriod": {
+      "id": "770e8400-e29b-41d4-a716-446655440002",
+      "code": "2025SP"
+    },
+    "status": {
+      "code": "REG",
+      "title": "Registered"
+    },
+    "registrationDate": "2024-11-05T09:15:00Z",
+    "registeredOn": "2024-11-05",
+    "creditType": "institutional",
+    "credits": 3,
+    "gradingOption": {
+      "code": "GRAD",
+      "title": "Graded"
+    },
+    "academicLoad": "full-time",
+    "residencyStatus": "in-state"
+  }
+]
+
+
+
+
+
+

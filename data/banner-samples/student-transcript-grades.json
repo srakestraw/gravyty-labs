@@ -1,0 +1,113 @@
+[
+  {
+    "id": "ff0e8400-e29b-41d4-a716-446655440001",
+    "student": {
+      "id": "660e8400-e29b-41d4-a716-446655440001"
+    },
+    "sectionRegistration": {
+      "id": "bb0e8400-e29b-41d4-a716-446655440001"
+    },
+    "section": {
+      "id": "990e8400-e29b-41d4-a716-446655440001"
+    },
+    "academicPeriod": {
+      "id": "770e8400-e29b-41d4-a716-446655440001",
+      "code": "2024FA"
+    },
+    "course": {
+      "id": "880e8400-e29b-41d4-a716-446655440001"
+    },
+    "grade": {
+      "scheme": {
+        "code": "STANDARD",
+        "title": "Standard Grading"
+      },
+      "value": "A",
+      "title": "Excellent"
+    },
+    "gradePoints": 4.0,
+    "qualityPoints": 12.0,
+    "creditsAttempted": 3,
+    "creditsEarned": 3,
+    "finalGradeDate": "2024-12-20",
+    "status": "final",
+    "incomplete": false,
+    "repeat": false
+  },
+  {
+    "id": "ff0e8400-e29b-41d4-a716-446655440002",
+    "student": {
+      "id": "660e8400-e29b-41d4-a716-446655440002"
+    },
+    "sectionRegistration": {
+      "id": "bb0e8400-e29b-41d4-a716-446655440002"
+    },
+    "section": {
+      "id": "990e8400-e29b-41d4-a716-446655440002"
+    },
+    "academicPeriod": {
+      "id": "770e8400-e29b-41d4-a716-446655440001",
+      "code": "2024FA"
+    },
+    "course": {
+      "id": "880e8400-e29b-41d4-a716-446655440002"
+    },
+    "grade": {
+      "scheme": {
+        "code": "STANDARD",
+        "title": "Standard Grading"
+      },
+      "value": "B+",
+      "title": "Good Plus"
+    },
+    "gradePoints": 3.3,
+    "qualityPoints": 13.2,
+    "creditsAttempted": 4,
+    "creditsEarned": 4,
+    "finalGradeDate": "2024-12-20",
+    "status": "final",
+    "incomplete": false,
+    "repeat": false
+  },
+  {
+    "id": "ff0e8400-e29b-41d4-a716-446655440003",
+    "student": {
+      "id": "660e8400-e29b-41d4-a716-446655440001"
+    },
+    "sectionRegistration": {
+      "id": "bb0e8400-e29b-41d4-a716-446655440003"
+    },
+    "section": {
+      "id": "990e8400-e29b-41d4-a716-446655440003"
+    },
+    "academicPeriod": {
+      "id": "770e8400-e29b-41d4-a716-446655440002",
+      "code": "2025SP"
+    },
+    "course": {
+      "id": "880e8400-e29b-41d4-a716-446655440001"
+    },
+    "grade": {
+      "scheme": {
+        "code": "STANDARD",
+        "title": "Standard Grading"
+      },
+      "value": null,
+      "title": "In Progress"
+    },
+    "gradePoints": null,
+    "qualityPoints": null,
+    "creditsAttempted": 3,
+    "creditsEarned": 0,
+    "finalGradeDate": null,
+    "status": "in-progress",
+    "incomplete": false,
+    "repeat": false
+  }
+]
+
+
+
+
+
+

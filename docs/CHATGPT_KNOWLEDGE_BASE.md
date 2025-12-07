@@ -504,3 +504,11 @@ import { cn } from '@/lib/utils';
 
 This knowledge base should be used as a reference when working on the Gravyty Labs Portal application. Always refer to this document when making architectural decisions or implementing new features.
 
+
+
+
+
+
+
+
+

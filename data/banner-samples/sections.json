@@ -1,0 +1,149 @@
+[
+  {
+    "id": "990e8400-e29b-41d4-a716-446655440001",
+    "course": {
+      "id": "880e8400-e29b-41d4-a716-446655440001"
+    },
+    "academicPeriod": {
+      "id": "770e8400-e29b-41d4-a716-446655440001",
+      "code": "2024FA"
+    },
+    "number": "001",
+    "title": "Introduction to Computer Science",
+    "crn": "12345",
+    "startOn": "2024-08-26",
+    "endOn": "2024-12-13",
+    "status": "open",
+    "capacity": 30,
+    "enrolled": 28,
+    "available": 2,
+    "waitlistCapacity": 5,
+    "waitlistEnrolled": 0,
+    "instructionalMethod": {
+      "code": "LEC",
+      "title": "Lecture"
+    },
+    "schedule": {
+      "daysOfWeek": ["monday", "wednesday", "friday"],
+      "startTime": "10:00",
+      "endTime": "10:50",
+      "room": {
+        "building": "SCI",
+        "number": "101"
+      }
+    },
+    "instructors": [
+      {
+        "person": {
+          "id": "aa0e8400-e29b-41d4-a716-446655440001"
+        },
+        "role": "primary"
+      }
+    ],
+    "credits": {
+      "creditType": "institutional",
+      "minimum": 3,
+      "maximum": 3
+    }
+  },
+  {
+    "id": "990e8400-e29b-41d4-a716-446655440002",
+    "course": {
+      "id": "880e8400-e29b-41d4-a716-446655440002"
+    },
+    "academicPeriod": {
+      "id": "770e8400-e29b-41d4-a716-446655440001",
+      "code": "2024FA"
+    },
+    "number": "001",
+    "title": "Calculus I",
+    "crn": "12346",
+    "startOn": "2024-08-26",
+    "endOn": "2024-12-13",
+    "status": "open",
+    "capacity": 35,
+    "enrolled": 32,
+    "available": 3,
+    "waitlistCapacity": 5,
+    "waitlistEnrolled": 1,
+    "instructionalMethod": {
+      "code": "LEC",
+      "title": "Lecture"
+    },
+    "schedule": {
+      "daysOfWeek": ["tuesday", "thursday"],
+      "startTime": "11:00",
+      "endTime": "12:15",
+      "room": {
+        "building": "MATH",
+        "number": "205"
+      }
+    },
+    "instructors": [
+      {
+        "person": {
+          "id": "aa0e8400-e29b-41d4-a716-446655440002"
+        },
+        "role": "primary"
+      }
+    ],
+    "credits": {
+      "creditType": "institutional",
+      "minimum": 4,
+      "maximum": 4
+    }
+  },
+  {
+    "id": "990e8400-e29b-41d4-a716-446655440003",
+    "course": {
+      "id": "880e8400-e29b-41d4-a716-446655440001"
+    },
+    "academicPeriod": {
+      "id": "770e8400-e29b-41d4-a716-446655440002",
+      "code": "2025SP"
+    },
+    "number": "001",
+    "title": "Introduction to Computer Science",
+    "crn": "23456",
+    "startOn": "2025-01-13",
+    "endOn": "2025-05-02",
+    "status": "open",
+    "capacity": 30,
+    "enrolled": 15,
+    "available": 15,
+    "waitlistCapacity": 5,
+    "waitlistEnrolled": 0,
+    "instructionalMethod": {
+      "code": "LEC",
+      "title": "Lecture"
+    },
+    "schedule": {
+      "daysOfWeek": ["monday", "wednesday", "friday"],
+      "startTime": "09:00",
+      "endTime": "09:50",
+      "room": {
+        "building": "SCI",
+        "number": "101"
+      }
+    },
+    "instructors": [
+      {
+        "person": {
+          "id": "aa0e8400-e29b-41d4-a716-446655440001"
+        },
+        "role": "primary"
+      }
+    ],
+    "credits": {
+      "creditType": "institutional",
+      "minimum": 3,
+      "maximum": 3
+    }
+  }
+]
+
+
+
+
+
+

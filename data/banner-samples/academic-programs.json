@@ -1,0 +1,59 @@
+[
+  {
+    "id": "cc0e8400-e29b-41d4-a716-446655440001",
+    "code": "CS-BS",
+    "title": "Bachelor of Science in Computer Science",
+    "type": "major",
+    "level": "undergraduate",
+    "degree": {
+      "code": "BS",
+      "title": "Bachelor of Science"
+    },
+    "status": "active",
+    "startOn": "2020-08-01",
+    "endOn": null,
+    "accreditation": {
+      "code": "ABET",
+      "title": "ABET Accredited"
+    },
+    "creditsRequired": 120,
+    "description": "Comprehensive program covering computer science fundamentals, software engineering, and advanced topics."
+  },
+  {
+    "id": "cc0e8400-e29b-41d4-a716-446655440002",
+    "code": "MATH-BS",
+    "title": "Bachelor of Science in Mathematics",
+    "type": "major",
+    "level": "undergraduate",
+    "degree": {
+      "code": "BS",
+      "title": "Bachelor of Science"
+    },
+    "status": "active",
+    "startOn": "2019-08-01",
+    "endOn": null,
+    "accreditation": null,
+    "creditsRequired": 120,
+    "description": "Rigorous mathematics program preparing students for careers in research, education, and industry."
+  },
+  {
+    "id": "cc0e8400-e29b-41d4-a716-446655440003",
+    "code": "CS-MINOR",
+    "title": "Minor in Computer Science",
+    "type": "minor",
+    "level": "undergraduate",
+    "degree": null,
+    "status": "active",
+    "startOn": "2021-08-01",
+    "endOn": null,
+    "accreditation": null,
+    "creditsRequired": 18,
+    "description": "Minor program providing foundational computer science knowledge."
+  }
+]
+
+
+
+
+
+

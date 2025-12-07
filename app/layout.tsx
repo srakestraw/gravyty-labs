@@ -34,9 +34,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        {/* Font Awesome Kit */}
-        <Script 
-          src="https://kit.fontawesome.com/a983b74f3b.js" 
+        <Script
+          src="https://kit.fontawesome.com/a983b74f3b.js"
           crossOrigin="anonymous"
           strategy="beforeInteractive"
         />

@@ -1,0 +1,188 @@
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440001",
+    "names": [
+      {
+        "given": "Alexandra",
+        "middle": "Marie",
+        "family": "Rodriguez",
+        "type": "legal",
+        "preferred": true
+      }
+    ],
+    "birthDate": "2002-05-15",
+    "gender": "female",
+    "citizenshipStatus": "citizen",
+    "ethnicities": [
+      {
+        "code": "HISP",
+        "title": "Hispanic or Latino"
+      }
+    ],
+    "races": [
+      {
+        "code": "WHITE",
+        "title": "White"
+      }
+    ],
+    "addresses": [
+      {
+        "type": "home",
+        "lines": ["123 Oak Street"],
+        "city": "Springfield",
+        "state": "IL",
+        "postalCode": "62701",
+        "country": "USA"
+      },
+      {
+        "type": "mailing",
+        "lines": ["456 University Ave", "Apt 3B"],
+        "city": "Springfield",
+        "state": "IL",
+        "postalCode": "62702",
+        "country": "USA"
+      }
+    ],
+    "emails": [
+      {
+        "type": "personal",
+        "address": "alexandra.rodriguez@email.com"
+      },
+      {
+        "type": "institutional",
+        "address": "arodriguez@affinity.edu",
+        "preferred": true
+      }
+    ],
+    "phones": [
+      {
+        "type": "mobile",
+        "number": "217-555-0123",
+        "extension": null,
+        "preferred": true
+      }
+    ],
+    "credentials": [
+      {
+        "type": "ssn",
+        "value": "***-**-1234"
+      }
+    ]
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440002",
+    "names": [
+      {
+        "given": "Marcus",
+        "middle": "James",
+        "family": "Thompson",
+        "type": "legal",
+        "preferred": true
+      }
+    ],
+    "birthDate": "2001-11-22",
+    "gender": "male",
+    "citizenshipStatus": "citizen",
+    "ethnicities": [],
+    "races": [
+      {
+        "code": "BLACK",
+        "title": "Black or African American"
+      }
+    ],
+    "addresses": [
+      {
+        "type": "home",
+        "lines": ["789 Elm Drive"],
+        "city": "Chicago",
+        "state": "IL",
+        "postalCode": "60601",
+        "country": "USA"
+      }
+    ],
+    "emails": [
+      {
+        "type": "personal",
+        "address": "marcus.thompson@email.com"
+      },
+      {
+        "type": "institutional",
+        "address": "mthompson@affinity.edu",
+        "preferred": true
+      }
+    ],
+    "phones": [
+      {
+        "type": "mobile",
+        "number": "312-555-0456",
+        "extension": null,
+        "preferred": true
+      }
+    ],
+    "credentials": [
+      {
+        "type": "ssn",
+        "value": "***-**-5678"
+      }
+    ]
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440003",
+    "names": [
+      {
+        "given": "Sarah",
+        "middle": null,
+        "family": "Chen",
+        "type": "legal",
+        "preferred": true
+      }
+    ],
+    "birthDate": "2003-03-08",
+    "gender": "female",
+    "citizenshipStatus": "citizen",
+    "ethnicities": [],
+    "races": [
+      {
+        "code": "ASIAN",
+        "title": "Asian"
+      }
+    ],
+    "addresses": [
+      {
+        "type": "home",
+        "lines": ["321 Maple Lane"],
+        "city": "Peoria",
+        "state": "IL",
+        "postalCode": "61601",
+        "country": "USA"
+      }
+    ],
+    "emails": [
+      {
+        "type": "institutional",
+        "address": "schen@affinity.edu",
+        "preferred": true
+      }
+    ],
+    "phones": [
+      {
+        "type": "mobile",
+        "number": "309-555-0789",
+        "extension": null,
+        "preferred": true
+      }
+    ],
+    "credentials": [
+      {
+        "type": "ssn",
+        "value": "***-**-9012"
+      }
+    ]
+  }
+]
+
+
+
+
+
+

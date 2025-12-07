@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -14,12 +15,84 @@ import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 import { usePlatformStore } from '@/lib/store';
 import { AppSwitcher } from './app-switcher';
 import { useAuth } from '@/lib/firebase/auth-context';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
+import { App } from '@/lib/types';
+
+const apps: App[] = [
+  {
+    id: 'dashboard',
+    name: 'Dashboard',
+    shortName: 'Dashboard',
+    icon: 'fa-solid fa-house',
+    color: '#3B82F6',
+    path: '/dashboard',
+  },
+  {
+    id: 'admissions',
+    name: 'Admissions Management',
+    shortName: 'Admissions',
+    icon: 'fa-solid fa-clipboard-check',
+    color: '#00B8D9',
+    path: '/admissions',
+  },
+  {
+    id: 'sis',
+    name: 'Student Information System',
+    shortName: 'SIS',
+    icon: 'fa-solid fa-graduation-cap',
+    color: '#7C3AED',
+    path: '/sis',
+  },
+  {
+    id: 'ai-teammates',
+    name: 'AI Teammates',
+    shortName: 'AI',
+    icon: 'fa-solid fa-robot',
+    color: '#059669',
+    path: '/ai-teammates',
+  },
+  {
+    id: 'ai-assistants',
+    name: 'AI Assistants',
+    shortName: 'Assistants',
+    icon: 'fa-solid fa-user-robot',
+    color: '#8B5CF6',
+    path: '/ai-assistants',
+  },
+  {
+    id: 'admin',
+    name: 'Admin Panel',
+    shortName: 'Admin',
+    icon: 'fa-solid fa-cog',
+    color: '#DC2626',
+    path: '/admin',
+  },
+];
 
 export function AppHeader() {
-  const { activeApp, toggleSidebar } = usePlatformStore();
+  const { activeApp, toggleSidebar, setActiveApp } = usePlatformStore();
   const { user, signOut } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+
+  // Sync active app based on current pathname
+  useEffect(() => {
+    if (!pathname) return;
+
+    // Find the app that matches the current pathname
+    // Check for exact match first, then check if pathname starts with the app path
+    const matchingApp = apps.find(app => {
+      if (pathname === app.path) return true;
+      // For nested routes, check if pathname starts with the app path
+      // e.g., /ai-assistants/123 should match /ai-assistants
+      if (pathname.startsWith(app.path + '/')) return true;
+      return false;
+    });
+
+    if (matchingApp && matchingApp.id !== activeApp.id) {
+      setActiveApp(matchingApp);
+    }
+  }, [pathname, activeApp.id, setActiveApp]);
 
   const handleSignOut = async () => {
     await signOut();

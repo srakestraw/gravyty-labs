@@ -71,3 +71,11 @@ const { user, loading, signInWithGoogle, signOut } = useAuth();
 
 See `docs/CHATGPT_KNOWLEDGE_BASE.md` for comprehensive details.
 
+
+
+
+
+
+
+
+

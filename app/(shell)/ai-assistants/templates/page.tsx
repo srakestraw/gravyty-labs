@@ -2,16 +2,47 @@
 
 export const dynamic = 'force-static';
 
+import * as React from "react";
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { canManageAssistants } from '@/lib/roles';
-import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import { mockTemplates } from '../lib/data';
+import {
+  AGENT_TEMPLATES,
+  type AgentRole,
+  type AgentTemplate,
+} from "./agent-templates";
+import { TemplateCard } from "./TemplateCard";
+
+const ROLE_OPTIONS: AgentRole[] = [
+  "Admissions",
+  "Registrar",
+  "Student Success",
+  "Career Services",
+  "Alumni Engagement",
+  "Advancement",
+];
 
 export default function TemplatesPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const canManage = canManageAssistants(user?.email || user?.uid);
+  const [selectedRole, setSelectedRole] = React.useState<AgentRole | "All">("All");
+
+  // Filter templates by role
+  const filteredTemplates: AgentTemplate[] = React.useMemo(() => {
+    if (selectedRole === "All") {
+      return AGENT_TEMPLATES.filter((t) => t.key !== "blank");
+    }
+    return AGENT_TEMPLATES.filter(
+      (t) => (t.role === selectedRole || t.role === "All") && t.key !== "blank"
+    );
+  }, [selectedRole]);
+
+  const handleOpenTemplate = (template: AgentTemplate) => {
+    if (canManage) {
+      router.push(`/ai-assistants/agents/new?template=${template.key}`);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -22,37 +53,49 @@ export default function TemplatesPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {mockTemplates.map((template) => (
-          <div
-            key={template.id}
-            className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
+      {/* Role Filter */}
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm font-medium text-gray-700">Filter by role:</p>
+        <div className="inline-flex gap-1 rounded-full bg-gray-50 p-1">
+          <button
+            type="button"
+            onClick={() => setSelectedRole("All")}
+            className={[
+              "rounded-full px-2.5 py-1 text-[11px] font-medium",
+              selectedRole === "All"
+                ? "bg-gray-900 text-white"
+                : "text-gray-700 hover:bg-white",
+            ].join(" ")}
           >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <FontAwesomeIcon
-                  icon={template.icon}
-                  className="h-6 w-6 text-purple-600"
-                />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">{template.name}</h3>
-                <span className="text-xs text-gray-500">{template.category}</span>
-              </div>
-            </div>
-            <p className="text-sm text-gray-600 mb-6">{template.description}</p>
-            {canManage ? (
-              <Link href={`/ai-assistants/new?template=${template.id}`}>
-                <Button className="w-full">
-                  Use Template
-                </Button>
-              </Link>
-            ) : (
-              <Button className="w-full" disabled>
-                View Only
-              </Button>
-            )}
-          </div>
+            All
+          </button>
+          {ROLE_OPTIONS.map((role) => (
+            <button
+              key={role}
+              type="button"
+              onClick={() => setSelectedRole(role)}
+              className={[
+                "rounded-full px-2.5 py-1 text-[11px] font-medium",
+                selectedRole === role
+                  ? "bg-gray-900 text-white"
+                  : "text-gray-700 hover:bg-white",
+              ].join(" ")}
+            >
+              {role}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredTemplates.map((template) => (
+          <TemplateCard
+            key={template.key}
+            template={template}
+            selected={false}
+            selectable={false}
+            onClickNavigate={canManage ? () => handleOpenTemplate(template) : undefined}
+          />
         ))}
       </div>
 
@@ -67,4 +110,3 @@ export default function TemplatesPage() {
     </div>
   );
 }
-

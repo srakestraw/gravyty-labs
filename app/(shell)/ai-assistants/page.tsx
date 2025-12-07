@@ -1,7 +1,5 @@
 'use client';
 
-export const dynamic = 'force-static';
-
 import { useState } from 'react';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { canManageAssistants } from '@/lib/roles';

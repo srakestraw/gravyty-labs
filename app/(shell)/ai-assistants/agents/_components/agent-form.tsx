@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@/components/ui/font-awesome-icon";
+import { AgentDneSection } from "./agent-dne-section";
 
 type ActionMode = "auto" | "approval";
 
@@ -639,6 +640,18 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
             </div>
           </div>
         </section>
+
+        {/* Engagement Rules — Do-Not-Engage */}
+        {!isCreate && agentId && (
+          <section className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-700">
+              Engagement Rules
+            </h2>
+            <div className="border-t border-gray-100 pt-4">
+              <AgentDneSection agentId={agentId} />
+            </div>
+          </section>
+        )}
 
         {/* STEP 6 — Eval Preview (AI Simulation) */}
         <section className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
