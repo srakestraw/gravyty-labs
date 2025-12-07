@@ -91,131 +91,6 @@ type Role =
   | "Alumni Engagement"
   | "Advancement";
 
-interface GoalOption {
-  id: string;
-  label: string;
-  suggestedPrompts: string[];
-}
-
-const GOALS_BY_ROLE: Record<Role, GoalOption[]> = {
-  Admissions: [
-    {
-      id: "reduce-stalled",
-      label: "Reduce stalled applicants",
-      suggestedPrompts: [
-        "Who stalled this week?",
-        "Show applicants inactive for 7+ days.",
-        "Which students are missing documents?",
-      ],
-    },
-    {
-      id: "prevent-melt",
-      label: "Prevent melt",
-      suggestedPrompts: [
-        "Which admits have not logged in recently?",
-        "Who is at melt risk today?",
-        "Show pre-enrollment drop-off patterns.",
-      ],
-    },
-    {
-      id: "improve-completion",
-      label: "Boost application completion",
-      suggestedPrompts: [
-        "Who is closest to completing?",
-        "Which steps cause the most delays?",
-      ],
-    },
-  ],
-  Registrar: [
-    {
-      id: "resolve-blockers",
-      label: "Resolve registration blockers",
-      suggestedPrompts: [
-        "Who cannot register and why?",
-        "Show students with prerequisites issues.",
-      ],
-    },
-    {
-      id: "degree-progress",
-      label: "Monitor degree progress",
-      suggestedPrompts: [
-        "Who is off-track for graduation?",
-        "Which students need schedule cleanup?",
-      ],
-    },
-  ],
-  "Student Success": [
-    {
-      id: "identify-risk",
-      label: "Identify at-risk students",
-      suggestedPrompts: [
-        "Who is academically at risk?",
-        "Show disengaged students this week.",
-      ],
-    },
-    {
-      id: "persistence",
-      label: "Improve persistence",
-      suggestedPrompts: [
-        "Which students missed key milestones?",
-        "Who needs advisor follow-up?",
-      ],
-    },
-  ],
-  "Career Services": [
-    {
-      id: "milestones",
-      label: "Support career milestones",
-      suggestedPrompts: [
-        "Who hasn't completed résumé steps?",
-        "Which students need internship nudges?",
-      ],
-    },
-    {
-      id: "engagement",
-      label: "Increase engagement",
-      suggestedPrompts: [
-        "Show students not engaging with postings.",
-      ],
-    },
-  ],
-  "Alumni Engagement": [
-    {
-      id: "declining-engagement",
-      label: "Detect declining engagement",
-      suggestedPrompts: [
-        "Who has dropped off in engagement?",
-        "Show alumni likely to re-engage.",
-      ],
-    },
-    {
-      id: "volunteering",
-      label: "Promote mentoring & volunteering",
-      suggestedPrompts: [
-        "Who would make a good volunteer?",
-        "Show mentoring-ready alumni.",
-      ],
-    },
-  ],
-  Advancement: [
-    {
-      id: "lybunt-recovery",
-      label: "Recover LYBUNT donors",
-      suggestedPrompts: [
-        "Show LYBUNTs to recover this month.",
-        "Who has the highest giving potential?",
-      ],
-    },
-    {
-      id: "pipeline",
-      label: "Move pipeline forward",
-      suggestedPrompts: [
-        "Which proposals are stalled?",
-        "Who should I contact today?",
-      ],
-    },
-  ],
-};
 
 export default function AgentEditPage({ params }: AgentPageProps) {
   const { id } = params;
@@ -227,21 +102,93 @@ export default function AgentEditPage({ params }: AgentPageProps) {
   const [selectedRole, setSelectedRole] = React.useState<Role>(
     isTranscriptHelper ? "Admissions" : "Admissions"
   );
-  const [selectedGoal, setSelectedGoal] = React.useState<string | null>(null);
-  const [customGoalText, setCustomGoalText] = React.useState<string>("");
-  const [isCustomGoal, setIsCustomGoal] = React.useState<boolean>(false);
-  const [semanticValidation, setSemanticValidation] = React.useState<{
-    status: "valid" | "invalid" | null;
-    message: string;
-  }>({ status: null, message: "" });
+  const [goalText, setGoalText] = React.useState<string>("");
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = React.useState(false);
 
-  // Reset goal when role changes
+  // Role-based outcome-focused goals
+  const ROLE_GOALS: Record<string, string[]> = {
+    Admissions: [
+      "Increase application completion rates",
+      "Reduce stalled applicants and inactivity",
+      "Improve document submission timelines",
+      "Increase inquiry to application conversion",
+      "Reduce melt risk before enrollment",
+      "Improve yield among high-intent prospects",
+    ],
+    Registrar: [
+      "Reduce registration blockers and holds",
+      "Improve on-time enrollment rates",
+      "Increase completion of required documentation",
+      "Reduce late adds/drops through early alerts",
+      "Improve compliance with academic and financial requirements",
+    ],
+    "Student Success": [
+      "Improve persistence and retention rates",
+      "Reduce academic risk through early identification",
+      "Increase student milestone completion",
+      "Improve engagement and reduce disengagement",
+      "Improve graduation-rate trajectory",
+    ],
+    "Career Services": [
+      "Increase internship and job placement rates",
+      "Improve career readiness milestone completion",
+      "Reduce students stalling in the preparation process",
+      "Increase engagement with employers and events",
+      "Improve résumé and profile completeness",
+    ],
+    "Alumni Engagement": [
+      "Increase alumni engagement and participation",
+      "Improve volunteer and mentorship activation",
+      "Increase event attendance",
+      "Reduce declining-engagement segments",
+      "Improve alumni profile completeness",
+    ],
+    Advancement: [
+      "Improve donor retention (LYBUNT/SYBUNT)",
+      "Increase total annual giving",
+      "Accelerate pipeline movement",
+      "Improve proposal conversion rates",
+      "Reduce donor lapse and disengagement",
+    ],
+  };
+
+  const DEFAULT_GOALS = ROLE_GOALS[selectedRole] ?? ROLE_GOALS["Admissions"];
+  const [suggestedPrompts, setSuggestedPrompts] = React.useState<string[]>(DEFAULT_GOALS);
+
+  // Reset suggestions when role changes
   React.useEffect(() => {
-    setSelectedGoal(null);
-    setIsCustomGoal(false);
-    setCustomGoalText("");
-    setSemanticValidation({ status: null, message: "" });
+    const newGoals = ROLE_GOALS[selectedRole] ?? ROLE_GOALS["Admissions"];
+    setSuggestedPrompts(newGoals);
   }, [selectedRole]);
+
+  // Generate more suggestions using OpenAI
+  const handleGenerateMoreSuggestions = async () => {
+    try {
+      setIsLoadingSuggestions(true);
+      const res = await fetch("/api/agent-goal-suggestions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          role: selectedRole, 
+          currentGoal: goalText || undefined 
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch suggestions");
+      }
+
+      const data = await res.json();
+      if (Array.isArray(data.suggestions) && data.suggestions.length > 0) {
+        setSuggestedPrompts(data.suggestions);
+      }
+    } catch (err) {
+      // On error, keep existing prompts; optionally log to console
+      console.error("Error generating suggestions:", err);
+    } finally {
+      setIsLoadingSuggestions(false);
+    }
+  };
 
   const purpose = isTranscriptHelper
     ? "Identifies applicants with missing transcripts and triggers reminder workflows."
@@ -250,31 +197,6 @@ export default function AgentEditPage({ params }: AgentPageProps) {
   const lastRun = isTranscriptHelper ? "12 minutes ago" : "Never";
   const nextRun = isTranscriptHelper ? "Tomorrow at 8:00 AM" : "Not scheduled";
 
-  // Get goals for current role
-  const availableGoals = GOALS_BY_ROLE[selectedRole] || [];
-  const selectedGoalData = availableGoals.find((g) => g.id === selectedGoal);
-
-  // Handle custom goal text changes with semantic validation placeholder
-  const handleCustomGoalChange = (text: string) => {
-    setCustomGoalText(text);
-    if (text.trim().length > 10) {
-      // Placeholder semantic validation - in real app, this would call an API
-      const hasKeywords = /status|activity|requirement|document|deadline/i.test(text);
-      if (hasKeywords) {
-        setSemanticValidation({
-          status: "valid",
-          message: "✔ Mapped to fields: status, last_activity, missing_requirements",
-        });
-      } else {
-        setSemanticValidation({
-          status: "invalid",
-          message: "⚠ Unable to map — please rephrase or select a suggested goal",
-        });
-      }
-    } else {
-      setSemanticValidation({ status: null, message: "" });
-    }
-  };
 
   // State management for tool modes
   const [toolModes, setToolModes] = React.useState<Record<string, ActionMode>>(() => {
@@ -374,105 +296,60 @@ export default function AgentEditPage({ params }: AgentPageProps) {
       </section>
 
       {/* STEP 2 — Define Agent Goal */}
-      <section className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-700">
+      <section className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm space-y-3">
+        <h2 className="text-sm font-semibold text-gray-900">
           STEP 2 — Define Agent Goal
         </h2>
-        <div className="space-y-4 border-t border-gray-100 pt-4">
-          <p className="text-sm text-gray-700">What is this agent primarily trying to achieve?</p>
-          <div className="space-y-2">
-            {/* Role-based goals */}
-            {availableGoals.map((goal) => (
-              <label
-                key={goal.id}
-                className={`flex items-center gap-2 rounded-lg border p-3 transition-colors ${
-                  selectedGoal === goal.id && !isCustomGoal
-                    ? "border-indigo-500 bg-indigo-50"
-                    : "border-gray-200 bg-white hover:bg-gray-50"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="goal"
-                  checked={selectedGoal === goal.id && !isCustomGoal}
-                  onChange={() => {
-                    setSelectedGoal(goal.id);
-                    setIsCustomGoal(false);
-                    setCustomGoalText("");
-                    setSemanticValidation({ status: null, message: "" });
-                  }}
-                  className="h-4 w-4 text-indigo-600"
-                />
-                <span className="text-sm text-gray-900">{goal.label}</span>
-              </label>
-            ))}
+        <p className="text-xs text-gray-600">
+          Choose what this agent should focus on. Goals help the system suggest prompts,
+          evaluate performance, and keep actions aligned with your outcomes.
+        </p>
 
-            {/* Custom Goal option */}
-            <div className="rounded-lg border border-gray-200 bg-white p-3">
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="goal"
-                  checked={isCustomGoal}
-                  onChange={() => {
-                    setIsCustomGoal(true);
-                    setSelectedGoal(null);
-                  }}
-                  className="h-4 w-4 text-indigo-600"
-                />
-                <span className="text-sm text-gray-900">Custom goal</span>
-              </label>
-              {isCustomGoal && (
-                <div className="mt-3 space-y-2">
-                  <textarea
-                    value={customGoalText}
-                    onChange={(e) => handleCustomGoalChange(e.target.value)}
-                    placeholder="Describe your custom goal..."
-                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                    rows={3}
-                  />
-                  {semanticValidation.message && (
-                    <div
-                      className={`rounded-lg border px-3 py-2 text-xs ${
-                        semanticValidation.status === "valid"
-                          ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-                          : "border-amber-200 bg-amber-50 text-amber-800"
-                      }`}
-                    >
-                      {semanticValidation.message}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
+        <div className="border-t border-gray-100 pt-3 space-y-2">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-gray-500">
+            Refine the goal
+          </p>
 
-          {/* Suggested Prompts */}
-          {selectedGoalData && !isCustomGoal && (
-            <div className="rounded-lg border border-blue-100 bg-blue-50 p-3">
-              <div className="mb-2 text-xs font-semibold text-blue-900">Suggested prompts:</div>
-              <ul className="space-y-1">
-                {selectedGoalData.suggestedPrompts.map((prompt, index) => (
-                  <li key={index} className="flex gap-2 text-xs text-blue-800">
-                    <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-blue-600" />
-                    <span>{prompt}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <label className="block text-[11px] font-medium text-gray-600">
+            What is the goal you want this agent to work toward?
+          </label>
 
-          {/* AI Note */}
-          <div className="rounded-lg border border-blue-100 bg-blue-50 p-3">
-            <div className="mb-1 flex items-start gap-2">
-              <FontAwesomeIcon icon="fa-solid fa-info-circle" className="mt-0.5 h-4 w-4 text-blue-600" />
-              <span className="text-xs font-semibold text-blue-900">AI Note:</span>
-            </div>
-            <p className="text-xs text-blue-800">
-              {isCustomGoal
-                ? "Custom goals allow you to define specific objectives. The semantic model will help map your goal to relevant data fields."
-                : "This goal aligns with your institution's current bottlenecks."}
+          <textarea
+            className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-[11px] text-gray-800 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-200"
+            rows={2}
+            placeholder="Describe the outcome you want this agent to achieve, or tap a goal below…"
+            value={goalText}
+            onChange={(e) => setGoalText(e.target.value)}
+          />
+
+          <div className="space-y-1">
+            <p className="text-[10px] font-medium uppercase tracking-wide text-gray-500">
+              Tap a goal to use it
             </p>
+
+            <div className="flex flex-wrap gap-1.5 text-[11px]">
+              {suggestedPrompts.map((prompt) => (
+                <button
+                  key={prompt}
+                  type="button"
+                  onClick={() => setGoalText(prompt)}
+                  className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2 py-1 text-left text-gray-700 hover:border-gray-300 hover:bg-gray-100"
+                >
+                  <span className="text-gray-400">💬</span>
+                  <span className="whitespace-normal">{prompt}</span>
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGenerateMoreSuggestions}
+              disabled={isLoadingSuggestions}
+              className="mt-1 inline-flex items-center gap-1 text-[11px] text-indigo-600 hover:text-indigo-700 disabled:cursor-not-allowed disabled:text-gray-400"
+            >
+              <span className="text-xs">↻</span>
+              <span>{isLoadingSuggestions ? "Generating…" : "Generate more goal options"}</span>
+            </button>
           </div>
         </div>
       </section>
