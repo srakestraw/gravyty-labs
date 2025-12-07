@@ -284,9 +284,12 @@ export default function Page() {
           )}
         </div>
         <div>
-          <button className="rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800">
+          <Link
+            href="/ai-assistants/agents/new"
+            className="rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800"
+          >
             + Create Agent
-          </button>
+          </Link>
         </div>
       </header>
 
