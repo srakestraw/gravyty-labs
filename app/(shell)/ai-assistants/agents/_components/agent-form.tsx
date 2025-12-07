@@ -4,6 +4,8 @@ import * as React from "react";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@/components/ui/font-awesome-icon";
 import { AgentDneSection } from "./agent-dne-section";
+import { AgentPriorityWeight } from "@/lib/agents/types";
+import { cn } from "@/lib/utils";
 
 type ActionMode = "auto" | "approval";
 
@@ -99,6 +101,7 @@ interface AgentFormProps {
     status?: string;
     lastRun?: string;
     nextRun?: string;
+    priorityWeight?: AgentPriorityWeight;
   };
 }
 
@@ -119,6 +122,9 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
     initialData?.goal || ""
   );
   const [isLoadingSuggestions, setIsLoadingSuggestions] = React.useState(false);
+  const [priorityWeight, setPriorityWeight] = React.useState<AgentPriorityWeight>(
+    initialData?.priorityWeight ?? 3
+  );
 
   // Role-based outcome-focused goals
   const ROLE_GOALS: Record<string, string[]> = {
@@ -226,10 +232,10 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
     e.preventDefault();
     // TODO: Implement API call to create or update agent
     if (isCreate) {
-      console.log("Creating agent:", { agentName, purpose, selectedRole, goalText, toolModes });
+      console.log("Creating agent:", { agentName, purpose, selectedRole, goalText, toolModes, priorityWeight });
       // POST /api/agents
     } else {
-      console.log("Updating agent:", { agentId, agentName, purpose, selectedRole, goalText, toolModes });
+      console.log("Updating agent:", { agentId, agentName, purpose, selectedRole, goalText, toolModes, priorityWeight });
       // PATCH /api/agents/[id]
     }
   };
@@ -413,6 +419,54 @@ export function AgentForm({ mode, agentId, initialData }: AgentFormProps) {
               </button>
             </div>
           </div>
+        </section>
+
+        {/* Engagement Priority */}
+        <section className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm space-y-2">
+          <div className="space-y-1">
+            <h2 className="text-sm font-semibold text-gray-900">Engagement priority</h2>
+            <p className="text-xs text-gray-600">
+              Use priority to decide which agents send messages first when global frequency caps are reached.
+            </p>
+          </div>
+
+          <div className="grid gap-2 md:grid-cols-2">
+            {[
+              { value: 5 as AgentPriorityWeight, label: "Critical", description: "Safety, legal, or urgent deadlines." },
+              { value: 4 as AgentPriorityWeight, label: "High", description: "Required deadlines or enrollment tasks." },
+              { value: 3 as AgentPriorityWeight, label: "Standard", description: "Typical operational nudges." },
+              { value: 2 as AgentPriorityWeight, label: "Low", description: "Optional or advisory messaging." },
+              { value: 1 as AgentPriorityWeight, label: "Informational", description: "Marketing or general info." },
+            ].map((opt) => (
+              <label
+                key={opt.value}
+                className={cn(
+                  "flex cursor-pointer flex-col gap-1 rounded-lg border px-3 py-2 text-xs",
+                  priorityWeight === opt.value
+                    ? "border-gray-900 bg-gray-900 text-white"
+                    : "border-gray-200 bg-gray-50 text-gray-800 hover:border-gray-300"
+                )}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-medium">{opt.label}</span>
+                  <input
+                    type="radio"
+                    className="h-3 w-3"
+                    checked={priorityWeight === opt.value}
+                    onChange={() => setPriorityWeight(opt.value)}
+                  />
+                </div>
+                <p className={cn("text-[11px]", priorityWeight === opt.value ? "text-gray-200" : "text-gray-600")}>
+                  {opt.description}
+                </p>
+              </label>
+            ))}
+          </div>
+
+          <p className="text-[11px] text-gray-500">
+            Example: If multiple agents want to message the same student, higher-priority agents
+            win tie-breakers and lower-priority agents may be postponed when limits are reached.
+          </p>
         </section>
 
         {/* STEP 3 — Action Tools */}

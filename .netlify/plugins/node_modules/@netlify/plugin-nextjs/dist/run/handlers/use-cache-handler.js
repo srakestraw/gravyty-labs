@@ -1385,7 +1385,7 @@ import {
   isAnyTagStaleOrExpired,
   markTagsAsStaleAndPurgeEdgeCache
 } from "./tags-handler.cjs";
-import { getTracer } from "./tracer.cjs";
+import { getTracer, withActiveSpan } from "./tracer.cjs";
 var LRU_CACHE_GLOBAL_KEY = Symbol.for("nf-use-cache-handler-lru-cache");
 var PENDING_SETS_GLOBAL_KEY = Symbol.for("nf-use-cache-handler-pending-sets");
 var cacheHandlersSymbol = Symbol.for("@next/cache-handlers");
@@ -1415,11 +1415,12 @@ var tmpResolvePendingBeforeCreatingAPromise = () => {
 };
 var NetlifyDefaultUseCacheHandler = {
   get(cacheKey) {
-    return getTracer().withActiveSpan(
+    return withActiveSpan(
+      getTracer(),
       "DefaultUseCacheHandler.get",
       async (span) => {
         getLogger().withFields({ cacheKey }).debug(`[NetlifyDefaultUseCacheHandler] get`);
-        span.setAttributes({
+        span?.setAttributes({
           cacheKey
         });
         const pendingPromise = getPendingSets().get(cacheKey);
@@ -1429,7 +1430,7 @@ var NetlifyDefaultUseCacheHandler = {
         const privateEntry = getLRUCache().get(cacheKey);
         if (!privateEntry) {
           getLogger().withFields({ cacheKey, status: "MISS" }).debug(`[NetlifyDefaultUseCacheHandler] get result`);
-          span.setAttributes({
+          span?.setAttributes({
             cacheStatus: "miss"
           });
           return void 0;
@@ -1438,41 +1439,47 @@ var NetlifyDefaultUseCacheHandler = {
         const ttl = (entry.timestamp + entry.revalidate * 1e3 - Date.now()) / 1e3;
         if (ttl < 0) {
           getLogger().withFields({ cacheKey, ttl, status: "STALE" }).debug(`[NetlifyDefaultUseCacheHandler] get result`);
-          span.setAttributes({
+          span?.setAttributes({
             cacheStatus: "expired, discarded",
             ttl
           });
           return void 0;
         }
-        const { stale } = await isAnyTagStaleOrExpired(entry.tags, entry.timestamp);
-        if (stale) {
-          getLogger().withFields({ cacheKey, ttl, status: "STALE BY TAG" }).debug(`[NetlifyDefaultUseCacheHandler] get result`);
-          span.setAttributes({
-            cacheStatus: "stale tag, discarded",
+        const { stale, expired } = await isAnyTagStaleOrExpired(entry.tags, entry.timestamp);
+        if (expired) {
+          getLogger().withFields({ cacheKey, ttl, status: "EXPIRED BY TAG" }).debug(`[NetlifyDefaultUseCacheHandler] get result`);
+          span?.setAttributes({
+            cacheStatus: "expired tag, discarded",
             ttl
           });
           return void 0;
         }
-        const [returnStream, newSaved] = entry.value.tee();
+        let { revalidate, value } = entry;
+        if (stale) {
+          revalidate = -1;
+        }
+        const [returnStream, newSaved] = value.tee();
         entry.value = newSaved;
-        getLogger().withFields({ cacheKey, ttl, status: "HIT" }).debug(`[NetlifyDefaultUseCacheHandler] get result`);
-        span.setAttributes({
-          cacheStatus: "hit",
+        getLogger().withFields({ cacheKey, ttl, status: stale ? "STALE" : "HIT" }).debug(`[NetlifyDefaultUseCacheHandler] get result`);
+        span?.setAttributes({
+          cacheStatus: stale ? "stale" : "hit",
           ttl
         });
         return {
           ...entry,
+          revalidate,
           value: returnStream
         };
       }
     );
   },
   set(cacheKey, pendingEntry) {
-    return getTracer().withActiveSpan(
+    return withActiveSpan(
+      getTracer(),
       "DefaultUseCacheHandler.set",
       async (span) => {
         getLogger().withFields({ cacheKey }).debug(`[NetlifyDefaultUseCacheHandler]: set`);
-        span.setAttributes({
+        span?.setAttributes({
           cacheKey
         });
         let resolvePending = tmpResolvePendingBeforeCreatingAPromise;
@@ -1482,7 +1489,7 @@ var NetlifyDefaultUseCacheHandler = {
         const pendingSets = getPendingSets();
         pendingSets.set(cacheKey, pendingPromise);
         const entry = await pendingEntry;
-        span.setAttributes({
+        span?.setAttributes({
           cacheKey
         });
         let size = 0;
@@ -1493,7 +1500,7 @@ var NetlifyDefaultUseCacheHandler = {
           for (let chunk; !(chunk = await reader.read()).done; ) {
             size += Buffer.from(chunk.value).byteLength;
           }
-          span.setAttributes({
+          span?.setAttributes({
             tags: entry.tags,
             timestamp: entry.timestamp,
             revalidate: entry.revalidate,
@@ -1514,31 +1521,50 @@ var NetlifyDefaultUseCacheHandler = {
   },
   async refreshTags() {
   },
-  getExpiration: function(...tags) {
-    return getTracer().withActiveSpan(
+  getExpiration: function(...notNormalizedTags) {
+    return withActiveSpan(
+      getTracer(),
       "DefaultUseCacheHandler.getExpiration",
       async (span) => {
-        span.setAttributes({
+        const tags = notNormalizedTags.flat();
+        span?.setAttributes({
           tags
         });
         const expiration = await getMostRecentTagExpirationTimestamp(tags);
         getLogger().withFields({ tags, expiration }).debug(`[NetlifyDefaultUseCacheHandler] getExpiration`);
-        span.setAttributes({
+        span?.setAttributes({
           expiration
         });
         return expiration;
       }
     );
   },
+  // this is for CacheHandlerV2
   expireTags(...tags) {
-    return getTracer().withActiveSpan(
+    return withActiveSpan(
+      getTracer(),
       "DefaultUseCacheHandler.expireTags",
       async (span) => {
         getLogger().withFields({ tags }).debug(`[NetlifyDefaultUseCacheHandler] expireTags`);
-        span.setAttributes({
+        span?.setAttributes({
           tags
         });
         await markTagsAsStaleAndPurgeEdgeCache(tags);
+      }
+    );
+  },
+  // this is for CacheHandlerV3 / Next 16
+  updateTags(tags, durations) {
+    return withActiveSpan(
+      getTracer(),
+      "DefaultUseCacheHandler.updateTags",
+      async (span) => {
+        getLogger().withFields({ tags, durations }).debug(`[NetlifyDefaultUseCacheHandler] updateTags`);
+        span?.setAttributes({
+          tags,
+          durations: JSON.stringify(durations)
+        });
+        await markTagsAsStaleAndPurgeEdgeCache(tags, durations);
       }
     );
   }

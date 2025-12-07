@@ -110,6 +110,7 @@ interface Agent {
   purpose: string;
   status: AgentStatus;
   lastRun: string | null; // null = never run
+  priorityWeight?: 1 | 2 | 3 | 4 | 5; // optional for backward compatibility
 }
 
 const agentTemplates: AgentTemplate[] = [
@@ -147,6 +148,7 @@ const agents: Agent[] = [
     purpose: "Clears missing transcripts and sends nudges.",
     status: "active",
     lastRun: "12 min ago",
+    priorityWeight: 4,
   },
   {
     id: "agent-registration-requirements",
@@ -155,6 +157,7 @@ const agents: Agent[] = [
     purpose: "Flags holds and notifies students.",
     status: "active",
     lastRun: "47 min ago",
+    priorityWeight: 4,
   },
   {
     id: "agent-high-intent-prospect",
@@ -163,6 +166,7 @@ const agents: Agent[] = [
     purpose: "Surfaces high-intent prospects for outreach.",
     status: "paused",
     lastRun: null,
+    priorityWeight: 3,
   },
   {
     id: "agent-donor-warmup",
@@ -171,6 +175,7 @@ const agents: Agent[] = [
     purpose: "Sends warm-up emails and scores replies.",
     status: "active",
     lastRun: "3 hours ago",
+    priorityWeight: 2,
   },
   {
     id: "agent-international-visa",
@@ -179,6 +184,7 @@ const agents: Agent[] = [
     purpose: "Identifies missing I-20 / visa documents.",
     status: "error",
     lastRun: "1 hour ago",
+    priorityWeight: 5,
   },
 ];
 

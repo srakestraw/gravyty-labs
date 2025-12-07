@@ -467,7 +467,7 @@ export default function Page() {
                     Open Config
                   </button>
                 </Link>
-                <Link href={`/ai-assistants/eval?assistant=${selectedAssistant.id}`}>
+                <Link href={`/ai-assistants/evals?assistant=${selectedAssistant.id}`}>
                   <button className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors">
                     Monitor Activity
                   </button>

@@ -134,6 +134,17 @@ var extractConfigFromFile = async (apiFilePath, appDir) => {
   if (!fileContent.includes("config")) {
     return {};
   }
+  try {
+    const installBindingsModule = findModuleFromBase({
+      paths: [appDir],
+      candidates: ["next/dist/build/swc/install-bindings"]
+    });
+    if (installBindingsModule) {
+      const { installBindings } = __require(installBindingsModule);
+      await installBindings();
+    }
+  } catch {
+  }
   const ast = await parseModule(apiFilePath, fileContent);
   try {
     return extractExportedConstValue(ast, "config");

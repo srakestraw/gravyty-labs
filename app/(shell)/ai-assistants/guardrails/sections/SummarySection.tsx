@@ -74,7 +74,7 @@ export function SummarySection({ config }: SummarySectionProps) {
             <h3 className="text-xs font-semibold text-gray-900">Actions</h3>
           </div>
           <ul className="text-[11px] text-gray-600 space-y-1">
-            <li>• {autoActionsCount} actions set to auto</li>
+            <li>• {autoActionsCount} actions set to Auto (Safe Mode)</li>
             <li>• {humanReviewActionsCount} actions require human review</li>
             <li>• {blockedActionsCount} actions blocked</li>
             <li>• Logging: {config.actions.loggingRequired ? 'Required' : 'Optional'}</li>

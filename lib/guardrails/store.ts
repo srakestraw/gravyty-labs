@@ -72,6 +72,7 @@ function convertLegacyConfig(): GuardrailsConfig {
       loggingRequired: legacy.logging.requireActionLogging,
       requireEvalBeforeAuto: legacy.logging.requireEvalStatusBeforeAuto,
     },
+    // Escalation rules will be loaded separately or from API
     updatedAt: new Date().toISOString(),
   };
 }

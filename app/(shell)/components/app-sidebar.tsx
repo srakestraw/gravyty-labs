@@ -9,6 +9,7 @@ import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { canAccessAIAssistants } from '@/lib/roles';
 import { useFeatureFlag } from '@/lib/features';
+import { useQueueAttentionCount } from '@/lib/agent-ops/useQueueAttentionCount';
 
 export function AppSidebar() {
   const { sidebarOpen, activeApp } = usePlatformStore();
@@ -16,6 +17,8 @@ export function AppSidebar() {
   const { user } = useAuth();
   const aiAssistantsEnabled = useFeatureFlag('ai_assistants');
   const [isMobile, setIsMobile] = useState(false);
+  const queueAttentionCount = useQueueAttentionCount();
+  const queueDisplayCount = queueAttentionCount > 99 ? '99+' : queueAttentionCount.toString();
 
   useEffect(() => {
     const checkMobile = () => {
@@ -30,7 +33,7 @@ export function AppSidebar() {
   // Check if we're in the AI Assistants app
   const isInAIAssistants = pathname?.startsWith('/ai-assistants');
 
-  type NavItem = { name: string; href: string; icon: string };
+  type NavItem = { name: string; href: string; icon: string; id?: string };
   type Navigation = 
     | { topLevel: NavItem[]; adminTools: NavItem[] }
     | NavItem[];
@@ -41,14 +44,17 @@ export function AppSidebar() {
     if (isInAIAssistants) {
       return {
         topLevel: [
-          { name: 'AI Command Center', href: '/ai-assistants', icon: 'fa-solid fa-compass' },
-          { name: 'AI Assistant', href: '/ai-assistants/assistant', icon: 'fa-solid fa-comments' },
-          { name: 'Agents', href: '/ai-assistants/agents', icon: 'fa-solid fa-bolt' },
+          { name: 'AI Command Center', href: '/ai-assistants', icon: 'fa-solid fa-compass', id: 'command-center' },
+          { name: 'AI Assistant', href: '/ai-assistants/assistant', icon: 'fa-solid fa-comments', id: 'assistant' },
+          { name: 'Agents', href: '/ai-assistants/agents', icon: 'fa-solid fa-bolt', id: 'agents' },
+          { name: 'Queue', href: '/ai-assistants/agent-ops/queue', icon: 'fa-solid fa-list', id: 'queue' },
+          { name: 'People', href: '/ai-assistants/agent-ops/people', icon: 'fa-solid fa-users', id: 'people' },
         ],
         adminTools: [
           { name: 'Guardrails', href: '/ai-assistants/guardrails', icon: 'fa-solid fa-shield-halved' },
           { name: 'Do Not Engage', href: '/ai-assistants/do-not-engage', icon: 'fa-solid fa-user-slash' },
-          { name: 'Eval & Logs', href: '/ai-assistants/eval', icon: 'fa-solid fa-chart-line' },
+          { name: 'Evals', href: '/ai-assistants/evals', icon: 'fa-solid fa-chart-line' },
+          { name: 'Logs', href: '/ai-assistants/logs', icon: 'fa-solid fa-list' },
           { name: 'Templates', href: '/ai-assistants/templates', icon: 'fa-solid fa-file-lines' },
           { name: 'Permissions', href: '/ai-assistants/permissions', icon: 'fa-solid fa-key' },
           { name: 'Settings', href: '/ai-assistants/settings', icon: 'fa-solid fa-cog' },
@@ -107,7 +113,7 @@ export function AppSidebar() {
                     key={item.name}
                     href={item.href}
                     className={cn(
-                      'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
+                      'flex items-center justify-between gap-2 px-3 py-2 rounded-md text-sm transition-colors',
                       'hover:bg-gray-100 text-gray-700',
                       isActive && 'bg-purple-50 text-purple-700 font-medium'
                     )}
@@ -118,9 +124,23 @@ export function AppSidebar() {
                       }
                     }}
                   >
-                    <FontAwesomeIcon icon={item.icon} className="h-5 w-5 flex-shrink-0" />
-                    {(sidebarOpen || isMobile) && (
-                      <span className="truncate">{item.name}</span>
+                    <span className="flex items-center gap-3 flex-1 min-w-0">
+                      <FontAwesomeIcon icon={item.icon} className="h-5 w-5 flex-shrink-0" />
+                      {(sidebarOpen || isMobile) && (
+                        <span className="truncate">{item.name}</span>
+                      )}
+                    </span>
+                    {item.id === 'queue' && queueAttentionCount > 0 && (sidebarOpen || isMobile) && (
+                      <span
+                        className={cn(
+                          'inline-flex min-w-[1.75rem] items-center justify-center rounded-full px-1.5 text-[11px] font-medium flex-shrink-0',
+                          isActive
+                            ? 'bg-white/15 text-white'
+                            : 'bg-rose-100 text-rose-700'
+                        )}
+                      >
+                        {queueDisplayCount}
+                      </span>
                     )}
                   </Link>
                 );

@@ -34,6 +34,15 @@ const DEFAULT_ESCALATION_RULES: EscalationRule[] = [
       "If a student expresses self-harm or suicidal ideation, the agent must pause and route to a human immediately.",
     enabled: true,
     actions: ["pause_agent", "assign_to_human", "notify_team"],
+    behaviorMode: "pause_and_message",
+    addPriorityTag: true,
+    routingStrategy: "single",
+    targets: [{
+      id: "target-self-harm-default",
+      type: "person",
+      label: "Crisis Counselor On-Call",
+      channels: ["email", "sms", "voice"],
+    }],
     templateMessage:
       "Because of what you shared, I'm connecting you with a person who can support you right away.",
   },
@@ -45,6 +54,25 @@ const DEFAULT_ESCALATION_RULES: EscalationRule[] = [
       "Any credible threat to others should trigger an immediate handoff to campus safety or designated responders.",
     enabled: true,
     actions: ["pause_agent", "assign_to_human", "notify_team"],
+    behaviorMode: "pause_only",
+    addPriorityTag: true,
+    routingStrategy: "chain",
+    targets: [
+      {
+        id: "target-threat-1",
+        type: "person",
+        label: "Campus Safety",
+        channels: ["voice", "sms"],
+        timeoutMinutes: 5,
+      },
+      {
+        id: "target-threat-2",
+        type: "person",
+        label: "Dean of Students",
+        channels: ["email", "sms"],
+        timeoutMinutes: 15,
+      },
+    ],
   },
   {
     id: "harassment",
@@ -54,6 +82,14 @@ const DEFAULT_ESCALATION_RULES: EscalationRule[] = [
       "Reports of harassment, discrimination, or sexual misconduct must route to the appropriate Title IX or HR contact.",
     enabled: true,
     actions: ["pause_agent", "assign_to_human"],
+    behaviorMode: "pause_and_message",
+    routingStrategy: "single",
+    targets: [{
+      id: "target-harassment-default",
+      type: "person",
+      label: "Title IX Coordinator",
+      channels: ["email", "ticket"],
+    }],
   },
   {
     id: "mental_health_distress",
@@ -63,6 +99,14 @@ const DEFAULT_ESCALATION_RULES: EscalationRule[] = [
       "When a student sounds overwhelmed, panicked, or in emotional crisis, the agent should escalate instead of giving advice.",
     enabled: true,
     actions: ["pause_agent", "assign_to_human"],
+    behaviorMode: "pause_and_message",
+    routingStrategy: "single",
+    targets: [{
+      id: "target-mental-health-default",
+      type: "person",
+      label: "Student Care Counselor",
+      channels: ["email", "sms"],
+    }],
   },
   {
     id: "financial_crisis",
@@ -72,6 +116,14 @@ const DEFAULT_ESCALATION_RULES: EscalationRule[] = [
       "Escalate to a person for complex financial aid or emergency support situations.",
     enabled: true,
     actions: ["assign_to_human"],
+    behaviorMode: "pause_and_message",
+    routingStrategy: "group",
+    targets: [{
+      id: "target-financial-default",
+      type: "group",
+      label: "Financial Aid Emergency Team",
+      channels: ["email", "ticket"],
+    }],
   },
   {
     id: "academic_risk",
@@ -81,6 +133,14 @@ const DEFAULT_ESCALATION_RULES: EscalationRule[] = [
       "Route to a human advisor when the student indicates they may fail, withdraw, or lose status.",
     enabled: false,
     actions: ["assign_to_human"],
+    behaviorMode: "pause_and_message",
+    routingStrategy: "single",
+    targets: [{
+      id: "target-academic-default",
+      type: "person",
+      label: "Academic Advisor",
+      channels: ["email"],
+    }],
   },
 ];
 
@@ -94,6 +154,8 @@ export function GuardrailsPageClient() {
   const [error, setError] = React.useState<string | null>(null);
   const [saveStatus, setSaveStatus] = React.useState<'saved' | 'unsaved' | 'error'>('saved');
   const [activeTab, setActiveTab] = React.useState<GuardrailTabId>("summary");
+  const saveBarRef = React.useRef<HTMLDivElement>(null);
+  const [navTopOffset, setNavTopOffset] = React.useState(80);
 
   // Edit mode is always enabled
   const canEdit = true;
@@ -101,6 +163,15 @@ export function GuardrailsPageClient() {
   // Load config on mount
   React.useEffect(() => {
     loadConfig();
+  }, []);
+
+  // Calculate nav top offset based on save bar height
+  React.useEffect(() => {
+    if (saveBarRef.current) {
+      const saveBarHeight = saveBarRef.current.offsetHeight;
+      // Add some spacing (16px = 1rem)
+      setNavTopOffset(saveBarHeight + 16);
+    }
   }, []);
 
   async function loadConfig() {
@@ -114,8 +185,11 @@ export function GuardrailsPageClient() {
       const data = await response.json();
       setConfig(data.config);
       setInitialConfig(JSON.parse(JSON.stringify(data.config))); // Deep clone
-      setInitialEscalationRules(JSON.parse(JSON.stringify(DEFAULT_ESCALATION_RULES))); // Deep clone
-      setEscalationRules(JSON.parse(JSON.stringify(DEFAULT_ESCALATION_RULES))); // Deep clone
+      
+      // Load escalation rules from config or use defaults
+      const loadedRules = data.config?.humanEscalation?.rules || DEFAULT_ESCALATION_RULES;
+      setInitialEscalationRules(JSON.parse(JSON.stringify(loadedRules))); // Deep clone
+      setEscalationRules(JSON.parse(JSON.stringify(loadedRules))); // Deep clone
       setSaveStatus('saved');
     } catch (err) {
       console.error('Error loading guardrails:', err);
@@ -146,10 +220,18 @@ export function GuardrailsPageClient() {
     setSaving(true);
     setError(null);
     try {
+      // Include escalation rules in the config
+      const configWithEscalation = {
+        ...config,
+        humanEscalation: {
+          rules: escalationRules,
+        },
+      };
+
       const response = await fetch('/api/guardrails', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ config }),
+        body: JSON.stringify({ config: configWithEscalation }),
       });
 
       if (!response.ok) {
@@ -229,7 +311,7 @@ export function GuardrailsPageClient() {
       </header>
 
       {/* Save status bar */}
-      <div className="sticky top-0 z-10 flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm">
+      <div ref={saveBarRef} className="sticky top-0 z-10 flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm">
         <div className="flex items-center gap-2">
           {saveStatus === 'saved' && (
             <>
@@ -272,7 +354,10 @@ export function GuardrailsPageClient() {
       {/* Two-column layout with vertical tabs */}
       <div className="grid gap-4 md:grid-cols-[220px,1fr]">
         {/* Left: vertical tabs */}
-        <nav className="space-y-1 rounded-xl border border-gray-100 bg-white p-2 text-sm">
+        <nav 
+          className="sticky self-start z-20 max-h-[calc(100vh-6rem)] overflow-y-auto space-y-1 rounded-xl border border-gray-100 bg-white p-2 text-sm"
+          style={{ top: `${navTopOffset}px` }}
+        >
           {GUARDRAIL_TABS.map((tab) => (
             <button
               key={tab.id}

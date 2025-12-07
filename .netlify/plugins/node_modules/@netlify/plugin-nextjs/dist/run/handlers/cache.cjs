@@ -181,18 +181,18 @@ var NetlifyCacheHandler = class {
     }
   }
   async get(...args) {
-    return this.tracer.withActiveSpan("get cache key", async (span) => {
+    return (0, import_tracer.withActiveSpan)(this.tracer, "get cache key", async (span) => {
       const [key, context = {}] = args;
       (0, import_request_context.getLogger)().debug(`[NetlifyCacheHandler.get]: ${key}`);
-      span.setAttributes({ key });
+      span?.setAttributes({ key });
       const blob = await this.cacheStore.get(key, "blobStore.get");
       if (!blob) {
-        span.addEvent("Cache miss", { key });
+        span?.addEvent("Cache miss", { key });
         return null;
       }
       const ttl = this.getTTL(blob);
       if ((0, import_request_context.getRequestContext)()?.isBackgroundRevalidation && typeof ttl === "number" && ttl < 0) {
-        span.addEvent("Discarding stale entry due to SWR background revalidation request", {
+        span?.addEvent("Discarding stale entry due to SWR background revalidation request", {
           key,
           ttl
         });
@@ -210,12 +210,12 @@ var NetlifyCacheHandler = class {
         context.softTags
       );
       if (expiredByTags) {
-        span.addEvent("Expired", { expiredByTags, key, ttl });
+        span?.addEvent("Expired", { expiredByTags, key, ttl });
         return null;
       }
       this.captureResponseCacheLastModified(blob, key, span);
       if (staleByTags) {
-        span.addEvent("Stale", { staleByTags, key, ttl });
+        span?.addEvent("Stale", { staleByTags, key, ttl });
         blob.lastModified = -1;
       }
       const isDataRequest = Boolean(context.fetchUrl);
@@ -224,7 +224,7 @@ var NetlifyCacheHandler = class {
       }
       switch (blob.value?.kind) {
         case "FETCH":
-          span.addEvent("FETCH", {
+          span?.addEvent("FETCH", {
             lastModified: blob.lastModified,
             revalidate: context.revalidate,
             ttl
@@ -235,7 +235,7 @@ var NetlifyCacheHandler = class {
           };
         case "ROUTE":
         case "APP_ROUTE": {
-          span.addEvent(blob.value?.kind, {
+          span?.addEvent(blob.value?.kind, {
             lastModified: blob.lastModified,
             status: blob.value.status,
             revalidate: blob.value.revalidate,
@@ -257,7 +257,7 @@ var NetlifyCacheHandler = class {
           if (requestContext) {
             requestContext.pageHandlerRevalidate = revalidate;
           }
-          span.addEvent(blob.value?.kind, { lastModified: blob.lastModified, revalidate, ttl });
+          span?.addEvent(blob.value?.kind, { lastModified: blob.lastModified, revalidate, ttl });
           await this.injectEntryToPrerenderManifest(key, blob.value);
           return {
             lastModified: blob.lastModified,
@@ -270,7 +270,7 @@ var NetlifyCacheHandler = class {
             requestContext.isCacheableAppPage = true;
           }
           const { revalidate, rscData, segmentData, ...restOfPageValue } = blob.value;
-          span.addEvent(blob.value?.kind, { lastModified: blob.lastModified, revalidate, ttl });
+          span?.addEvent(blob.value?.kind, { lastModified: blob.lastModified, revalidate, ttl });
           await this.injectEntryToPrerenderManifest(key, blob.value);
           return {
             lastModified: blob.lastModified,
@@ -287,7 +287,7 @@ var NetlifyCacheHandler = class {
           };
         }
         default:
-          span.recordException(new Error(`Unknown cache entry kind: ${blob.value?.kind}`));
+          span?.recordException(new Error(`Unknown cache entry kind: ${blob.value?.kind}`));
       }
       return null;
     });
@@ -328,10 +328,10 @@ var NetlifyCacheHandler = class {
     return data;
   }
   async set(...args) {
-    return this.tracer.withActiveSpan("set cache key", async (span) => {
+    return (0, import_tracer.withActiveSpan)(this.tracer, "set cache key", async (span) => {
       const [key, data, context] = args;
       const lastModified = Date.now();
-      span.setAttributes({ key, lastModified });
+      span?.setAttributes({ key, lastModified });
       (0, import_request_context.getLogger)().debug(`[NetlifyCacheHandler.set]: ${key}`);
       const value = this.transformToStorableObject(data, context);
       const isDataReq = Boolean(context.fetchUrl);

@@ -3102,7 +3102,7 @@ import {
 import { nextResponseProxy } from "../revalidate.js";
 import { setFetchBeforeNextPatchedIt } from "../storage/storage.cjs";
 import { getLogger } from "./request-context.cjs";
-import { getTracer, recordWarning } from "./tracer.cjs";
+import { getTracer, recordWarning, withActiveSpan } from "./tracer.cjs";
 import { configureUseCacheHandlers } from "./use-cache-handler.js";
 import { setupWaitUntil } from "./wait-until.cjs";
 setFetchBeforeNextPatchedIt(globalThis.fetch);
@@ -3130,7 +3130,7 @@ var disableFaultyTransferEncodingHandling = (res) => {
 var server_default = async (request, _context, topLevelSpan, requestContext) => {
   const tracer = getTracer();
   if (!nextHandler) {
-    await tracer.withActiveSpan("initialize next server", async () => {
+    await withActiveSpan(tracer, "initialize next server", async () => {
       const { getMockedRequestHandler } = await nextImportPromise;
       const url = new URL(request.url);
       nextHandler = await getMockedRequestHandler(nextConfig, {
@@ -3141,7 +3141,7 @@ var server_default = async (request, _context, topLevelSpan, requestContext) => 
       });
     });
   }
-  return await tracer.withActiveSpan("generate response", async (span) => {
+  return await withActiveSpan(tracer, "generate response", async (span) => {
     const { req, res } = toReqRes(request);
     Object.defineProperty(req, "connection", {
       get() {
@@ -3159,12 +3159,12 @@ var server_default = async (request, _context, topLevelSpan, requestContext) => 
       getLogger().withError(error).error("next handler error");
       console.error(error);
       resProxy.statusCode = 500;
-      span.setAttribute("http.status_code", 500);
+      span?.setAttribute("http.status_code", 500);
       resProxy.end("Internal Server Error");
     });
     const response = await toComputeResponse(resProxy);
     if (requestContext.responseCacheKey) {
-      topLevelSpan.setAttribute("responseCacheKey", requestContext.responseCacheKey);
+      topLevelSpan?.setAttribute("responseCacheKey", requestContext.responseCacheKey);
     }
     const nextCache = response.headers.get("x-nextjs-cache");
     const isServedFromNextCache = nextCache === "HIT" || nextCache === "STALE";
@@ -3182,7 +3182,7 @@ var server_default = async (request, _context, topLevelSpan, requestContext) => 
     setCacheStatusHeader(response.headers, nextCache);
     const netlifyVary = response.headers.get("netlify-vary") ?? void 0;
     const netlifyCdnCacheControl = response.headers.get("netlify-cdn-cache-control") ?? void 0;
-    topLevelSpan.setAttributes({
+    topLevelSpan?.setAttributes({
       "x-nextjs-cache": nextCache ?? void 0,
       isServedFromNextCache,
       netlifyVary,
@@ -3192,7 +3192,7 @@ var server_default = async (request, _context, topLevelSpan, requestContext) => 
       const isRSCRequest = request.headers.get("rsc") === "1";
       const contentType = response.headers.get("content-type") ?? void 0;
       const isExpectedContentType = (isRSCRequest && contentType?.includes("text/x-component") || !isRSCRequest && contentType?.includes("text/html")) ?? false;
-      topLevelSpan.setAttributes({
+      topLevelSpan?.setAttributes({
         isRSCRequest,
         isCacheableAppPage: true,
         contentType,

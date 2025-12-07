@@ -69,6 +69,7 @@ export interface EngagementConfig {
   seasonalQuietPeriods: SeasonalQuietPeriod[];
   holidayRules: HolidayRule[];
   frequencyCaps: FrequencyCapsConfig;
+  priorityOverrides?: Record<string, 1 | 2 | 3 | 4 | 5>; // agentId -> priorityWeight override
 }
 
 export interface ActionsConfig {
@@ -77,11 +78,42 @@ export interface ActionsConfig {
   requireEvalBeforeAuto: boolean;
 }
 
+// Import escalation types from the section component
+export type EscalationRoutingStrategy = 'single' | 'group' | 'chain';
+export type EscalationChannel = 'email' | 'sms' | 'voice' | 'ticket';
+export type EscalationBehaviorMode = 'pause_only' | 'pause_and_message' | 'log_only';
+
+export interface EscalationTarget {
+  id: string;
+  type: 'person' | 'group';
+  label?: string;
+  channels: EscalationChannel[];
+  timeoutMinutes?: number;
+}
+
+export interface EscalationRule {
+  id: string;
+  category: string;
+  label: string;
+  description: string;
+  enabled: boolean;
+  actions: string[]; // kept for backward compatibility
+  templateMessage?: string;
+  behaviorMode?: EscalationBehaviorMode;
+  suppressOutboundHours?: number;
+  addPriorityTag?: boolean;
+  routingStrategy?: EscalationRoutingStrategy;
+  targets?: EscalationTarget[];
+}
+
 export interface GuardrailsConfig {
   fairness: FairnessDEIConfig;
   privacy: PrivacyDataConfig;
   engagement: EngagementConfig;
   actions: ActionsConfig;
+  humanEscalation?: {
+    rules: EscalationRule[];
+  };
   updatedAt: string;
   updatedBy?: string;
 }
