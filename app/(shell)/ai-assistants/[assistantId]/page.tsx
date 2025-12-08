@@ -4,7 +4,7 @@ import { AssistantDetailClient } from './AssistantDetailClient';
 export const dynamic = 'force-static';
 
 // Required for static export with dynamic routes
-export function generateStaticParams() {
+export async function generateStaticParams() {
   return mockAssistants.map((assistant) => ({
     assistantId: assistant.id,
   }));

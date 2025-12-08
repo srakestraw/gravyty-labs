@@ -3,7 +3,7 @@ import { AgentForm } from "../_components/agent-form";
 export const dynamic = 'force-static';
 
 // Required for static export with dynamic routes
-export function generateStaticParams() {
+export async function generateStaticParams() {
   // Return known agent IDs for static generation
   return [
     { id: 'agent-transcript-helper' },

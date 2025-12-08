@@ -9,7 +9,7 @@ interface PersonDetailPageProps {
 }
 
 // Required for static export with dynamic routes
-export function generateStaticParams() {
+export async function generateStaticParams() {
   return MOCK_PEOPLE.map((person) => ({
     personId: person.id,
   }));
