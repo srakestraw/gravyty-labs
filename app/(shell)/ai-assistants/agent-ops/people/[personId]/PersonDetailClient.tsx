@@ -81,3 +81,5 @@ export function PersonDetailClient({ person }: PersonDetailClientProps) {
 }
 
 
+
+

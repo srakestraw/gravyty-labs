@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
 interface FontAwesomeIconProps {
   icon: string;
   className?: string;
@@ -15,25 +17,43 @@ export function FontAwesomeIcon({
   style, 
   'aria-hidden': ariaHidden = true 
 }: FontAwesomeIconProps) {
-  // Always render with the icon class - Font Awesome will handle rendering
-  // Using suppressHydrationWarning to prevent warnings about class differences
-  // between server and client (Font Awesome loads on client)
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Only render the icon after mount to prevent hydration issues
+  // and ensure Font Awesome has loaded
+  if (!isMounted) {
+    return (
+      <span 
+        className={className}
+        style={style}
+        aria-hidden={ariaHidden}
+        suppressHydrationWarning
+      />
+    );
+  }
+
   const combinedClassName = `${icon} ${className}`.trim();
   
+  // Wrap in a span that React can always safely manage
+  // Using display: contents makes the wrapper transparent to layout
+  // Font Awesome will transform the inner <i> element, but React
+  // will always have the wrapper span to manage
   return (
-    <i 
-      className={combinedClassName}
-      style={style}
+    <span 
+      style={{ display: 'contents', ...style }}
       aria-hidden={ariaHidden}
-      suppressHydrationWarning
-    />
+    >
+      <i 
+        className={combinedClassName}
+        suppressHydrationWarning
+      />
+    </span>
   );
 }
-
-
-
-
-
 
 
 

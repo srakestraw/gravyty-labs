@@ -184,3 +184,5 @@ export function CaseDetailView({ caseDetail, onBack }: CaseDetailViewProps) {
 }
 
 
+
+
