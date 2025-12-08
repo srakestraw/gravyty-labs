@@ -8,6 +8,8 @@ const nextConfig = {
   ...(process.env.NODE_ENV === 'production' && {
     output: 'export',
     distDir: 'out',
+    // Skip API routes during static export (they're handled by Cloud Functions)
+    pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
   }),
   trailingSlash: true,
   assetPrefix: '',
@@ -37,6 +39,13 @@ const nextConfig = {
     
     return config;
   },
+  
+  // Custom export path map to exclude API routes during static export
+  ...(process.env.NODE_ENV === 'production' && {
+    async generateBuildId() {
+      return 'static-export';
+    },
+  }),
 };
 
 module.exports = nextConfig;

@@ -1,8 +1,10 @@
 import { InstructorDetailClient } from './InstructorDetailClient';
 
 // Required for static export with dynamic routes
-export function generateStaticParams() {
-  return Promise.resolve([]);
+export const dynamicParams = false;
+
+export async function generateStaticParams() {
+  return [];
 }
 
 interface PageProps {
