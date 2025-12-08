@@ -6,16 +6,21 @@ set -e
 API_DIR="app/api"
 API_BACKUP="app/.api-backup"
 
-# Move API routes out of the way
+# Clean any previous build artifacts
+echo "Cleaning build artifacts..."
+rm -rf .next out
+
+# Move API routes out of the way BEFORE any Next.js operations
 if [ -d "$API_DIR" ]; then
   echo "Temporarily moving API routes for static export..."
   mv "$API_DIR" "$API_BACKUP"
 fi
 
-# Run the build
-npm run build:next
+# Run the build with clean cache
+echo "Running Next.js build..."
+NODE_ENV=production npm run build:next
 
-# Restore API routes
+# Restore API routes immediately after build
 if [ -d "$API_BACKUP" ]; then
   echo "Restoring API routes..."
   mv "$API_BACKUP" "$API_DIR"
