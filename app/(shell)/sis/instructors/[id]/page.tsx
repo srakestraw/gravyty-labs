@@ -1,6 +1,7 @@
 import { InstructorDetailClient } from './InstructorDetailClient';
 
 export const dynamic = 'force-static';
+export const dynamicParams = false;
 
 // Required for static export with dynamic routes
 export async function generateStaticParams() {
