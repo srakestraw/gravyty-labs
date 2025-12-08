@@ -69,6 +69,199 @@ export const authSync = functions.https.onRequest(async (req, res) => {
   }
 });
 
+// In-memory storage for configs (TODO: Move to Firestore)
+let guardrailsConfig: any = null;
+let communicationConfig: any = null;
+
+// Helper function to handle guardrails requests
+async function handleGuardrails(req: any, res: any) {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    res.status(204).send('');
+    return;
+  }
+  
+  try {
+    if (req.method === 'GET') {
+      // Return cached config or default structure
+      if (!guardrailsConfig) {
+        // Return default guardrails structure
+        guardrailsConfig = {
+          fairness: {
+            protectedAttributes: [
+              "race_ethnicity", "gender_identity", "sexual_orientation",
+              "religion", "national_origin", "disability_status",
+              "age", "veteran_status", "first_gen", "low_income"
+            ],
+            allowAttributeOverrides: true,
+            languageGuidelines: {
+              avoidFraming: [],
+              preferredFraming: []
+            },
+            fairnessEvalsEnabled: true,
+          },
+          privacy: {
+            allowedDomains: ["admissions", "student_success", "registrar", "career_services", "alumni_engagement", "advancement"],
+            sensitiveDomainsExcluded: ["counseling_notes", "mental_health", "conduct_records"],
+            emailPolicy: "summary_only",
+            smsPolicy: "reminders_only",
+            phonePolicy: "summary_only",
+          },
+          engagement: {
+            quietHours: {
+              enabled: true,
+              startTime: "21:00",
+              endTime: "08:00",
+              timezoneMode: "recipient"
+            },
+            quietPeriods: [],
+            holidays: [],
+            priorityOverrides: {},
+          },
+          actions: {
+            defaults: {
+              send_email: "human_review",
+              send_sms: "human_review",
+              send_phone_call: "blocked",
+              create_task: "auto",
+              create_internal_flag: "auto",
+              change_status: "human_review",
+              change_owner: "human_review"
+            },
+            perRoleOverrides: {}
+          },
+          logging: {
+            requireActionLogging: true,
+            requireDneCheckLogging: true,
+            requireGuardrailCheckLogging: true,
+            requireEvalStatusBeforeAuto: true
+          },
+          humanEscalation: {
+            rules: []
+          },
+          updatedAt: new Date().toISOString(),
+        };
+      }
+      return res.status(200).json({ config: guardrailsConfig });
+    }
+    
+    if (req.method === 'POST') {
+      const { config } = req.body;
+      if (!config) {
+        return res.status(400).json({ error: 'config is required' });
+      }
+      
+      // Save config (in-memory for now, TODO: persist to Firestore)
+      guardrailsConfig = {
+        ...config,
+        updatedAt: new Date().toISOString(),
+        updatedBy: 'admin' // TODO: Get from auth
+      };
+      
+      return res.status(200).json({ config: guardrailsConfig });
+    }
+    
+    return res.status(405).json({ error: 'Method not allowed' });
+  } catch (error) {
+    console.error('Guardrails error:', error);
+    return res.status(500).json({ error: 'Failed to process guardrails request' });
+  }
+}
+
+// Helper function to handle communication config requests
+async function handleCommunicationConfig(req: any, res: any) {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    res.status(204).send('');
+    return;
+  }
+  
+  try {
+    if (req.method === 'GET') {
+      // Return cached config or default structure
+      if (!communicationConfig) {
+        // Return default communication config structure
+        communicationConfig = {
+          brand: {
+            name: "Gravyty Labs",
+            mission: "",
+            values: [],
+            voiceDescription: ""
+          },
+          personality: {
+            traits: [],
+            communicationStyle: "professional",
+            formalityLevel: "balanced"
+          },
+          toneRules: [],
+          updatedAt: new Date().toISOString(),
+        };
+      }
+      return res.status(200).json({ config: communicationConfig });
+    }
+    
+    if (req.method === 'POST') {
+      const { config } = req.body;
+      if (!config) {
+        return res.status(400).json({ error: 'config is required' });
+      }
+      
+      // Save config (in-memory for now, TODO: persist to Firestore)
+      communicationConfig = {
+        ...config,
+        updatedAt: new Date().toISOString(),
+        updatedBy: 'admin' // TODO: Get from auth
+      };
+      
+      return res.status(200).json({ config: communicationConfig });
+    }
+    
+    return res.status(405).json({ error: 'Method not allowed' });
+  } catch (error) {
+    console.error('Communication config error:', error);
+    return res.status(500).json({ error: 'Failed to process communication config request' });
+  }
+}
+
+// Main API router function
+export const api = functions.https.onRequest(async (req, res) => {
+  // Extract the path after /api/
+  const path = req.path.replace(/^\/api/, '') || '/';
+  const segments = path.split('/').filter(Boolean);
+  const endpoint = segments[0] || '';
+  
+  // Route to appropriate handler
+  if (endpoint === 'guardrails') {
+    return handleGuardrails(req, res);
+  } else if (endpoint === 'communication-config') {
+    return handleCommunicationConfig(req, res);
+  } else if (endpoint === 'auth' && segments[1] === 'sync') {
+    // Handle auth/sync
+    return authSync(req, res);
+  } else if (endpoint === 'health') {
+    // Handle health check
+    return health(req, res);
+  } else {
+    return res.status(404).json({ error: `Endpoint ${endpoint} not found` });
+  }
+});
+
+// Guardrails endpoint (standalone, for direct access)
+export const guardrails = functions.https.onRequest(async (req, res) => {
+  return handleGuardrails(req, res);
+});
+
+// Communication config endpoint (standalone, for direct access)
+export const communicationConfig = functions.https.onRequest(async (req, res) => {
+  return handleCommunicationConfig(req, res);
+});
+
 
 
 
