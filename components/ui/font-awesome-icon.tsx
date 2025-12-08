@@ -1,7 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
 interface FontAwesomeIconProps {
   icon: string;
   className?: string;
@@ -17,25 +15,6 @@ export function FontAwesomeIcon({
   style, 
   'aria-hidden': ariaHidden = true 
 }: FontAwesomeIconProps) {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  // Only render the icon after mount to prevent hydration issues
-  // and ensure Font Awesome has loaded
-  if (!isMounted) {
-    return (
-      <span 
-        className={className}
-        style={style}
-        aria-hidden={ariaHidden}
-        suppressHydrationWarning
-      />
-    );
-  }
-
   const combinedClassName = `${icon} ${className}`.trim();
   
   // Wrap in a span that React can always safely manage
