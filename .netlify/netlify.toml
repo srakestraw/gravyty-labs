@@ -15,7 +15,7 @@ package = "@netlify/plugin-nextjs"
 publish = "/Users/scott.rakestraws/Documents/Projects/gravyty-labs/out"
 publishOrigin = "config"
 commandOrigin = "config"
-command = "npm run build"
+command = "NODE_ENV=production npm run build:static"
 
 [build.environment]
 NODE_VERSION = "18"

@@ -2,6 +2,7 @@ import { SectionDetailClient } from './SectionDetailClient';
 
 export const dynamic = 'force-static';
 
+// Required for static export with dynamic routes
 export async function generateStaticParams() {
   return [];
 }
