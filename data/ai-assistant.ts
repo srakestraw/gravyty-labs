@@ -188,11 +188,11 @@ export const mockCaseDetails: Record<string, CaseDetail> = {
 };
 
 export const suggestedPrompts = [
-  'Who stalled this week?',
   'What are the top lead sources for applicants?',
   'Build my priority list for today',
   "Who needs a nudge to keep going?",
   "Who's missing documents?",
+  "Who stalled this week?",
 ];
 
 export const thinkingSteps = [

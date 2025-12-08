@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { IdleView } from '@/components/ai-assistant/views/IdleView';
 import { ThinkingView } from '@/components/ai-assistant/views/ThinkingView';
@@ -102,7 +102,7 @@ export default function AiAssistantPage() {
   const showChatBar = state.view !== 'idle';
 
   return (
-    <div className="min-h-screen pb-32">
+    <div className="min-h-screen pb-32 bg-background">
       <AnimatePresence mode="wait">
         {state.view === 'idle' && (
           <motion.div

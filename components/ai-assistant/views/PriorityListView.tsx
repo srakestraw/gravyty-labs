@@ -23,13 +23,26 @@ export function PriorityListView({
   const getPriorityColor = (p: string) => {
     switch (p) {
       case 'high':
-        return 'bg-red-100 text-red-700';
+        return 'bg-red-100 text-red-700 border-red-200';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-700';
+        return 'bg-yellow-100 text-yellow-700 border-yellow-200';
       case 'low':
-        return 'bg-blue-100 text-blue-700';
+        return 'bg-blue-100 text-blue-700 border-blue-200';
       default:
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-muted text-muted-foreground border-border';
+    }
+  };
+
+  const getPriorityIcon = (p: string) => {
+    switch (p) {
+      case 'high':
+        return 'fa-solid fa-exclamation-circle';
+      case 'medium':
+        return 'fa-solid fa-exclamation-triangle';
+      case 'low':
+        return 'fa-solid fa-info-circle';
+      default:
+        return 'fa-solid fa-circle';
     }
   };
 
@@ -40,134 +53,166 @@ export function PriorityListView({
   };
 
   return (
-    <SlideUpSection className="max-w-7xl mx-auto">
+    <SlideUpSection className="max-w-7xl mx-auto px-4">
       <div className="space-y-6 py-8">
         {onBack && (
-          <button
+          <Button
             onClick={onBack}
-            className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-2"
           >
             <FontAwesomeIcon icon="fa-solid fa-chevron-left" className="h-4 w-4" />
             Back to summary
-          </button>
+          </Button>
         )}
 
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            {priority.charAt(0).toUpperCase() + priority.slice(1)} Priority Applicants
-          </h2>
-          <p className="text-gray-600">{cases.length} applicants</p>
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <FontAwesomeIcon 
+              icon={getPriorityIcon(priority)} 
+              className={cn('h-5 w-5', getPriorityColor(priority).split(' ')[1])}
+            />
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground">
+              {priority.charAt(0).toUpperCase() + priority.slice(1)} Priority Applicants
+            </h2>
+          </div>
+          <p className="text-muted-foreground">{cases.length} {cases.length === 1 ? 'applicant' : 'applicants'}</p>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div className="bg-background border border-border rounded-lg overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-muted/50 border-b border-border">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 md:px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Name
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 md:px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Priority
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 md:px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Last Activity
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 md:px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Missing
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 md:px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Advisor
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 md:px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Active Agents
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 md:px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Suggested Agents
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {cases.map((caseItem, index) => (
-                  <motion.tr
-                    key={caseItem.id}
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05, duration: 0.3 }}
-                    onClick={() => onCaseClick(caseItem.id)}
-                    className="hover:bg-gray-50 cursor-pointer transition-colors"
-                  >
-                      <td className="px-6 py-4 whitespace-nowrap">
+              <tbody className="bg-background divide-y divide-border">
+                {cases.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">
+                      No {priority} priority applicants found.
+                    </td>
+                  </tr>
+                ) : (
+                  cases.map((caseItem, index) => (
+                    <motion.tr
+                      key={caseItem.id}
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05, duration: 0.3 }}
+                      onClick={() => onCaseClick(caseItem.id)}
+                      className="hover:bg-accent/50 cursor-pointer transition-colors"
+                    >
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-medium">
+                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm">
                             {caseItem.name
                               .split(' ')
                               .map((n) => n[0])
-                              .join('')}
+                              .join('')
+                              .toUpperCase()}
                           </div>
                           <div>
-                            <div className="text-sm font-medium text-gray-900">
+                            <div className="text-sm font-medium text-foreground">
                               {caseItem.name}
                             </div>
-                            <div className="text-sm text-gray-500">{caseItem.program}</div>
+                            <div className="text-sm text-muted-foreground">{caseItem.program}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap">
                         <span
                           className={cn(
-                            'px-2 py-1 text-xs font-medium rounded-full',
+                            'px-2.5 py-1 text-xs font-medium rounded-full border',
                             getPriorityColor(caseItem.priority)
                           )}
                         >
                           {caseItem.priority}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                         {caseItem.lastActivity}
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-wrap gap-1">
-                          {caseItem.missing.map((item, idx) => (
-                            <span
-                              key={idx}
-                              className="px-2 py-1 text-xs font-medium rounded bg-gray-100 text-gray-700"
-                            >
-                              {item}
-                            </span>
-                          ))}
+                      <td className="px-4 md:px-6 py-4">
+                        <div className="flex flex-wrap gap-1.5">
+                          {caseItem.missing.length === 0 ? (
+                            <span className="text-xs text-muted-foreground">None</span>
+                          ) : (
+                            caseItem.missing.map((item, idx) => (
+                              <span
+                                key={idx}
+                                className="px-2 py-1 text-xs font-medium rounded-md bg-muted text-muted-foreground border border-border"
+                              >
+                                {item}
+                              </span>
+                            ))
+                          )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                         {caseItem.advisor}
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-wrap gap-1">
-                          {caseItem.activeAgents.map((agent, idx) => (
-                            <span
-                              key={idx}
-                              className="px-2 py-1 text-xs font-medium rounded bg-purple-100 text-purple-700"
-                            >
-                              {agent}
-                            </span>
-                          ))}
+                      <td className="px-4 md:px-6 py-4">
+                        <div className="flex flex-wrap gap-1.5">
+                          {caseItem.activeAgents.length === 0 ? (
+                            <span className="text-xs text-muted-foreground">None</span>
+                          ) : (
+                            caseItem.activeAgents.map((agent, idx) => (
+                              <span
+                                key={idx}
+                                className="px-2 py-1 text-xs font-medium rounded-md bg-primary/10 text-primary border border-primary/20"
+                              >
+                                {agent}
+                              </span>
+                            ))
+                          )}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-wrap gap-1">
-                          {caseItem.suggestedAgents.map((agent, idx) => (
-                            <button
-                              key={idx}
-                              onClick={(e) => handleAgentClick(e, agent)}
-                              className="px-2 py-1 text-xs font-medium rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
-                            >
-                              + {agent}
-                            </button>
-                          ))}
+                      <td className="px-4 md:px-6 py-4">
+                        <div className="flex flex-wrap gap-1.5">
+                          {caseItem.suggestedAgents.length === 0 ? (
+                            <span className="text-xs text-muted-foreground">None</span>
+                          ) : (
+                            caseItem.suggestedAgents.map((agent, idx) => (
+                              <Button
+                                key={idx}
+                                onClick={(e) => handleAgentClick(e, agent)}
+                                variant="outline"
+                                size="sm"
+                                className="h-6 px-2 text-xs"
+                              >
+                                <FontAwesomeIcon icon="fa-solid fa-plus" className="h-3 w-3 mr-1" />
+                                {agent}
+                              </Button>
+                            ))
+                          )}
                         </div>
                       </td>
                     </motion.tr>
-                  ))}
+                  ))
+                )}
               </tbody>
             </table>
           </div>
