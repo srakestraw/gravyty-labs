@@ -1,10 +1,19 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Build script that temporarily moves API routes out of the way for static export
 
 set -e
 
 API_DIR="app/api"
 API_BACKUP="app/.api-backup"
+
+# Ensure workspace packages have dependencies installed
+echo "Installing workspace package dependencies..."
+if [ -d "packages/contracts" ]; then
+  cd packages/contracts && npm install --legacy-peer-deps && cd ../..
+fi
+if [ -d "packages/db" ]; then
+  cd packages/db && npm install --legacy-peer-deps && cd ../..
+fi
 
 # Clean any previous build artifacts
 echo "Cleaning build artifacts..."
