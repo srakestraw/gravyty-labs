@@ -33,7 +33,7 @@ export function AppSidebar() {
   // Check if we're in the AI Assistants app
   const isInAIAssistants = pathname?.startsWith('/ai-assistants');
 
-  type NavItem = { name: string; href: string; icon: string; id?: string };
+  type NavItem = { name: string; href: string; icon: string; id?: string; external?: boolean };
   type Navigation = 
     | { topLevel: NavItem[]; adminTools: NavItem[] }
     | NavItem[];
@@ -59,6 +59,7 @@ export function AppSidebar() {
           { name: 'Templates', href: '/ai-assistants/templates', icon: 'fa-solid fa-file-lines' },
           { name: 'Permissions', href: '/ai-assistants/permissions', icon: 'fa-solid fa-key' },
           { name: 'Settings', href: '/ai-assistants/settings', icon: 'fa-solid fa-cog' },
+          { name: 'Design System Preview', href: 'https://advance-admin-steel.vercel.app/ai-assistant', icon: 'fa-solid fa-palette', external: true },
         ],
       };
     }
@@ -160,17 +161,43 @@ export function AppSidebar() {
               )}
               
               {navigation.adminTools.map((item) => {
-                const isActive = pathname === item.href || pathname?.startsWith(item.href);
+                const isActive = !item.external && (pathname === item.href || pathname?.startsWith(item.href));
+                const linkClassName = cn(
+                  'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
+                  'hover:bg-gray-100 text-gray-700',
+                  isActive && 'bg-purple-50 text-purple-700 font-medium'
+                );
                 
+                // Handle external links
+                if (item.external) {
+                  return (
+                    <a
+                      key={item.name}
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={linkClassName}
+                      onClick={() => {
+                        // Close sidebar on mobile when navigating
+                        if (isMobile) {
+                          usePlatformStore.getState().toggleSidebar();
+                        }
+                      }}
+                    >
+                      <FontAwesomeIcon icon={item.icon} className="h-5 w-5 flex-shrink-0" />
+                      {(sidebarOpen || isMobile) && (
+                        <span className="truncate">{item.name}</span>
+                      )}
+                    </a>
+                  );
+                }
+                
+                // Handle internal links
                 return (
                   <Link
                     key={item.name}
                     href={item.href}
-                    className={cn(
-                      'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
-                      'hover:bg-gray-100 text-gray-700',
-                      isActive && 'bg-purple-50 text-purple-700 font-medium'
-                    )}
+                    className={linkClassName}
                     onClick={() => {
                       // Close sidebar on mobile when navigating
                       if (isMobile) {

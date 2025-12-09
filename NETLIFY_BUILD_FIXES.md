@@ -254,3 +254,4 @@ If Netlify continues to be problematic, Vercel has better Next.js support:
 1. Check your Netlify build logs to identify the specific error
 2. Try Option 1 first (most comprehensive fix)
 3. If that doesn't work, share the specific error message for targeted help
+
