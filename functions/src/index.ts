@@ -231,10 +231,37 @@ async function handleCommunicationConfig(req: any, res: any) {
 
 // Main API router function
 export const api = functions.https.onRequest(async (req, res) => {
-  // Extract the path after /api/
-  const path = req.path.replace(/^\/api/, '') || '/';
+  // Extract the path - handle both /api/endpoint and /endpoint formats
+  // req.path might be /api/guardrails or /guardrails depending on how it's called
+  let path = req.path || '/';
+  
+  // Remove /api prefix if present
+  if (path.startsWith('/api')) {
+    path = path.replace(/^\/api/, '') || '/';
+  }
+  
+  // Also check req.url which might have the full path
+  if (!path || path === '/') {
+    const urlPath = req.url?.split('?')[0] || '';
+    if (urlPath.startsWith('/api')) {
+      path = urlPath.replace(/^\/api/, '') || '/';
+    } else if (urlPath && urlPath !== '/') {
+      path = urlPath;
+    }
+  }
+  
   const segments = path.split('/').filter(Boolean);
   const endpoint = segments[0] || '';
+  
+  // Log for debugging (remove in production if needed)
+  console.log('API request:', {
+    method: req.method,
+    path: req.path,
+    url: req.url,
+    parsedPath: path,
+    endpoint,
+    segments
+  });
   
   // Route to appropriate handler
   if (endpoint === 'guardrails') {
@@ -248,6 +275,7 @@ export const api = functions.https.onRequest(async (req, res) => {
     // Handle health check
     return health(req, res);
   } else {
+    console.error('Unknown endpoint:', endpoint, 'from path:', req.path, 'url:', req.url);
     return res.status(404).json({ error: `Endpoint ${endpoint} not found` });
   }
 });

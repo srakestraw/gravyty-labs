@@ -1,0 +1,2 @@
+# API routes redirect to Cloud Functions
+/api/*  https://us-central1-gravyty-labs.cloudfunctions.net/api/:splat  200
