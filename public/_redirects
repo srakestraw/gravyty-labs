@@ -1,2 +1,3 @@
-# API routes redirect to Cloud Functions
-/api/*  https://us-central1-gravyty-labs.cloudfunctions.net/api/:splat  200!
+# API routes redirect to Netlify Functions
+/api/guardrails  /.netlify/functions/guardrails  200!
+/api/communication-config  /.netlify/functions/communication-config  200!
