@@ -63,21 +63,27 @@ export function AppSidebar() {
       };
     }
 
-    // Otherwise, show main app navigation
+    // Main app navigation - unified, product-agnostic structure
     const baseNav: NavItem[] = [
       { name: 'Dashboard', href: '/dashboard', icon: 'fa-solid fa-house' },
-      { name: 'Admissions', href: '/admissions', icon: 'fa-solid fa-clipboard-check' },
-      { name: 'SIS', href: '/sis', icon: 'fa-solid fa-graduation-cap' },
+      { name: 'AI Assistants', href: '/ai-assistants', icon: 'fa-solid fa-robot' },
+      { name: 'Career', href: '/career', icon: 'fa-solid fa-briefcase' },
+      { name: 'Community', href: '/community', icon: 'fa-solid fa-users' },
+      { name: 'Advancement', href: '/advancement', icon: 'fa-solid fa-gift' },
+      { name: 'Data', href: '/data', icon: 'fa-solid fa-database' },
+      { name: 'SIM Apps', href: '/sim-apps', icon: 'fa-solid fa-th' },
+      { name: 'Admin', href: '/admin', icon: 'fa-solid fa-cog' },
     ];
 
-    // Add AI Assistants if enabled and user has access
-    if (aiAssistantsEnabled && canAccessAIAssistants(user?.email || user?.uid)) {
-      baseNav.push({ name: 'AI Assistants', href: '/ai-assistants', icon: 'fa-solid fa-user-robot' });
-    }
+    // Filter AI Assistants if feature flag is disabled or user doesn't have access
+    const filteredNav = baseNav.filter(item => {
+      if (item.name === 'AI Assistants') {
+        return aiAssistantsEnabled && canAccessAIAssistants(user?.email || user?.uid);
+      }
+      return true;
+    });
 
-    baseNav.push({ name: 'Admin', href: '/admin', icon: 'fa-solid fa-cog' });
-
-    return baseNav;
+    return filteredNav;
   }, [isInAIAssistants, aiAssistantsEnabled, user?.email, user?.uid]);
 
   return (
@@ -183,7 +189,11 @@ export function AppSidebar() {
           ) : (
             // Main app navigation (non-AI Assistants)
             Array.isArray(navigation) && navigation.map((item) => {
-              const isActive = pathname === item.href;
+              // Dashboard should only be active on exact match
+              // Other routes should be active on exact match or sub-routes
+              const isActive = item.href === '/dashboard'
+                ? pathname === item.href
+                : pathname === item.href || pathname?.startsWith(item.href + '/');
               
               return (
                 <Link
