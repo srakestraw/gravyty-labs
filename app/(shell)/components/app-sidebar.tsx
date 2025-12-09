@@ -65,20 +65,22 @@ export function AppSidebar() {
     }
 
     // Main app navigation - unified, product-agnostic structure
+    // Shows only major hubs; detailed modules live inside each hub's local navigation
     const baseNav: NavItem[] = [
       { name: 'Dashboard', href: '/dashboard', icon: 'fa-solid fa-house' },
-      { name: 'AI Assistants', href: '/ai-assistants', icon: 'fa-solid fa-robot' },
-      { name: 'Career', href: '/career', icon: 'fa-solid fa-briefcase' },
-      { name: 'Community', href: '/community', icon: 'fa-solid fa-users' },
-      { name: 'Advancement', href: '/advancement', icon: 'fa-solid fa-gift' },
-      { name: 'Data', href: '/data', icon: 'fa-solid fa-database' },
+      { name: 'Student Lifecycle AI', href: '/ai-assistants', icon: 'fa-solid fa-robot' },
+      { name: 'AI Chatbots & Messaging', href: '/ai-assistants/assistant', icon: 'fa-solid fa-comments' },
+      { name: 'Engagement Hub', href: '/community', icon: 'fa-solid fa-users' },
+      { name: 'Advancement & Philanthropy', href: '/advancement', icon: 'fa-solid fa-gift' },
+      { name: 'Career Services', href: '/career', icon: 'fa-solid fa-briefcase' },
+      { name: 'Insights', href: '/data', icon: 'fa-solid fa-chart-bar' },
+      { name: 'Admin & Settings', href: '/admin', icon: 'fa-solid fa-shield' },
       { name: 'SIM Apps', href: '/sim-apps', icon: 'fa-solid fa-th' },
-      { name: 'Admin', href: '/admin', icon: 'fa-solid fa-cog' },
     ];
 
-    // Filter AI Assistants if feature flag is disabled or user doesn't have access
+    // Filter Student Lifecycle AI and AI Chatbots & Messaging if feature flag is disabled or user doesn't have access
     const filteredNav = baseNav.filter(item => {
-      if (item.name === 'AI Assistants') {
+      if (item.name === 'Student Lifecycle AI' || item.name === 'AI Chatbots & Messaging') {
         return aiAssistantsEnabled && canAccessAIAssistants(user?.email || user?.uid);
       }
       return true;
