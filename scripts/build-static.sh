@@ -35,4 +35,10 @@ if [ -d "$API_BACKUP" ]; then
   mv "$API_BACKUP" "$API_DIR"
 fi
 
+# Ensure _redirects file is copied to out directory for Netlify
+if [ -f "public/_redirects" ]; then
+  echo "Copying _redirects file to out directory..."
+  cp public/_redirects out/_redirects
+fi
+
 echo "Build complete!"
