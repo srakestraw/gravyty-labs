@@ -42,9 +42,10 @@ export const authSync = functions.https.onRequest(async (req, res) => {
       const domain = body.email.split('@')[1];
       
       if (!allowedDomains.includes(domain)) {
-        return res.status(403).json({
+        res.status(403).json({
           error: `Email domain '${domain}' is not allowed. Please use a ${allowedDomains.join(' or ')} email.`
         });
+        return;
       }
     }
     
@@ -61,11 +62,13 @@ export const authSync = functions.https.onRequest(async (req, res) => {
         name: body.displayName || body.email.split('@')[0],
       }
     });
+    return;
   } catch (error) {
     console.error('Auth sync error:', error);
     res.status(401).json({
       error: 'Authentication failed'
     });
+    return;
   }
 });
 
@@ -145,13 +148,15 @@ async function handleGuardrails(req: any, res: any) {
           updatedAt: new Date().toISOString(),
         };
       }
-      return res.status(200).json({ config: guardrailsConfig });
+      res.status(200).json({ config: guardrailsConfig });
+      return;
     }
     
     if (req.method === 'POST') {
       const { config } = req.body;
       if (!config) {
-        return res.status(400).json({ error: 'config is required' });
+        res.status(400).json({ error: 'config is required' });
+        return;
       }
       
       // Save config (in-memory for now, TODO: persist to Firestore)
@@ -161,13 +166,16 @@ async function handleGuardrails(req: any, res: any) {
         updatedBy: 'admin' // TODO: Get from auth
       };
       
-      return res.status(200).json({ config: guardrailsConfig });
+      res.status(200).json({ config: guardrailsConfig });
+      return;
     }
     
-    return res.status(405).json({ error: 'Method not allowed' });
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
   } catch (error) {
     console.error('Guardrails error:', error);
-    return res.status(500).json({ error: 'Failed to process guardrails request' });
+    res.status(500).json({ error: 'Failed to process guardrails request' });
+    return;
   }
 }
 
@@ -203,13 +211,15 @@ async function handleCommunicationConfig(req: any, res: any) {
           updatedAt: new Date().toISOString(),
         };
       }
-      return res.status(200).json({ config: communicationConfig });
+      res.status(200).json({ config: communicationConfig });
+      return;
     }
     
     if (req.method === 'POST') {
       const { config } = req.body;
       if (!config) {
-        return res.status(400).json({ error: 'config is required' });
+        res.status(400).json({ error: 'config is required' });
+        return;
       }
       
       // Save config (in-memory for now, TODO: persist to Firestore)
@@ -219,13 +229,16 @@ async function handleCommunicationConfig(req: any, res: any) {
         updatedBy: 'admin' // TODO: Get from auth
       };
       
-      return res.status(200).json({ config: communicationConfig });
+      res.status(200).json({ config: communicationConfig });
+      return;
     }
     
-    return res.status(405).json({ error: 'Method not allowed' });
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
   } catch (error) {
     console.error('Communication config error:', error);
-    return res.status(500).json({ error: 'Failed to process communication config request' });
+    res.status(500).json({ error: 'Failed to process communication config request' });
+    return;
   }
 }
 
@@ -276,7 +289,8 @@ export const api = functions.https.onRequest(async (req, res) => {
     return health(req, res);
   } else {
     console.error('Unknown endpoint:', endpoint, 'from path:', req.path, 'url:', req.url);
-    return res.status(404).json({ error: `Endpoint ${endpoint} not found` });
+    res.status(404).json({ error: `Endpoint ${endpoint} not found` });
+    return;
   }
 });
 
@@ -286,7 +300,7 @@ export const guardrails = functions.https.onRequest(async (req, res) => {
 });
 
 // Communication config endpoint (standalone, for direct access)
-export const communicationConfig = functions.https.onRequest(async (req, res) => {
+export const communicationConfigEndpoint = functions.https.onRequest(async (req, res) => {
   return handleCommunicationConfig(req, res);
 });
 
