@@ -89,6 +89,7 @@ export function AppSidebar() {
         ],
         adminTools: [
           { name: 'Guardrails', href: '/admin/guardrails', icon: 'fa-solid fa-shield-halved' },
+          { name: 'Do Not Engage', href: '/admin/do-not-engage', icon: 'fa-solid fa-user-slash' },
         ],
       };
     }
