@@ -12,6 +12,8 @@ import { useFeatureFlag } from '@/lib/features';
 import { useQueueAttentionCount } from '@/lib/agent-ops/useQueueAttentionCount';
 import { usePersona, type Persona } from '../contexts/persona-context';
 
+type NavItem = { name: string; href: string; icon: string; id?: string; external?: boolean };
+
 // Sidebar navigation - persona-aware function
 // Higher Ed persona keeps all existing labels exactly as they were
 // Only NPO persona uses different labels
@@ -69,6 +71,8 @@ export function AppSidebar() {
 
   // Check if we're in the AI Assistants app
   const isInAIAssistants = pathname?.startsWith('/ai-assistants');
+  // Check if we're in the Admin app
+  const isInAdmin = pathname?.startsWith('/admin');
 
   type NavItem = { name: string; href: string; icon: string; id?: string; external?: boolean };
   type Navigation = 
@@ -77,6 +81,18 @@ export function AppSidebar() {
 
   // Build navigation items - use useMemo to prevent recreation on every render
   const navigation: Navigation = useMemo(() => {
+    // If in Admin app, show sub-navigation
+    if (isInAdmin) {
+      return {
+        topLevel: [
+          { name: 'Overview', href: '/admin', icon: 'fa-solid fa-shield', id: 'overview' },
+        ],
+        adminTools: [
+          { name: 'Guardrails', href: '/admin/guardrails', icon: 'fa-solid fa-shield-halved' },
+        ],
+      };
+    }
+    
     // If in AI Assistants app, show sub-navigation
     if (isInAIAssistants) {
       return {
@@ -114,7 +130,7 @@ export function AppSidebar() {
     });
 
     return filteredNav;
-  }, [isInAIAssistants, aiAssistantsEnabled, user?.email, user?.uid, persona]);
+  }, [isInAIAssistants, isInAdmin, aiAssistantsEnabled, user?.email, user?.uid, persona]);
 
   return (
     <>
@@ -135,12 +151,12 @@ export function AppSidebar() {
         )}
       >
         <nav className="flex flex-col gap-1 p-2">
-          {isInAIAssistants && !Array.isArray(navigation) ? (
+          {(isInAIAssistants || isInAdmin) && !Array.isArray(navigation) ? (
             <>
               {/* Top-level navigation items */}
               {navigation.topLevel.map((item) => {
-                // For /ai-assistants, only exact match. For others, exact match or starts with href + '/'
-                const isActive = item.href === '/ai-assistants'
+                // For /ai-assistants and /admin, only exact match. For others, exact match or starts with href + '/'
+                const isActive = (item.href === '/ai-assistants' || item.href === '/admin')
                   ? pathname === item.href
                   : pathname === item.href || pathname?.startsWith(item.href + '/');
                 
@@ -151,7 +167,7 @@ export function AppSidebar() {
                     className={cn(
                       'flex items-center justify-between gap-2 px-3 py-2 rounded-md text-sm transition-colors',
                       'hover:bg-gray-100 text-gray-700',
-                      isActive && 'bg-purple-50 text-purple-700 font-medium'
+                      isActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : 'bg-purple-50 text-purple-700 font-medium')
                     )}
                     onClick={() => {
                       // Close sidebar on mobile when navigating
@@ -194,7 +210,7 @@ export function AppSidebar() {
                 const linkClassName = cn(
                   'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
                   'hover:bg-gray-100 text-gray-700',
-                  isActive && 'bg-purple-50 text-purple-700 font-medium'
+                  isActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : 'bg-purple-50 text-purple-700 font-medium')
                 );
                 
                 // Handle external links
