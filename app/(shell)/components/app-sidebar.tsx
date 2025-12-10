@@ -91,6 +91,7 @@ export function AppSidebar() {
           { name: 'Guardrails', href: '/admin/guardrails', icon: 'fa-solid fa-shield-halved' },
           { name: 'Do Not Engage', href: '/admin/do-not-engage', icon: 'fa-solid fa-user-slash' },
           { name: 'Evals', href: '/admin/evals', icon: 'fa-solid fa-chart-line' },
+          { name: 'Logs', href: '/admin/logs', icon: 'fa-solid fa-list' },
         ],
       };
     }
