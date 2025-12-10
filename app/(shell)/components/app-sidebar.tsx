@@ -10,12 +10,49 @@ import { useAuth } from '@/lib/firebase/auth-context';
 import { canAccessAIAssistants } from '@/lib/roles';
 import { useFeatureFlag } from '@/lib/features';
 import { useQueueAttentionCount } from '@/lib/agent-ops/useQueueAttentionCount';
+import { usePersona, type Persona } from '../contexts/persona-context';
+
+// Sidebar navigation - persona-aware function
+// Higher Ed persona keeps all existing labels exactly as they were
+// Only NPO persona uses different labels
+function getSidebarNav(persona: Persona): NavItem[] {
+  const isHigherEd = persona === 'higher-ed';
+
+  return [
+    { name: 'Dashboard', href: '/dashboard', icon: 'fa-solid fa-house' },
+    {
+      name: isHigherEd ? 'Student Lifecycle AI' : 'Supporter Lifecycle AI',
+      href: '/ai-assistants',
+      icon: 'fa-solid fa-robot',
+    },
+    { name: 'AI Chatbots & Messaging', href: '/ai-assistants/assistant', icon: 'fa-solid fa-comments' },
+    {
+      name: isHigherEd ? 'Engagement Hub' : 'Community Engagement',
+      href: '/community',
+      icon: 'fa-solid fa-users',
+    },
+    {
+      name: isHigherEd ? 'Advancement & Philanthropy' : 'Development & Fundraising',
+      href: '/advancement',
+      icon: 'fa-solid fa-gift',
+    },
+    { name: 'Career Services', href: '/career', icon: 'fa-solid fa-briefcase' },
+    { name: 'Insights', href: '/data', icon: 'fa-solid fa-chart-bar' },
+    { name: 'Admin & Settings', href: '/admin', icon: 'fa-solid fa-shield' },
+    {
+      name: isHigherEd ? 'SIM Apps' : 'Connected Systems (SIM Apps)',
+      href: '/sim-apps',
+      icon: 'fa-solid fa-th',
+    },
+  ];
+}
 
 export function AppSidebar() {
   const { sidebarOpen, activeApp } = usePlatformStore();
   const pathname = usePathname();
   const { user } = useAuth();
   const aiAssistantsEnabled = useFeatureFlag('ai_assistants');
+  const { persona } = usePersona();
   const [isMobile, setIsMobile] = useState(false);
   const queueAttentionCount = useQueueAttentionCount();
   const queueDisplayCount = queueAttentionCount > 99 ? '99+' : queueAttentionCount.toString();
@@ -64,30 +101,20 @@ export function AppSidebar() {
       };
     }
 
-    // Main app navigation - unified, product-agnostic structure
-    // Shows only major hubs; detailed modules live inside each hub's local navigation
-    const baseNav: NavItem[] = [
-      { name: 'Dashboard', href: '/dashboard', icon: 'fa-solid fa-house' },
-      { name: 'Student Lifecycle AI', href: '/ai-assistants', icon: 'fa-solid fa-robot' },
-      { name: 'AI Chatbots & Messaging', href: '/ai-assistants/assistant', icon: 'fa-solid fa-comments' },
-      { name: 'Engagement Hub', href: '/community', icon: 'fa-solid fa-users' },
-      { name: 'Advancement & Philanthropy', href: '/advancement', icon: 'fa-solid fa-gift' },
-      { name: 'Career Services', href: '/career', icon: 'fa-solid fa-briefcase' },
-      { name: 'Insights', href: '/data', icon: 'fa-solid fa-chart-bar' },
-      { name: 'Admin & Settings', href: '/admin', icon: 'fa-solid fa-shield' },
-      { name: 'SIM Apps', href: '/sim-apps', icon: 'fa-solid fa-th' },
-    ];
+    // Main app navigation - persona-aware
+    const baseNav: NavItem[] = getSidebarNav(persona);
 
     // Filter Student Lifecycle AI and AI Chatbots & Messaging if feature flag is disabled or user doesn't have access
     const filteredNav = baseNav.filter(item => {
-      if (item.name === 'Student Lifecycle AI' || item.name === 'AI Chatbots & Messaging') {
+      // Check by href instead of name since names may vary by persona
+      if (item.href === '/ai-assistants' || item.href === '/ai-assistants/assistant') {
         return aiAssistantsEnabled && canAccessAIAssistants(user?.email || user?.uid);
       }
       return true;
     });
 
     return filteredNav;
-  }, [isInAIAssistants, aiAssistantsEnabled, user?.email, user?.uid]);
+  }, [isInAIAssistants, aiAssistantsEnabled, user?.email, user?.uid, persona]);
 
   return (
     <>

@@ -17,6 +17,8 @@ import { AppSwitcher } from './app-switcher';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { useRouter, usePathname } from 'next/navigation';
 import { App } from '@/lib/types';
+import { usePersona } from '../contexts/persona-context';
+import { cn } from '@/lib/utils';
 
 const apps: App[] = [
   {
@@ -60,6 +62,39 @@ const apps: App[] = [
     path: '/admin',
   },
 ];
+
+function PersonaSwitcher() {
+  const { persona, setPersona } = usePersona();
+
+  return (
+    <div className="flex items-center gap-1 mr-1 sm:mr-2">
+      <button
+        type="button"
+        onClick={() => setPersona('higher-ed')}
+        className={cn(
+          'px-2 py-1 text-xs rounded-full border transition-colors',
+          persona === 'higher-ed'
+            ? 'bg-slate-900 text-white border-slate-900'
+            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+        )}
+      >
+        Higher Ed
+      </button>
+      <button
+        type="button"
+        onClick={() => setPersona('nonprofit')}
+        className={cn(
+          'px-2 py-1 text-xs rounded-full border transition-colors',
+          persona === 'nonprofit'
+            ? 'bg-slate-900 text-white border-slate-900'
+            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+        )}
+      >
+        Nonprofit
+      </button>
+    </div>
+  );
+}
 
 export function AppHeader() {
   const { activeApp, toggleSidebar, setActiveApp } = usePlatformStore();
@@ -143,6 +178,9 @@ export function AppHeader() {
 
         {/* Right Section */}
         <div className="flex items-center gap-0 sm:gap-1 ml-auto">
+          {/* Persona Switcher */}
+          <PersonaSwitcher />
+          
           {/* Mobile search button */}
           <Button variant="ghost" size="icon" className="h-8 w-8 md:hidden">
             <FontAwesomeIcon icon="fa-solid fa-search" className="h-4 w-4" />

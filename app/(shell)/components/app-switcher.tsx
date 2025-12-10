@@ -16,6 +16,7 @@ import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { canAccessAIAssistants } from '@/lib/roles';
 import { useFeatureFlag } from '@/lib/features';
+import { usePersona, type Persona } from '../contexts/persona-context';
 
 interface AppItem {
   id: string;
@@ -28,81 +29,97 @@ interface AppItem {
   description?: string; // Short description shown under the label
 }
 
-// Main apps - flat list without section headers
-const mainApps: AppItem[] = [
-  {
-    id: 'home',
-    name: 'Home',
-    icon: 'fa-solid fa-house',
-    path: '/dashboard',
-    color: '#3B82F6',
-    poweredBy: 'Platform',
-    description: 'Your unified dashboard with insights, alerts, and shortcuts across your programs.',
-  },
-  {
-    id: 'student-lifecycle-ai',
-    name: 'Student Lifecycle AI',
-    icon: 'fa-solid fa-robot',
-    path: '/ai-assistants',
-    color: '#8B5CF6',
-    requiresRole: true,
-    description: 'AI assistants for admissions, financial aid, registrar, student success, and workflows.',
-  },
-  {
-    id: 'ai-chatbots-messaging',
-    name: 'AI Chatbots & Messaging',
-    icon: 'fa-solid fa-comments',
-    path: '/ai-assistants/assistant',
-    color: '#8B5CF6',
-    requiresRole: true,
-    description: '24/7 student-facing chatbot and messaging powered by Ivy & Ocelot.',
-  },
-  {
-    id: 'engagement-hub',
-    name: 'Engagement Hub',
-    icon: 'fa-solid fa-users',
-    path: '/community',
-    color: '#7C3AED',
-    poweredBy: 'Platform',
-    description: 'Community and alumni engagement — events, volunteering, mentoring, groups, and messaging. Includes: Graduway & Athlete Network.',
-  },
-  {
-    id: 'advancement-philanthropy',
-    name: 'Advancement & Philanthropy',
-    icon: 'fa-solid fa-gift',
-    path: '/advancement',
-    color: '#DC2626',
-    poweredBy: 'Platform',
-    description: 'Fundraising and annual giving — giving forms, campaigns, appeals, Giving Day, recurring gifts, stewardship, and fundraising ambassadors. Includes: Advance, Raise, Gratavid.',
-  },
-  {
-    id: 'career-services',
-    name: 'Career Services',
-    icon: 'fa-solid fa-briefcase',
-    path: '/career',
-    color: '#00B8D9',
-    poweredBy: ['AI Career Hub', 'Graduway', 'Athlete Network'],
-    description: 'Career Hub for students and alumni – jobs, internships, and employer recruiting.',
-  },
-  {
-    id: 'insights',
-    name: 'Insights',
-    icon: 'fa-solid fa-chart-bar',
-    path: '/data',
-    color: '#059669',
-    poweredBy: 'Platform',
-    description: 'Reporting and data across all products.',
-  },
-  {
-    id: 'admin-settings',
-    name: 'Admin & Settings',
-    icon: 'fa-solid fa-shield',
-    path: '/admin',
-    color: '#059669',
-    poweredBy: 'Platform',
-    description: 'Organization, users & permissions, AI policies, and platform configuration.',
-  },
-];
+// Main apps - persona-aware function
+// Higher Ed persona keeps all existing labels/descriptions exactly as they were
+// Only NPO persona uses different labels/descriptions
+function getMainApps(persona: Persona): AppItem[] {
+  const isHigherEd = persona === 'higher-ed';
+
+  return [
+    {
+      id: 'home',
+      name: 'Home',
+      icon: 'fa-solid fa-house',
+      path: '/dashboard',
+      color: '#3B82F6',
+      poweredBy: 'Platform',
+      description: 'Your unified dashboard with insights, alerts, and shortcuts across your programs.',
+    },
+    {
+      id: 'student-lifecycle-ai',
+      name: isHigherEd ? 'Student Lifecycle AI' : 'Supporter Lifecycle AI',
+      icon: 'fa-solid fa-robot',
+      path: '/ai-assistants',
+      color: '#8B5CF6',
+      requiresRole: true,
+      description: isHigherEd
+        ? 'AI assistants for admissions, financial aid, registrar, student success, and workflows.'
+        : 'AI assistants for supporter onboarding, donations, renewals, stewardship workflows, and service interactions.',
+    },
+    {
+      id: 'ai-chatbots-messaging',
+      name: 'AI Chatbots & Messaging',
+      icon: 'fa-solid fa-comments',
+      path: '/ai-assistants/assistant',
+      color: '#8B5CF6',
+      requiresRole: true,
+      description: isHigherEd
+        ? '24/7 student-facing chatbot and messaging powered by Ivy & Ocelot.'
+        : '24/7 supporter-facing chatbot and messaging powered by Ivy & Ocelot.',
+    },
+    {
+      id: 'engagement-hub',
+      name: isHigherEd ? 'Engagement Hub' : 'Community Engagement',
+      icon: 'fa-solid fa-users',
+      path: '/community',
+      color: '#7C3AED',
+      poweredBy: 'Platform',
+      description: isHigherEd
+        ? 'Community and alumni engagement — events, volunteering, mentoring, groups, and messaging. Includes: Graduway & Athlete Network.'
+        : 'Constituent and community engagement — events, volunteering, peer programs, groups, and messaging.',
+    },
+    {
+      id: 'advancement-philanthropy',
+      name: isHigherEd ? 'Advancement & Philanthropy' : 'Development & Fundraising',
+      icon: 'fa-solid fa-gift',
+      path: '/advancement',
+      color: '#DC2626',
+      poweredBy: 'Platform',
+      description: isHigherEd
+        ? 'Fundraising and annual giving — giving forms, campaigns, appeals, Giving Day, recurring gifts, stewardship, and fundraising ambassadors. Includes: Advance, Raise, Gratavid.'
+        : 'Donor development and fundraising — campaigns, appeals, recurring giving, stewardship, and ambassadors.',
+    },
+    {
+      id: 'career-services',
+      name: 'Career Services',
+      icon: 'fa-solid fa-briefcase',
+      path: '/career',
+      color: '#00B8D9',
+      poweredBy: ['AI Career Hub', 'Graduway', 'Athlete Network'],
+      description: isHigherEd
+        ? 'Career Hub for students and alumni – jobs, internships, and employer recruiting.'
+        : 'Career Hub for supporters, alumni, or program participants — jobs, internships, and employer recruiting.',
+    },
+    {
+      id: 'insights',
+      name: 'Insights',
+      icon: 'fa-solid fa-chart-bar',
+      path: '/data',
+      color: '#059669',
+      poweredBy: 'Platform',
+      description: 'Reporting and data across all products.',
+    },
+    {
+      id: 'admin-settings',
+      name: 'Admin & Settings',
+      icon: 'fa-solid fa-shield',
+      path: '/admin',
+      color: '#059669',
+      poweredBy: 'Platform',
+      description: 'Organization, users & permissions, AI policies, and platform configuration.',
+    },
+  ];
+}
 
 // SIM Apps - grouped list with section header
 const simApps: AppItem[] = [
@@ -215,7 +232,11 @@ export function AppSwitcher() {
   const router = useRouter();
   const pathname = usePathname();
   const aiAssistantsEnabled = useFeatureFlag('ai_assistants');
+  const { persona } = usePersona();
   const [open, setOpen] = useState(false);
+
+  // Get persona-aware main apps
+  const mainApps = useMemo(() => getMainApps(persona), [persona]);
 
   // Filter main apps based on feature flags and roles
   const visibleMainApps = useMemo(() => {
@@ -225,7 +246,7 @@ export function AppSwitcher() {
       }
       return true;
     });
-  }, [aiAssistantsEnabled, user?.email, user?.uid]);
+  }, [mainApps, aiAssistantsEnabled, user?.email, user?.uid]);
 
   // SIM Apps don't need filtering, but keep for consistency
   const visibleSimApps = useMemo(() => simApps, []);
@@ -302,7 +323,7 @@ export function AppSwitcher() {
           {/* SIM Apps section with header */}
           <div className="mt-6 border-t border-gray-100 pt-4">
             <div className="px-2 text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
-              SIM Apps
+              {persona === 'higher-ed' ? 'SIM Apps' : 'Connected Systems (SIM Apps)'}
             </div>
             <div className="space-y-2">
               {visibleSimApps.map((item) => (
