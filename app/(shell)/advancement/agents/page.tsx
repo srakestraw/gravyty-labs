@@ -3,5 +3,5 @@
 import { AgentsPageClient } from "@/components/shared/agents/AgentsPageClient";
 
 export default function Page() {
-  return <AgentsPageClient basePath="/ai-assistants" />;
+  return <AgentsPageClient basePath="/advancement" />;
 }

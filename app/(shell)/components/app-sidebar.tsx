@@ -73,6 +73,8 @@ export function AppSidebar() {
   const isInAIAssistants = pathname?.startsWith('/ai-assistants');
   // Check if we're in the Admin app
   const isInAdmin = pathname?.startsWith('/admin');
+  // Check if we're in the Advancement app
+  const isInAdvancement = pathname?.startsWith('/advancement');
 
   type NavItem = { name: string; href: string; icon: string; id?: string; external?: boolean };
   type Navigation = 
@@ -81,6 +83,18 @@ export function AppSidebar() {
 
   // Build navigation items - use useMemo to prevent recreation on every render
   const navigation: Navigation = useMemo(() => {
+    // If in Advancement app, show sub-navigation
+    if (isInAdvancement) {
+      return {
+        topLevel: [
+          { name: 'Overview', href: '/advancement', icon: 'fa-solid fa-gift', id: 'overview' },
+          { name: 'Agents', href: '/advancement/agents', icon: 'fa-solid fa-bolt', id: 'agents' },
+          { name: 'Queue', href: '/advancement/queue', icon: 'fa-solid fa-list', id: 'queue' },
+        ],
+        adminTools: [],
+      };
+    }
+    
     // If in Admin app, show sub-navigation
     if (isInAdmin) {
       return {
@@ -136,7 +150,7 @@ export function AppSidebar() {
     });
 
     return filteredNav;
-  }, [isInAIAssistants, isInAdmin, aiAssistantsEnabled, user?.email, user?.uid, persona]);
+  }, [isInAIAssistants, isInAdmin, isInAdvancement, aiAssistantsEnabled, user?.email, user?.uid, persona]);
 
   return (
     <>
@@ -157,12 +171,12 @@ export function AppSidebar() {
         )}
       >
         <nav className="flex flex-col gap-1 p-2">
-          {(isInAIAssistants || isInAdmin) && !Array.isArray(navigation) ? (
+          {(isInAIAssistants || isInAdmin || isInAdvancement) && !Array.isArray(navigation) ? (
             <>
               {/* Top-level navigation items */}
               {navigation.topLevel.map((item) => {
-                // For /ai-assistants and /admin, only exact match. For others, exact match or starts with href + '/'
-                const isActive = (item.href === '/ai-assistants' || item.href === '/admin')
+                // For /ai-assistants, /admin, and /advancement, only exact match. For others, exact match or starts with href + '/'
+                const isActive = (item.href === '/ai-assistants' || item.href === '/admin' || item.href === '/advancement')
                   ? pathname === item.href
                   : pathname === item.href || pathname?.startsWith(item.href + '/');
                 
@@ -173,7 +187,7 @@ export function AppSidebar() {
                     className={cn(
                       'flex items-center justify-between gap-2 px-3 py-2 rounded-md text-sm transition-colors',
                       'hover:bg-gray-100 text-gray-700',
-                      isActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : 'bg-purple-50 text-purple-700 font-medium')
+                      isActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : isInAdvancement ? 'bg-red-50 text-red-700 font-medium' : 'bg-purple-50 text-purple-700 font-medium')
                     )}
                     onClick={() => {
                       // Close sidebar on mobile when navigating
