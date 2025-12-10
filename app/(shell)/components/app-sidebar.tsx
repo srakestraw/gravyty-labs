@@ -92,6 +92,7 @@ export function AppSidebar() {
           { name: 'Do Not Engage', href: '/admin/do-not-engage', icon: 'fa-solid fa-user-slash' },
           { name: 'Evals', href: '/admin/evals', icon: 'fa-solid fa-chart-line' },
           { name: 'Logs', href: '/admin/logs', icon: 'fa-solid fa-list' },
+          { name: 'Voice & Tone', href: '/admin/voice-and-tone', icon: 'fa-solid fa-comments' },
         ],
       };
     }

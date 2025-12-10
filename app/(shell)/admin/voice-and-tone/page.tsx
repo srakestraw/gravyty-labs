@@ -5,4 +5,3 @@ import { CommunicationPageClient } from "@/components/shared/voice-and-tone/Comm
 export default function CommunicationPage() {
   return <CommunicationPageClient />;
 }
-
