@@ -93,6 +93,8 @@ export function AppSidebar() {
           { name: 'Evals', href: '/admin/evals', icon: 'fa-solid fa-chart-line' },
           { name: 'Logs', href: '/admin/logs', icon: 'fa-solid fa-list' },
           { name: 'Voice & Tone', href: '/admin/voice-and-tone', icon: 'fa-solid fa-comments' },
+          { name: 'Permissions', href: '/admin/permissions', icon: 'fa-solid fa-key' },
+          { name: 'Settings', href: '/admin/settings', icon: 'fa-solid fa-cog' },
         ],
       };
     }
