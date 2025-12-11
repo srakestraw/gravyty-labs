@@ -49,7 +49,7 @@ export function PreviewSection({ config }: PreviewSectionProps) {
     }
 
     // Sort rules by order (top to bottom)
-    const sortedRules = [...config.toneRules].sort((a, b) => a.order - b.order);
+    const sortedRules = [...(config.toneRules || [])].sort((a, b) => a.order - b.order);
 
     // Find matching rule (User → Group → App precedence)
     const matchingRule = sortedRules.find(rule => {

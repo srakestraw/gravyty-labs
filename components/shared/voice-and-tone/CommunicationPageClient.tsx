@@ -27,7 +27,7 @@ function convertBrandToProfile(brand: any, isDefault: boolean = true): VoiceProf
     description: 'Default institutional voice profile',
     isDefault,
     brand: {
-      typographyStyle: 'system',
+      typographyStyle: 'system' as const,
     },
     missionValues: brand.missionValues || [],
     communicationPillars: brand.communicationPillars || [],
@@ -56,13 +56,13 @@ function migrateConfig(config: CommunicationConfig): CommunicationConfig {
   }
 
   // Convert legacy brand to profile
-  const defaultProfile = config.brand ? convertBrandToProfile(config.brand, true) : {
+  const defaultProfile: VoiceProfile = config.brand ? convertBrandToProfile(config.brand, true) : {
     id: 'profile_institutional',
     name: 'Institutional',
     description: 'Default institutional voice profile',
     isDefault: true,
     brand: {
-      typographyStyle: 'system',
+      typographyStyle: 'system' as const,
     },
     missionValues: ['student-centered', 'equity-first'],
     communicationPillars: ['clarity', 'support', 'transparency'],
@@ -376,7 +376,7 @@ export function CommunicationPageClient() {
 
           {activeTab === "tone" && config && (
             <ToneRulesSection
-              rules={config.toneRules}
+              rules={config.toneRules || []}
               profiles={config.voiceProfiles}
               onChange={(toneRules) => updateConfig((prev) => ({ ...prev, toneRules }))}
               canEdit={canEdit}

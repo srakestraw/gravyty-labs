@@ -88,7 +88,7 @@ export function PolicyEditor({
   onBack,
 }: PolicyEditorProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = React.useState<PolicyTabId>('general');
+  const [activeTab, setActiveTab] = React.useState<PolicyTabId>('overview');
   const [localPolicy, setLocalPolicy] = React.useState<GuardrailPolicy>(policy);
   const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false);
   const [saving, setSaving] = React.useState(false);

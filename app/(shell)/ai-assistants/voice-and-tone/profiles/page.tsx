@@ -2,11 +2,12 @@
 
 import { VoiceAndToneProvider, useVoiceAndTone } from '@/components/shared/voice-and-tone/VoiceAndToneProvider';
 import { ProfilesIndexPage } from '@/components/shared/voice-and-tone/ProfilesIndexPage';
+import { VoiceProfile, AssignmentRule } from '@/lib/communication/types';
 
 function ProfilesIndexPageWrapper() {
   const { config, loading, updateProfiles, updateAssignmentRules, save } = useVoiceAndTone();
 
-  async function handleUpdateProfiles(profiles: typeof config.voiceProfiles) {
+  async function handleUpdateProfiles(profiles: VoiceProfile[]) {
     updateProfiles(profiles);
     try {
       await save();
@@ -15,7 +16,7 @@ function ProfilesIndexPageWrapper() {
     }
   }
 
-  async function handleUpdateAssignmentRules(rules: typeof config.assignmentRules) {
+  async function handleUpdateAssignmentRules(rules: AssignmentRule[]) {
     updateAssignmentRules(rules);
     try {
       await save();
