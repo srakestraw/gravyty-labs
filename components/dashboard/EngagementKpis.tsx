@@ -60,7 +60,7 @@ const mockKpis = [
 export function EngagementKpis() {
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-4">Engagement & Fundraising KPIs</h2>
+      <h2 className="text-xl font-semibold text-gray-900 mb-4">Engagement & Advancement KPIs</h2>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {mockKpis.map((kpi) => (
@@ -92,3 +92,5 @@ export function EngagementKpis() {
     </div>
   );
 }
+
+

@@ -25,11 +25,11 @@ export function SummarySection({ config }: SummarySectionProps) {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        {/* Fairness & DEI */}
+        {/* Fairness & Inclusion */}
         <div className="rounded-lg border border-gray-100 bg-white p-3 space-y-2">
           <div className="flex items-center gap-2">
             <FontAwesomeIcon icon="fa-solid fa-shield-halved" className="h-4 w-4 text-indigo-600" />
-            <h3 className="text-xs font-semibold text-gray-900">Fairness & DEI</h3>
+            <h3 className="text-xs font-semibold text-gray-900">Fairness & Inclusion</h3>
           </div>
           <ul className="text-[11px] text-gray-600 space-y-1">
             <li>• {config.fairness.protectedAttributes.length} protected attributes</li>

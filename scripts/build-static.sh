@@ -2,17 +2,26 @@
 # Build script that temporarily moves API routes out of the way for static export
 
 set -e
+set -x  # Enable debug output
+
+# Print environment info
+echo "Node version: $(node --version)"
+echo "NPM version: $(npm --version)"
+echo "Current directory: $(pwd)"
+echo "NODE_ENV: ${NODE_ENV:-not set}"
 
 API_DIR="app/api"
 API_BACKUP="app/.api-backup"
 
-# Ensure workspace packages have dependencies installed
+# Ensure workspace packages have dependencies installed and built
 echo "Installing workspace package dependencies..."
 if [ -d "packages/contracts" ]; then
-  cd packages/contracts && npm install --legacy-peer-deps && cd ../..
+  echo "Installing and building contracts package..."
+  (cd packages/contracts && npm install --legacy-peer-deps && npm run build)
 fi
 if [ -d "packages/db" ]; then
-  cd packages/db && npm install --legacy-peer-deps && cd ../..
+  echo "Installing db package dependencies..."
+  (cd packages/db && npm install --legacy-peer-deps)
 fi
 
 # Clean any previous build artifacts

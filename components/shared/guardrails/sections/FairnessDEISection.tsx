@@ -53,10 +53,10 @@ export function FairnessDEISection({ config, onChange, canEdit }: FairnessDEISec
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <h2 className="text-sm font-semibold text-gray-900">
-            Fairness & DEI
+            Fairness & Inclusion
           </h2>
           <p className="text-xs text-gray-600">
-            Prevent agents from using protected attributes to prioritize, exclude, or treat people differently.
+            Ensure fair and inclusive treatment across protected attributes. Prevent agents from using protected attributes to prioritize, exclude, or treat people differently.
             Focus decisions on behavior and engagement signals, not identity.
           </p>
         </div>

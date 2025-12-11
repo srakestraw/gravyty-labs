@@ -106,7 +106,7 @@ export function AppSidebar() {
           { name: 'Do Not Engage', href: '/admin/do-not-engage', icon: 'fa-solid fa-user-slash' },
           { name: 'Evals', href: '/admin/evals', icon: 'fa-solid fa-chart-line' },
           { name: 'Logs', href: '/admin/logs', icon: 'fa-solid fa-list' },
-          { name: 'Voice & Tone', href: '/admin/voice-and-tone', icon: 'fa-solid fa-comments' },
+          { name: 'Voice & Tone', href: '/ai-assistants/voice-and-tone', icon: 'fa-solid fa-comments' },
           { name: 'Permissions', href: '/admin/permissions', icon: 'fa-solid fa-key' },
           { name: 'Settings', href: '/admin/settings', icon: 'fa-solid fa-cog' },
         ],
@@ -124,7 +124,7 @@ export function AppSidebar() {
           { name: 'People', href: '/ai-assistants/agent-ops/people', icon: 'fa-solid fa-users', id: 'people' },
         ],
         adminTools: [
-          { name: 'Guardrails', href: '/ai-assistants/guardrails', icon: 'fa-solid fa-shield-halved' },
+          { name: 'Guardrails', href: '/admin/guardrails', icon: 'fa-solid fa-shield-halved' },
           { name: 'Do Not Engage', href: '/ai-assistants/do-not-engage', icon: 'fa-solid fa-user-slash' },
           { name: 'Evals', href: '/ai-assistants/evals', icon: 'fa-solid fa-chart-line' },
           { name: 'Logs', href: '/ai-assistants/logs', icon: 'fa-solid fa-list' },

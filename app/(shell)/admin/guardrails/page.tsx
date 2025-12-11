@@ -1,8 +1,7 @@
 "use client";
 
-import { GuardrailsPageClient } from "@/components/shared/guardrails/GuardrailsPageClient";
+import { GuardrailsShell } from "@/components/shared/guardrails/GuardrailsShell";
 
 export default function GuardrailsPage() {
-
-  return <GuardrailsPageClient />;
+  return <GuardrailsShell context="admin" />;
 }

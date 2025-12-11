@@ -15,7 +15,7 @@ import { SummarySection } from './sections/SummarySection';
 
 const GUARDRAIL_TABS = [
   { id: "summary", label: "Summary" },
-  { id: "fairness", label: "Fairness & DEI" },
+  { id: "fairness", label: "Fairness & Inclusion" },
   { id: "privacy", label: "Privacy & data scope" },
   { id: "engagement", label: "Engagement & contact policy" },
   { id: "actions", label: "Actions & autonomy" },
@@ -291,24 +291,18 @@ export function GuardrailsPageClient() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <header className="space-y-1">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-semibold text-gray-900">
-              Guardrails
-            </h1>
-            <p className="text-sm text-gray-600">
-              Define global safety, fairness, and communication guardrails for all AI assistants and agents.
-              Do-Not-Engage rules and permissions are managed in their own sections; this page focuses on
-              how agents behave when they are allowed to act.
+      {/* Info banner */}
+      <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+        <div className="flex items-start gap-3">
+          <FontAwesomeIcon icon="fa-solid fa-info-circle" className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-blue-900 mb-1">Global Guardrails</p>
+            <p className="text-xs text-blue-800">
+              Global Guardrails apply to all assistants, apps, agents, groups, and users. Policies can narrow or tailor behavior for specific contexts but must respect core safety, fairness, privacy, and escalation requirements defined here.
             </p>
           </div>
-          <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
-            Admin only
-          </span>
         </div>
-      </header>
+      </div>
 
       {/* Save status bar */}
       <div ref={saveBarRef} className="sticky top-0 z-10 flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm">

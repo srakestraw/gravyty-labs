@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { CommunicationConfig } from '@/lib/communication/types';
+import { CommunicationConfig, VoiceProfile, VoiceProfileId, ToneRule } from '@/lib/communication/types';
 import { Button } from '@/components/ui/button';
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 import { cn } from '@/lib/utils';
@@ -19,6 +19,76 @@ const COMMUNICATION_TABS = [
 
 type CommunicationTabId = (typeof COMMUNICATION_TABS)[number]["id"];
 
+// Helper to convert legacy BrandVoiceConfig to VoiceProfile
+function convertBrandToProfile(brand: any, isDefault: boolean = true): VoiceProfile {
+  return {
+    id: `profile_${Date.now()}`,
+    name: 'Institutional',
+    description: 'Default institutional voice profile',
+    isDefault,
+    brand: {
+      typographyStyle: 'system',
+    },
+    missionValues: brand.missionValues || [],
+    communicationPillars: brand.communicationPillars || [],
+    characteristics: {
+      formality: brand.sliders?.formality || 60,
+      warmth: brand.sliders?.warmth || 70,
+      directness: brand.sliders?.directness || 65,
+      energy: brand.sliders?.energy || 60,
+      detailLevel: brand.sliders?.detailLevel || 70,
+      riskPosture: brand.sliders?.riskPosture || 50,
+    },
+    stylePreferences: {
+      allowEmojis: brand.style?.emojiAllowed || true,
+      allowContractions: brand.style?.contractionsAllowed || true,
+      useFirstPerson: false,
+      allowLightHumor: false,
+    },
+  };
+}
+
+// Migrate old config to new structure
+function migrateConfig(config: CommunicationConfig): CommunicationConfig {
+  // If already has voiceProfiles, return as-is
+  if (config.voiceProfiles && config.voiceProfiles.length > 0) {
+    return config;
+  }
+
+  // Convert legacy brand to profile
+  const defaultProfile = config.brand ? convertBrandToProfile(config.brand, true) : {
+    id: 'profile_institutional',
+    name: 'Institutional',
+    description: 'Default institutional voice profile',
+    isDefault: true,
+    brand: {
+      typographyStyle: 'system',
+    },
+    missionValues: ['student-centered', 'equity-first'],
+    communicationPillars: ['clarity', 'support', 'transparency'],
+    characteristics: {
+      formality: 60,
+      warmth: 70,
+      directness: 65,
+      energy: 60,
+      detailLevel: 70,
+      riskPosture: 50,
+    },
+    stylePreferences: {
+      allowEmojis: true,
+      allowContractions: true,
+      useFirstPerson: false,
+      allowLightHumor: false,
+    },
+  };
+
+  return {
+    ...config,
+    voiceProfiles: [defaultProfile],
+    toneRules: config.toneRules || [],
+  };
+}
+
 export function CommunicationPageClient() {
   const [config, setConfig] = React.useState<CommunicationConfig | null>(null);
   const [initialConfig, setInitialConfig] = React.useState<CommunicationConfig | null>(null);
@@ -27,6 +97,7 @@ export function CommunicationPageClient() {
   const [error, setError] = React.useState<string | null>(null);
   const [saveStatus, setSaveStatus] = React.useState<'saved' | 'unsaved' | 'error'>('saved');
   const [activeTab, setActiveTab] = React.useState<CommunicationTabId>("brand");
+  const [selectedProfileId, setSelectedProfileId] = React.useState<VoiceProfileId | null>(null);
   const saveBarRef = React.useRef<HTMLDivElement>(null);
   const [navTopOffset, setNavTopOffset] = React.useState(80);
 
@@ -47,6 +118,16 @@ export function CommunicationPageClient() {
     }
   }, []);
 
+  // Set selected profile when config loads
+  React.useEffect(() => {
+    if (config && config.voiceProfiles && config.voiceProfiles.length > 0) {
+      const defaultProfile = config.voiceProfiles.find(p => p.isDefault) || config.voiceProfiles[0];
+      if (!selectedProfileId || !config.voiceProfiles.find(p => p.id === selectedProfileId)) {
+        setSelectedProfileId(defaultProfile.id);
+      }
+    }
+  }, [config, selectedProfileId]);
+
   async function loadConfig() {
     try {
       setLoading(true);
@@ -56,8 +137,9 @@ export function CommunicationPageClient() {
         throw new Error('Failed to load Voice & Tone config');
       }
       const data = await response.json();
-      setConfig(data.config);
-      setInitialConfig(JSON.parse(JSON.stringify(data.config))); // Deep clone
+      const migratedConfig = migrateConfig(data.config);
+      setConfig(migratedConfig);
+      setInitialConfig(JSON.parse(JSON.stringify(migratedConfig))); // Deep clone
       setSaveStatus('saved');
     } catch (err) {
       console.error('Error loading communication config:', err);
@@ -98,8 +180,9 @@ export function CommunicationPageClient() {
       }
 
       const data = await response.json();
-      setConfig(data.config);
-      setInitialConfig(JSON.parse(JSON.stringify(data.config))); // Deep clone
+      const migratedConfig = migrateConfig(data.config);
+      setConfig(migratedConfig);
+      setInitialConfig(JSON.parse(JSON.stringify(migratedConfig))); // Deep clone
       setSaveStatus('saved');
       
       // Show success toast (simple alert for now)
@@ -126,6 +209,46 @@ export function CommunicationPageClient() {
     setConfig(updater(config));
   }
 
+  function updateProfile(profileId: VoiceProfileId, updater: (profile: VoiceProfile) => VoiceProfile) {
+    updateConfig((prev) => ({
+      ...prev,
+      voiceProfiles: prev.voiceProfiles.map(p => p.id === profileId ? updater(p) : p),
+    }));
+  }
+
+  function setDefaultProfile(profileId: VoiceProfileId) {
+    updateConfig((prev) => ({
+      ...prev,
+      voiceProfiles: prev.voiceProfiles.map(p => ({
+        ...p,
+        isDefault: p.id === profileId,
+      })),
+    }));
+  }
+
+  function createProfile(name: string, description: string, startFromProfileId: VoiceProfileId | null) {
+    const startFrom = startFromProfileId 
+      ? config?.voiceProfiles.find(p => p.id === startFromProfileId)
+      : config?.voiceProfiles.find(p => p.isDefault) || config?.voiceProfiles[0];
+
+    if (!startFrom) return;
+
+    const newProfile: VoiceProfile = {
+      ...startFrom,
+      id: `profile_${Date.now()}`,
+      name,
+      description: description || undefined,
+      isDefault: false,
+    };
+
+    updateConfig((prev) => ({
+      ...prev,
+      voiceProfiles: [...prev.voiceProfiles, newProfile],
+    }));
+
+    setSelectedProfileId(newProfile.id);
+  }
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -134,7 +257,7 @@ export function CommunicationPageClient() {
     );
   }
 
-  if (!config) {
+  if (!config || !config.voiceProfiles || config.voiceProfiles.length === 0) {
     return (
       <div className="space-y-6">
         <div className="p-6 text-center text-red-600">
@@ -233,8 +356,12 @@ export function CommunicationPageClient() {
         <section className="space-y-4">
           {activeTab === "brand" && config && (
             <BrandVoiceSection
-              config={config.brand}
-              onChange={(brand) => updateConfig((prev) => ({ ...prev, brand }))}
+              profiles={config.voiceProfiles}
+              selectedProfileId={selectedProfileId}
+              onSelectProfile={setSelectedProfileId}
+              onUpdateProfile={updateProfile}
+              onSetDefault={setDefaultProfile}
+              onCreateProfile={createProfile}
               canEdit={canEdit}
             />
           )}
@@ -250,6 +377,7 @@ export function CommunicationPageClient() {
           {activeTab === "tone" && config && (
             <ToneRulesSection
               rules={config.toneRules}
+              profiles={config.voiceProfiles}
               onChange={(toneRules) => updateConfig((prev) => ({ ...prev, toneRules }))}
               canEdit={canEdit}
             />

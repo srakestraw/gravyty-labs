@@ -63,7 +63,7 @@ const mockTasks = [
   },
 ];
 
-const filterTabs = ['All', 'AI', 'Fundraising', 'Students', 'Events'] as const;
+const filterTabs = ['All', 'AI', 'Engagement', 'Advancement', 'Students', 'Events'] as const;
 type FilterTab = typeof filterTabs[number];
 
 export function ActionCenter() {
@@ -74,7 +74,8 @@ export function ActionCenter() {
     ? mockTasks
     : mockTasks.filter(task => {
         if (activeFilter === 'AI') return task.type === 'AI Assistant';
-        if (activeFilter === 'Fundraising') return task.type === 'Fundraising';
+        if (activeFilter === 'Engagement') return task.type === 'Events'; // Engagement includes events and community activities
+        if (activeFilter === 'Advancement') return task.type === 'Fundraising'; // Map old "Fundraising" to "Advancement"
         if (activeFilter === 'Students') return task.type === 'Students';
         if (activeFilter === 'Events') return task.type === 'Events';
         return true;
@@ -138,3 +139,5 @@ export function ActionCenter() {
     </div>
   );
 }
+
+

@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 const quickActions = [
   {
     id: 'outreach',
-    label: 'Start Outreach Campaign',
+    label: 'Start Advancement Campaign',
     description: 'Create and launch a new campaign',
     icon: 'fa-solid fa-bullhorn',
     color: '#3B82F6',
@@ -29,7 +29,7 @@ const quickActions = [
   },
   {
     id: 'event',
-    label: 'Create Event',
+    label: 'Create Engagement Event',
     description: 'Plan and promote an event',
     icon: 'fa-solid fa-calendar-plus',
     color: '#8B5CF6',
@@ -49,7 +49,7 @@ const quickActions = [
   },
   {
     id: 'job',
-    label: 'Post a Job',
+    label: 'Post a Job (Career Hub)',
     description: 'Add a new job posting',
     icon: 'fa-solid fa-briefcase',
     color: '#6366F1',
@@ -59,7 +59,7 @@ const quickActions = [
   },
   {
     id: 'ai-assistant',
-    label: 'Ask the AI Assistant',
+    label: 'Ask an AI Assistant',
     description: 'Get help with tasks and questions',
     icon: 'fa-solid fa-robot',
     color: '#EC4899',
@@ -102,3 +102,5 @@ export function QuickActions() {
     </div>
   );
 }
+
+

@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-static';
+
 import { useState } from 'react';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { canManageAssistants } from '@/lib/roles';
@@ -17,7 +19,6 @@ type Persona =
   | 'career-services'
   | 'alumni-engagement'
   | 'advancement';
-
 
 interface PersonaConfig {
   label: string;
@@ -1125,7 +1126,6 @@ export default function AssistantsHomePage() {
     if (hour < 17) return 'Good afternoon';
     return 'Good evening';
   };
-
 
   return (
     <div className="space-y-6">

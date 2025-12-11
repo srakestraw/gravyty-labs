@@ -24,6 +24,9 @@ export const metadata: Metadata = {
     ],
   },
   manifest: '/assets/favicons/site.webmanifest',
+  other: {
+    'dns-prefetch': 'https://kit.fontawesome.com',
+  },
 };
 
 export default function RootLayout({

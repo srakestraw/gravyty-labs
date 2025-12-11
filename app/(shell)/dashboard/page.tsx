@@ -40,7 +40,7 @@ export default function DashboardPage() {
           Welcome back, {user?.displayName || user?.email?.split('@')[0]}!
         </h1>
         <p className="text-gray-600">
-          Your unified dashboard for tasks, AI activity, engagement metrics, and platform activity.
+          Your unified workspace for AI assistants, engagement, advancement, and career programs.
         </p>
       </div>
 

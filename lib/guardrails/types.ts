@@ -118,3 +118,38 @@ export interface GuardrailsConfig {
   updatedBy?: string;
 }
 
+// Guardrail Policies types
+export type GuardrailPolicyId = string;
+
+export interface GuardrailRule {
+  id: string;
+  category: 'safety' | 'compliance' | 'brand' | 'custom';
+  description?: string;
+  pattern?: string;
+  action: 'block' | 'rewrite' | 'escalate' | 'log';
+  enabled: boolean;
+}
+
+export interface GuardrailPolicy {
+  id: GuardrailPolicyId;
+  name: string;
+  description?: string;
+  isDefault: boolean;
+  rules: GuardrailRule[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export type GuardrailScope = 'user' | 'group' | 'agent' | 'app';
+export type GuardrailChannelScope = 'all' | 'chat' | 'email' | 'sms';
+
+export interface GuardrailAssignmentRule {
+  id: string;
+  policyId: GuardrailPolicyId;
+  scope: GuardrailScope;
+  targetId: string;
+  targetLabel: string;
+  channelScope: GuardrailChannelScope;
+  order: number;
+}
+

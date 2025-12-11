@@ -5,7 +5,8 @@
  * Currently uses in-memory storage for MVP
  */
 
-import { CommunicationConfig, BrandVoiceConfig, PersonalityConfig, ToneRule } from './types';
+import { CommunicationConfig, BrandVoiceConfig, PersonalityConfig, ToneRule, AssignmentRule, VoiceProfile } from './types';
+import { convertToneRuleToAssignmentRule } from './resolveVoiceProfile';
 
 // In-memory storage (replace with real persistence)
 let cachedConfig: CommunicationConfig | null = null;
@@ -27,6 +28,34 @@ const DEFAULT_BRAND_VOICE: BrandVoiceConfig = {
   },
 };
 
+const DEFAULT_VOICE_PROFILES: VoiceProfile[] = [
+  {
+    id: 'profile_institutional',
+    name: 'Institutional',
+    description: 'Default institutional voice profile',
+    isDefault: true,
+    brand: {
+      typographyStyle: 'system',
+    },
+    missionValues: ["student-centered", "equity-first"],
+    communicationPillars: ["clarity", "support", "transparency"],
+    characteristics: {
+      formality: 60,
+      warmth: 70,
+      directness: 65,
+      energy: 60,
+      detailLevel: 70,
+      riskPosture: 50,
+    },
+    stylePreferences: {
+      allowEmojis: true,
+      allowContractions: true,
+      useFirstPerson: false,
+      allowLightHumor: false,
+    },
+  },
+];
+
 const DEFAULT_PERSONALITY: PersonalityConfig = {
   archetype: "guide",
   empathy: "high",
@@ -35,48 +64,15 @@ const DEFAULT_PERSONALITY: PersonalityConfig = {
   figurativeLanguage: true,
 };
 
-const DEFAULT_TONE_RULES: ToneRule[] = [
-  {
-    id: "bad_news",
-    label: "Bad news",
-    trigger: ["rejection", "denial", "failure"],
-    enabled: true,
-    rules: {
-      openingStrategy: "empathetic",
-      requiredPhrases: ["I understand", "I'm here to help"],
-      maxSentenceCount: 5,
-      CTAAllowed: true,
-      emojiAllowedOverride: false,
-    },
-  },
-  {
-    id: "escalation",
-    label: "Escalation",
-    trigger: ["escalate", "urgent", "critical"],
-    enabled: true,
-    rules: {
-      openingStrategy: "direct",
-      maxSentenceCount: 3,
-      CTAAllowed: true,
-    },
-  },
-  {
-    id: "deadline",
-    label: "Deadline approaching",
-    trigger: ["deadline", "due date", "overdue"],
-    enabled: true,
-    rules: {
-      openingStrategy: "encouraging",
-      requiredPhrases: ["You still have time"],
-      CTAAllowed: true,
-    },
-  },
-];
+const DEFAULT_TONE_RULES: ToneRule[] = [];
+const DEFAULT_ASSIGNMENT_RULES: AssignmentRule[] = [];
 
 const DEFAULT_CONFIG: CommunicationConfig = {
-  brand: DEFAULT_BRAND_VOICE,
+  voiceProfiles: DEFAULT_VOICE_PROFILES,
+  brand: DEFAULT_BRAND_VOICE, // Keep for backward compatibility
   personality: DEFAULT_PERSONALITY,
-  toneRules: DEFAULT_TONE_RULES,
+  assignmentRules: DEFAULT_ASSIGNMENT_RULES,
+  toneRules: DEFAULT_TONE_RULES, // Legacy support
   updatedAt: new Date().toISOString(),
 };
 
@@ -84,15 +80,43 @@ const DEFAULT_CONFIG: CommunicationConfig = {
  * Load communication config
  * TODO: Replace with real API call or DB query
  */
+// Migrate config from toneRules to assignmentRules
+function migrateConfig(config: CommunicationConfig): CommunicationConfig {
+  // If already has assignmentRules, return as-is
+  if (config.assignmentRules && config.assignmentRules.length > 0) {
+    return config;
+  }
+
+  // Migrate toneRules to assignmentRules
+  if (config.toneRules && config.toneRules.length > 0) {
+    const assignmentRules = config.toneRules.map(convertToneRuleToAssignmentRule);
+    return {
+      ...config,
+      assignmentRules,
+      // Keep toneRules for backward compatibility during migration
+    };
+  }
+
+  // Initialize empty assignmentRules if neither exists
+  return {
+    ...config,
+    assignmentRules: [],
+  };
+}
+
 export async function loadCommunicationConfig(): Promise<CommunicationConfig> {
   // For now, return cached config or defaults
+  let config: CommunicationConfig;
   if (cachedConfig) {
-    return cachedConfig;
+    config = cachedConfig;
+  } else {
+    config = { ...DEFAULT_CONFIG };
   }
   
-  // Return defaults
-  cachedConfig = { ...DEFAULT_CONFIG };
-  return cachedConfig;
+  // Migrate and return
+  const migrated = migrateConfig(config);
+  cachedConfig = migrated;
+  return migrated;
 }
 
 /**
@@ -128,24 +152,62 @@ export async function saveCommunicationConfig(
 export function validateCommunicationConfig(config: CommunicationConfig): string[] {
   const errors: string[] = [];
 
-  // Brand voice validation
-  if (config.brand.sliders.formality < 0 || config.brand.sliders.formality > 100) {
-    errors.push('Formality slider must be between 0 and 100');
+  // Voice profiles validation
+  if (!config.voiceProfiles || config.voiceProfiles.length === 0) {
+    errors.push('At least one voice profile is required');
+  } else {
+    const defaultCount = config.voiceProfiles.filter(p => p.isDefault).length;
+    if (defaultCount === 0) {
+      errors.push('Exactly one voice profile must be marked as default');
+    } else if (defaultCount > 1) {
+      errors.push('Only one voice profile can be marked as default');
+    }
+
+    config.voiceProfiles.forEach((profile, index) => {
+      if (!profile.id || !profile.name) {
+        errors.push(`Voice profile ${index + 1} must have id and name`);
+      }
+      if (profile.characteristics.formality < 0 || profile.characteristics.formality > 100) {
+        errors.push(`Profile "${profile.name}": Formality must be between 0 and 100`);
+      }
+      if (profile.characteristics.warmth < 0 || profile.characteristics.warmth > 100) {
+        errors.push(`Profile "${profile.name}": Warmth must be between 0 and 100`);
+      }
+      if (profile.characteristics.directness < 0 || profile.characteristics.directness > 100) {
+        errors.push(`Profile "${profile.name}": Directness must be between 0 and 100`);
+      }
+      if (profile.characteristics.energy < 0 || profile.characteristics.energy > 100) {
+        errors.push(`Profile "${profile.name}": Energy must be between 0 and 100`);
+      }
+      if (profile.characteristics.detailLevel < 0 || profile.characteristics.detailLevel > 100) {
+        errors.push(`Profile "${profile.name}": Detail level must be between 0 and 100`);
+      }
+      if (profile.characteristics.riskPosture < 0 || profile.characteristics.riskPosture > 100) {
+        errors.push(`Profile "${profile.name}": Risk posture must be between 0 and 100`);
+      }
+    });
   }
-  if (config.brand.sliders.warmth < 0 || config.brand.sliders.warmth > 100) {
-    errors.push('Warmth slider must be between 0 and 100');
-  }
-  if (config.brand.sliders.directness < 0 || config.brand.sliders.directness > 100) {
-    errors.push('Directness slider must be between 0 and 100');
-  }
-  if (config.brand.sliders.energy < 0 || config.brand.sliders.energy > 100) {
-    errors.push('Energy slider must be between 0 and 100');
-  }
-  if (config.brand.sliders.detailLevel < 0 || config.brand.sliders.detailLevel > 100) {
-    errors.push('Detail level slider must be between 0 and 100');
-  }
-  if (config.brand.sliders.riskPosture < 0 || config.brand.sliders.riskPosture > 100) {
-    errors.push('Risk posture slider must be between 0 and 100');
+
+  // Legacy brand voice validation (for backward compatibility during migration)
+  if (config.brand && config.brand.sliders) {
+    if (config.brand.sliders.formality < 0 || config.brand.sliders.formality > 100) {
+      errors.push('Formality slider must be between 0 and 100');
+    }
+    if (config.brand.sliders.warmth < 0 || config.brand.sliders.warmth > 100) {
+      errors.push('Warmth slider must be between 0 and 100');
+    }
+    if (config.brand.sliders.directness < 0 || config.brand.sliders.directness > 100) {
+      errors.push('Directness slider must be between 0 and 100');
+    }
+    if (config.brand.sliders.energy < 0 || config.brand.sliders.energy > 100) {
+      errors.push('Energy slider must be between 0 and 100');
+    }
+    if (config.brand.sliders.detailLevel < 0 || config.brand.sliders.detailLevel > 100) {
+      errors.push('Detail level slider must be between 0 and 100');
+    }
+    if (config.brand.sliders.riskPosture < 0 || config.brand.sliders.riskPosture > 100) {
+      errors.push('Risk posture slider must be between 0 and 100');
+    }
   }
 
   // Personality validation
@@ -164,16 +226,49 @@ export function validateCommunicationConfig(config: CommunicationConfig): string
     errors.push(`Enthusiasm must be one of: ${validEnthusiasm.join(', ')}`);
   }
 
-  // Tone rules validation
-  for (const rule of config.toneRules) {
-    if (!rule.id || !rule.label) {
-      errors.push('Tone rules must have id and label');
+  // Assignment rules validation
+  const assignmentRules = config.assignmentRules || [];
+  for (const rule of assignmentRules) {
+    if (!rule.id) {
+      errors.push('Assignment rules must have id');
     }
-    if (!rule.trigger || rule.trigger.length === 0) {
-      errors.push(`Tone rule "${rule.label}" must have at least one trigger`);
+    if (!rule.scope || !['user', 'group', 'agent', 'app'].includes(rule.scope)) {
+      errors.push(`Assignment rule "${rule.id}" must have a valid scope (user, group, agent, or app)`);
     }
-    if (!rule.rules.openingStrategy) {
-      errors.push(`Tone rule "${rule.label}" must have an opening strategy`);
+    if (!rule.targetId || !rule.targetLabel) {
+      errors.push(`Assignment rule "${rule.id}" must have targetId and targetLabel`);
+    }
+    if (!rule.profileId) {
+      errors.push(`Assignment rule "${rule.id}" must have a profileId`);
+    }
+    if (!config.voiceProfiles?.find(p => p.id === rule.profileId)) {
+      errors.push(`Assignment rule "${rule.id}" references a non-existent voice profile`);
+    }
+    if (typeof rule.order !== 'number') {
+      errors.push(`Assignment rule "${rule.id}" must have an order number`);
+    }
+  }
+
+  // Legacy tone rules validation (for backward compatibility)
+  const toneRules = config.toneRules || [];
+  for (const rule of toneRules) {
+    if (!rule.id) {
+      errors.push('Tone rules must have id');
+    }
+    if (!rule.scope || !['app', 'group', 'user'].includes(rule.scope)) {
+      errors.push(`Tone rule "${rule.id}" must have a valid scope (app, group, or user)`);
+    }
+    if (!rule.targetId || !rule.targetLabel) {
+      errors.push(`Tone rule "${rule.id}" must have targetId and targetLabel`);
+    }
+    if (!rule.profileId) {
+      errors.push(`Tone rule "${rule.id}" must have a profileId`);
+    }
+    if (!config.voiceProfiles?.find(p => p.id === rule.profileId)) {
+      errors.push(`Tone rule "${rule.id}" references a non-existent voice profile`);
+    }
+    if (typeof rule.order !== 'number') {
+      errors.push(`Tone rule "${rule.id}" must have an order number`);
     }
   }
 
