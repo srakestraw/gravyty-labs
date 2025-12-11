@@ -32,6 +32,7 @@ const MOCK_APPS = [
   { id: 'app-1', name: 'Admissions AI Assistant' },
   { id: 'app-2', name: 'Student Success Coach' },
   { id: 'app-3', name: 'Athletics Bot' },
+  { id: 'app-advancement', name: 'Advancement AI Assistant' },
 ];
 
 const MOCK_AGENTS = [
@@ -47,9 +48,10 @@ const MOCK_GROUPS = [
 ];
 
 const MOCK_USERS = [
-  { id: 'user-1', name: 'Jordan Lee' },
-  { id: 'user-2', name: 'Alex Martin' },
-  { id: 'user-3', name: 'Taylor Singh' },
+  { id: 'user-1', name: 'Jane Smith' },
+  { id: 'user-2', name: 'Jordan Lee' },
+  { id: 'user-3', name: 'Alex Martin' },
+  { id: 'user-4', name: 'Taylor Singh' },
 ];
 
 type ScopeFilter = 'All' | AssignmentScope;

@@ -79,10 +79,20 @@ export function GuardrailsShell({ context = 'admin' }: GuardrailsShellProps) {
       // TODO: Replace with real API call
       // const response = await fetch('/api/guardrails/policies');
       // const data = await response.json();
-      // setPolicies(data.policies || []);
-      // setAssignmentRules(data.assignmentRules || []);
-      setPolicies([]);
-      setAssignmentRules([]);
+      // if (data.policies && data.policies.length > 0) {
+      //   setPolicies(data.policies);
+      //   setAssignmentRules(data.assignmentRules || []);
+      // } else {
+      //   // Use mocks when API returns empty or in dev mode
+      //   const { getMockGuardrailPolicies, getMockGuardrailAssignmentRules } = await import('@/lib/guardrails/mockPolicies');
+      //   setPolicies(getMockGuardrailPolicies());
+      //   setAssignmentRules(getMockGuardrailAssignmentRules());
+      // }
+      
+      // For now, use mock data
+      const { getMockGuardrailPolicies, getMockGuardrailAssignmentRules } = await import('@/lib/guardrails/mockPolicies');
+      setPolicies(getMockGuardrailPolicies());
+      setAssignmentRules(getMockGuardrailAssignmentRules());
     } catch (error) {
       console.error('Error loading policies:', error);
     } finally {
