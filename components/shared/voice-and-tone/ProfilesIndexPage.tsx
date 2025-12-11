@@ -7,13 +7,6 @@ import { Button } from '@/components/ui/button';
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
 interface ProfilesIndexPageProps {
   profiles: VoiceProfile[];
@@ -23,18 +16,8 @@ interface ProfilesIndexPageProps {
   basePath?: string;
 }
 
-// Format date as "Dec 11, 2025"
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
-
-// Get usage summary for a profile
-function getUsageSummary(profileId: VoiceProfileId, assignmentRules: AssignmentRule[]): string {
+// Mock function to count usage - TODO: Replace with real API
+function getUsageCount(profileId: VoiceProfileId, assignmentRules: AssignmentRule[]): string {
   const rules = assignmentRules.filter(r => r.profileId === profileId);
   if (rules.length === 0) return 'Not used';
   
@@ -155,154 +138,132 @@ export function ProfilesIndexPage({
 
   return (
     <>
-      <div className="space-y-6" style={{ isolation: 'isolate' }}>
-        {/* Compact header section */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">
-              Brand, Voice & Tone Profiles
-            </h2>
-            <p className="text-sm text-gray-600 mt-1">
-              Create reusable communication profiles that define brand, voice, and tone for your AI assistants.
-            </p>
-          </div>
-          <Button
-            onClick={() => {
-              const defaultProfile = profiles.find(p => p.isDefault) || profiles[0];
-              setStartFromProfileId(defaultProfile?.id || null);
-              setShowCreateModal(true);
-            }}
-            className="text-sm"
-          >
-            <FontAwesomeIcon icon="fa-solid fa-plus" className="h-4 w-4 mr-2" />
-            New profile
-          </Button>
-        </div>
-
-        {/* Profiles List */}
-        {profiles.length === 0 ? (
-          <div className="rounded-xl border border-gray-100 bg-white p-12 text-center shadow-sm">
-            <FontAwesomeIcon icon="fa-solid fa-comments" className="h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-sm font-medium text-gray-700 mb-1">No voice & tone profiles yet</h3>
-            <p className="text-xs text-gray-500 mb-4">
-              Create a profile to define brand, voice, and tone rules for your AI assistants.
-            </p>
+      <div className="space-y-6">
+        {/* Header */}
+        <header className="space-y-1">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-lg font-semibold text-gray-900">
+                Brand, Voice & Tone Profiles
+              </h1>
+              <p className="text-sm text-gray-600">
+                Create and manage communication profiles that define brand, voice, and tone rules for your AI assistants.
+              </p>
+            </div>
             <Button
               onClick={() => {
+                const defaultProfile = profiles.find(p => p.isDefault) || profiles[0];
+                setStartFromProfileId(defaultProfile?.id || null);
                 setShowCreateModal(true);
               }}
-              size="sm"
+              className="text-sm"
             >
-              <FontAwesomeIcon icon="fa-solid fa-plus" className="h-3 w-3 mr-1" />
+              <FontAwesomeIcon icon="fa-solid fa-plus" className="h-4 w-4 mr-2" />
               New profile
             </Button>
           </div>
-        ) : (
-          <div className="space-y-3 overflow-visible">
-            {profiles.map((profile) => {
-              const usageSummary = getUsageSummary(profile.id, assignmentRules);
-              const lastUpdated = profile.updatedAt || profile.createdAt;
-              const displayDescription = profile.description || (profile.isDefault ? 'Default institutional voice profile' : undefined);
-              
-              return (
-                <div
-                  key={profile.id}
-                  className="rounded-lg border border-gray-200 bg-white p-4 hover:bg-gray-50 transition-colors relative"
-                  style={{ zIndex: 'auto' }}
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-                    {/* Column 1: Profile info (2/3 width on desktop) */}
-                    <div className="flex-1 min-w-0 sm:flex-[2]">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <button
-                          type="button"
-                          onClick={() => router.push(`${basePath}/profiles/${profile.id}`)}
-                          className="text-left font-semibold text-gray-900 hover:text-indigo-600 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded px-1 -ml-1"
-                        >
-                          {profile.name}
-                        </button>
-                        {profile.isDefault && (
-                          <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700">
+        </header>
+
+        {/* Profiles Table */}
+        <section className="rounded-xl border border-gray-100 bg-white shadow-sm">
+          {profiles.length === 0 ? (
+            <div className="p-12 text-center">
+              <FontAwesomeIcon icon="fa-solid fa-comments" className="h-12 w-12 text-gray-400 mb-4" />
+              <p className="text-sm font-medium text-gray-700 mb-1">No profiles yet</p>
+              <p className="text-xs text-gray-500 mb-4">
+                Create your first profile to get started.
+              </p>
+              <Button
+                onClick={() => {
+                  setShowCreateModal(true);
+                }}
+                size="sm"
+              >
+                <FontAwesomeIcon icon="fa-solid fa-plus" className="h-3 w-3 mr-1" />
+                Create profile
+              </Button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left text-sm">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-4 py-3 text-[11px] font-medium text-gray-500 uppercase tracking-wider">Profile</th>
+                    <th className="px-4 py-3 text-[11px] font-medium text-gray-500 uppercase tracking-wider">Default</th>
+                    <th className="px-4 py-3 text-[11px] font-medium text-gray-500 uppercase tracking-wider">Used by</th>
+                    <th className="px-4 py-3 text-[11px] font-medium text-gray-500 uppercase tracking-wider">Last updated</th>
+                    <th className="px-4 py-3 text-[11px] font-medium text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {profiles.map((profile) => (
+                    <tr key={profile.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3">
+                        <div>
+                          <div className="font-medium text-gray-900">{profile.name}</div>
+                          {profile.description && (
+                            <div className="text-xs text-gray-500 mt-0.5">{profile.description}</div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        {profile.isDefault ? (
+                          <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-medium text-blue-700">
                             Default
                           </span>
+                        ) : (
+                          <span className="text-[11px] text-gray-400">—</span>
                         )}
-                      </div>
-                      {displayDescription && (
-                        <p className="text-sm text-gray-600 line-clamp-2">
-                          {displayDescription}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Column 2: Status block (1/3 width on desktop, stacks on mobile) */}
-                    <div className="flex-shrink-0 sm:text-right sm:flex-[1] sm:min-w-[200px]">
-                      <div className="space-y-1 text-xs text-gray-600">
-                        <div>
-                          Used by: <span className="text-gray-900">{usageSummary}</span>
-                        </div>
-                        {lastUpdated && (
-                          <div>
-                            Updated: <span className="text-gray-900">{formatDate(lastUpdated)}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Column 3: Actions (aligned top-right) */}
-                    <div className="flex-shrink-0 sm:self-start">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 relative z-0"
-                            aria-label={`Actions for ${profile.name}`}
-                          >
-                            <FontAwesomeIcon icon="fa-solid fa-ellipsis-vertical" className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" side="bottom" sideOffset={8} className="w-48">
-                          <DropdownMenuItem
+                      </td>
+                      <td className="px-4 py-3 text-[11px] text-gray-600">
+                        {getUsageCount(profile.id, assignmentRules)}
+                      </td>
+                      <td className="px-4 py-3 text-[11px] text-gray-600">
+                        {/* TODO: Add updatedAt field to profiles */}
+                        —
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
                             onClick={() => router.push(`${basePath}/profiles/${profile.id}`)}
-                            className="cursor-pointer"
+                            className="text-[11px] text-indigo-600 hover:text-indigo-700 font-medium"
                           >
-                            <FontAwesomeIcon icon="fa-solid fa-pencil" className="h-3 w-3 mr-2" />
                             Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
+                          </button>
+                          <button
+                            type="button"
                             onClick={() => handleDuplicate(profile)}
-                            className="cursor-pointer"
+                            className="text-[11px] text-gray-600 hover:text-gray-700"
                           >
-                            <FontAwesomeIcon icon="fa-solid fa-copy" className="h-3 w-3 mr-2" />
                             Duplicate
-                          </DropdownMenuItem>
+                          </button>
                           {!profile.isDefault && (
-                            <DropdownMenuItem
+                            <button
+                              type="button"
                               onClick={() => handleSetDefault(profile.id)}
-                              className="cursor-pointer"
+                              className="text-[11px] text-gray-600 hover:text-gray-700"
                             >
-                              <FontAwesomeIcon icon="fa-solid fa-star" className="h-3 w-3 mr-2" />
                               Set default
-                            </DropdownMenuItem>
+                            </button>
                           )}
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
+                          <button
+                            type="button"
                             onClick={() => handleDelete(profile.id)}
                             disabled={deletingProfileId === profile.id}
-                            className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                            className="text-[11px] text-red-600 hover:text-red-700 disabled:opacity-50"
                           >
-                            <FontAwesomeIcon icon="fa-solid fa-trash" className="h-3 w-3 mr-2" />
                             {deletingProfileId === profile.id ? 'Deleting...' : 'Delete'}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
       </div>
 
       {/* Create Profile Modal */}

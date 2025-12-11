@@ -40,6 +40,9 @@ function getSidebarNav(persona: Persona): NavItem[] {
     },
     { name: 'Career Services', href: '/career', icon: 'fa-solid fa-briefcase' },
     { name: 'Insights', href: '/data', icon: 'fa-solid fa-chart-bar' },
+    // Data and Audiences
+    { name: 'Contacts', href: '/contacts', icon: 'fa-solid fa-users' },
+    { name: 'Segments', href: '/segments', icon: 'fa-solid fa-filter' },
     { name: 'Admin & Settings', href: '/admin', icon: 'fa-solid fa-shield' },
     {
       name: isHigherEd ? 'SIM Apps' : 'Connected Systems (SIM Apps)',
@@ -76,14 +79,25 @@ export function AppSidebar() {
   // Check if we're in the Advancement app
   const isInAdvancement = pathname?.startsWith('/advancement');
 
-  type NavItem = { name: string; href: string; icon: string; id?: string; external?: boolean };
-  type Navigation = 
-    | { topLevel: NavItem[]; adminTools: NavItem[] }
-    | NavItem[];
+type NavItem = { name: string; href: string; icon: string; id?: string; external?: boolean };
+
+// Reusable Data and audiences navigation group
+// Used in Student Lifecycle AI and Advancement & Philanthropy workspaces
+// Note: Populations removed from navigation - now used as data-layer concept only
+// (filters in Contacts, building blocks in Segments, scope options in Agents/Assistants)
+const dataAndAudiencesNav: NavItem[] = [
+  { name: 'Contacts', href: '/contacts', icon: 'fa-solid fa-users' },
+  { name: 'Segments', href: '/segments', icon: 'fa-solid fa-filter' },
+];
+
+type Navigation = 
+  | { topLevel: NavItem[]; dataAndAudiences?: NavItem[]; adminTools: NavItem[] }
+  | NavItem[];
 
   // Build navigation items - use useMemo to prevent recreation on every render
   const navigation: Navigation = useMemo(() => {
     // If in Advancement app, show sub-navigation
+    // Advancement & Philanthropy workspace includes Data and audiences section
     if (isInAdvancement) {
       return {
         topLevel: [
@@ -91,6 +105,7 @@ export function AppSidebar() {
           { name: 'Agents', href: '/advancement/agents', icon: 'fa-solid fa-bolt', id: 'agents' },
           { name: 'Queue', href: '/advancement/queue', icon: 'fa-solid fa-list', id: 'queue' },
         ],
+        dataAndAudiences: dataAndAudiencesNav,
         adminTools: [],
       };
     }
@@ -114,6 +129,7 @@ export function AppSidebar() {
     }
     
     // If in AI Assistants app, show sub-navigation
+    // Student Lifecycle AI workspace includes Data and audiences section
     if (isInAIAssistants) {
       return {
         topLevel: [
@@ -123,6 +139,7 @@ export function AppSidebar() {
           { name: 'Queue', href: '/ai-assistants/agent-ops/queue', icon: 'fa-solid fa-list', id: 'queue' },
           { name: 'People', href: '/ai-assistants/agent-ops/people', icon: 'fa-solid fa-users', id: 'people' },
         ],
+        dataAndAudiences: dataAndAudiencesNav,
         adminTools: [
           { name: 'Guardrails', href: '/admin/guardrails', icon: 'fa-solid fa-shield-halved' },
           { name: 'Do Not Engage', href: '/ai-assistants/do-not-engage', icon: 'fa-solid fa-user-slash' },
@@ -217,6 +234,42 @@ export function AppSidebar() {
                   </Link>
                 );
               })}
+              
+              {/* Data and audiences section - shown in Student Lifecycle AI and Advancement workspaces */}
+              {navigation.dataAndAudiences && navigation.dataAndAudiences.length > 0 && (
+                <>
+                  {(sidebarOpen || isMobile) && (
+                    <div className="mt-4 px-3 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                      Data and audiences
+                    </div>
+                  )}
+                  {navigation.dataAndAudiences.map((item) => {
+                    const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
+                    return (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className={cn(
+                          'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
+                          'hover:bg-gray-100 text-gray-700',
+                          isActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : isInAdvancement ? 'bg-red-50 text-red-700 font-medium' : 'bg-purple-50 text-purple-700 font-medium')
+                        )}
+                        onClick={() => {
+                          // Close sidebar on mobile when navigating
+                          if (isMobile) {
+                            usePlatformStore.getState().toggleSidebar();
+                          }
+                        }}
+                      >
+                        <FontAwesomeIcon icon={item.icon} className="h-5 w-5 flex-shrink-0" />
+                        {(sidebarOpen || isMobile) && (
+                          <span className="truncate">{item.name}</span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </>
+              )}
               
               {/* Admin Tools section */}
               {(sidebarOpen || isMobile) && (
