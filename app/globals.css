@@ -55,3 +55,13 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Ensure Radix Portal dropdowns appear above all content */
+[data-radix-popper-content-wrapper] {
+  z-index: 9999 !important;
+}
+
+[data-radix-menu-content] {
+  z-index: 9999 !important;
+  background-color: white !important;
+}

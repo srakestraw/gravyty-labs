@@ -165,22 +165,13 @@ export function GuardrailsShell({ context = 'admin' }: GuardrailsShellProps) {
     <div className="space-y-6">
       {/* Header */}
       <header className="space-y-1">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-semibold text-gray-900">
-              Guardrails
-            </h1>
-            <p className="text-sm text-gray-600">
-              {activeTab === 'global' 
-                ? 'Define baseline safety, fairness, privacy, and escalation rules that apply to all assistants, apps, agents, groups, and users.'
-                : 'Create reusable guardrail policy profiles that layer on top of Global Guardrails, then assign them to apps, agents, groups, and users.'}
-            </p>
-          </div>
-          {activeTab === 'policies' && (
-            <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
-              Admin only
-            </span>
-          )}
+        <div>
+          <h1 className="text-lg font-semibold text-gray-900">
+            Guardrails
+          </h1>
+          <p className="text-sm text-gray-600">
+            Baseline safety rules and contextual policies for assistants, apps, groups, and users.
+          </p>
         </div>
       </header>
 

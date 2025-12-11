@@ -5,6 +5,14 @@ import { GuardrailPolicy, GuardrailPolicyId, GuardrailAssignmentRule } from '@/l
 import { Button } from '@/components/ui/button';
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface PoliciesIndexPageProps {
   policies: GuardrailPolicy[];
@@ -17,10 +25,20 @@ interface PoliciesIndexPageProps {
   loading?: boolean;
 }
 
-// Mock function to count usage - TODO: Replace with real API
-function getUsageCount(policyId: GuardrailPolicyId, assignmentRules: GuardrailAssignmentRule[]): string {
+// Format date as "Dec 11, 2025"
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+// Get assignment summary for a policy
+function getAssignmentSummary(policyId: GuardrailPolicyId, assignmentRules: GuardrailAssignmentRule[]): string {
   const rules = assignmentRules.filter(r => r.policyId === policyId);
-  if (rules.length === 0) return 'Not used';
+  if (rules.length === 0) return 'Not assigned';
   
   const apps = rules.filter(r => r.scope === 'app').length;
   const agents = rules.filter(r => r.scope === 'agent').length;
@@ -33,7 +51,7 @@ function getUsageCount(policyId: GuardrailPolicyId, assignmentRules: GuardrailAs
   if (groups > 0) parts.push(`${groups} group${groups > 1 ? 's' : ''}`);
   if (users > 0) parts.push(`${users} user${users > 1 ? 's' : ''}`);
   
-  return parts.join(', ') || 'Not used';
+  return parts.join(', ');
 }
 
 export function PoliciesIndexPage({
@@ -145,6 +163,13 @@ export function PoliciesIndexPage({
     );
   }
 
+  function handleNavigateToAssignments(policyId: GuardrailPolicyId) {
+    // Navigate to policy editor with assignments tab
+    onSelectPolicy(policyId);
+    // Note: The PolicyEditor will need to support opening to a specific tab
+    // For now, just navigate to the policy
+  }
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -155,139 +180,156 @@ export function PoliciesIndexPage({
 
   return (
     <>
-      <div className="space-y-6">
-        {/* Header */}
-        <header className="space-y-1">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-lg font-semibold text-gray-900">
-                Guardrail Policies
-              </h1>
-              <p className="text-sm text-gray-600">
-                Create reusable guardrail policy profiles that layer on top of Global Guardrails, then assign them to apps, agents, groups, and users.
-              </p>
-            </div>
+      <div className="space-y-6" style={{ isolation: 'isolate' }}>
+        {/* Compact header section */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">
+              Guardrail Policies
+            </h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Reusable policies layered on top of Global Guardrails.
+            </p>
+          </div>
+          <Button
+            onClick={() => {
+              const defaultPolicy = policies.find(p => p.isDefault) || policies[0];
+              setStartFromPolicyId(defaultPolicy?.id || null);
+              setShowCreateModal(true);
+            }}
+            className="text-sm"
+          >
+            <FontAwesomeIcon icon="fa-solid fa-plus" className="h-4 w-4 mr-2" />
+            New policy
+          </Button>
+        </div>
+
+        {/* Policies List */}
+        {policies.length === 0 ? (
+          <div className="rounded-xl border border-gray-100 bg-white p-12 text-center shadow-sm">
+            <FontAwesomeIcon icon="fa-solid fa-shield-halved" className="h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-sm font-medium text-gray-700 mb-1">No guardrail policies yet</h3>
+            <p className="text-xs text-gray-500 mb-4">
+              Create your first policy to customize guardrails for a specific app, agent, group, or user while still inheriting Global Guardrails.
+            </p>
             <Button
               onClick={() => {
-                const defaultPolicy = policies.find(p => p.isDefault) || policies[0];
-                setStartFromPolicyId(defaultPolicy?.id || null);
                 setShowCreateModal(true);
               }}
-              className="text-sm"
+              size="sm"
             >
-              <FontAwesomeIcon icon="fa-solid fa-plus" className="h-4 w-4 mr-2" />
+              <FontAwesomeIcon icon="fa-solid fa-plus" className="h-3 w-3 mr-1" />
               New policy
             </Button>
           </div>
-        </header>
-
-        {/* Policies Table */}
-        <section className="rounded-xl border border-gray-100 bg-white shadow-sm">
-          {policies.length === 0 ? (
-            <div className="p-12 text-center">
-              <FontAwesomeIcon icon="fa-solid fa-shield-halved" className="h-12 w-12 text-gray-400 mb-4" />
-              <p className="text-sm font-medium text-gray-700 mb-1">No policies yet</p>
-              <p className="text-xs text-gray-500 mb-4">
-                Create your first guardrail policy to get started.
-              </p>
-              <Button
-                onClick={() => {
-                  setShowCreateModal(true);
-                }}
-                size="sm"
-              >
-                <FontAwesomeIcon icon="fa-solid fa-plus" className="h-3 w-3 mr-1" />
-                Create policy
-              </Button>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-4 py-3 text-[11px] font-medium text-gray-500 uppercase tracking-wider">Policy</th>
-                    <th className="px-4 py-3 text-[11px] font-medium text-gray-500 uppercase tracking-wider">Default</th>
-                    <th className="px-4 py-3 text-[11px] font-medium text-gray-500 uppercase tracking-wider">Rules</th>
-                    <th className="px-4 py-3 text-[11px] font-medium text-gray-500 uppercase tracking-wider">Assigned to</th>
-                    <th className="px-4 py-3 text-[11px] font-medium text-gray-500 uppercase tracking-wider">Last updated</th>
-                    <th className="px-4 py-3 text-[11px] font-medium text-gray-500 uppercase tracking-wider text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {policies.map((policy) => (
-                    <tr key={policy.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3">
-                        <div>
-                          <div className="font-medium text-gray-900">{policy.name}</div>
-                          {policy.description && (
-                            <div className="text-xs text-gray-500 mt-0.5">{policy.description}</div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        {policy.isDefault ? (
-                          <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-medium text-blue-700">
+        ) : (
+          <div className="space-y-3 overflow-visible">
+            {policies.map((policy) => {
+              const assignmentSummary = getAssignmentSummary(policy.id, assignmentRules);
+              const lastUpdated = policy.updatedAt || policy.createdAt;
+              
+              return (
+                <div
+                  key={policy.id}
+                  className="rounded-lg border border-gray-200 bg-white p-4 hover:bg-gray-50 transition-colors relative"
+                  style={{ zIndex: 'auto' }}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                    {/* Column 1: Policy info (2/3 width on desktop) */}
+                    <div className="flex-1 min-w-0 sm:flex-[2]">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => onSelectPolicy(policy.id)}
+                          className="text-left font-semibold text-gray-900 hover:text-indigo-600 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded px-1 -ml-1"
+                        >
+                          {policy.name}
+                        </button>
+                        {policy.isDefault && (
+                          <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700">
                             Default
                           </span>
-                        ) : (
-                          <span className="text-[11px] text-gray-400">—</span>
                         )}
-                      </td>
-                      <td className="px-4 py-3 text-[11px] text-gray-600">
-                        {policy.rules.length} rule{policy.rules.length !== 1 ? 's' : ''}
-                      </td>
-                      <td className="px-4 py-3 text-[11px] text-gray-600">
-                        {getUsageCount(policy.id, assignmentRules)}
-                      </td>
-                      <td className="px-4 py-3 text-[11px] text-gray-600">
-                        {policy.updatedAt 
-                          ? new Date(policy.updatedAt).toLocaleDateString()
-                          : policy.createdAt
-                          ? new Date(policy.createdAt).toLocaleDateString()
-                          : '—'}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            type="button"
+                      </div>
+                      {policy.description && (
+                        <p className="text-sm text-gray-600 line-clamp-2">
+                          {policy.description}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Column 2: Status block (1/3 width on desktop, stacks on mobile) */}
+                    <div className="flex-shrink-0 sm:text-right sm:flex-[1] sm:min-w-[200px]">
+                      <div className="space-y-1 text-xs text-gray-600">
+                        <div>
+                          <span className="font-medium">{policy.rules.length}</span> rule{policy.rules.length !== 1 ? 's' : ''}
+                        </div>
+                        <div>
+                          Assigned: <span className="text-gray-900">{assignmentSummary}</span>
+                        </div>
+                        {lastUpdated && (
+                          <div>
+                            Updated: <span className="text-gray-900">{formatDate(lastUpdated)}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Column 3: Actions (aligned top-right) */}
+                    <div className="flex-shrink-0 sm:self-start">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 relative z-0"
+                            aria-label={`Actions for ${policy.name}`}
+                          >
+                            <FontAwesomeIcon icon="fa-solid fa-ellipsis-vertical" className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" side="bottom" sideOffset={8} className="w-48">
+                          <DropdownMenuItem
                             onClick={() => onSelectPolicy(policy.id)}
-                            className="text-[11px] text-indigo-600 hover:text-indigo-700 font-medium"
+                            className="cursor-pointer"
                           >
+                            <FontAwesomeIcon icon="fa-solid fa-pencil" className="h-3 w-3 mr-2" />
                             Edit
-                          </button>
-                          <button
-                            type="button"
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
                             onClick={() => handleDuplicate(policy)}
-                            className="text-[11px] text-gray-600 hover:text-gray-700"
+                            className="cursor-pointer"
                           >
+                            <FontAwesomeIcon icon="fa-solid fa-copy" className="h-3 w-3 mr-2" />
                             Duplicate
-                          </button>
+                          </DropdownMenuItem>
                           {!policy.isDefault && (
-                            <button
-                              type="button"
+                            <DropdownMenuItem
                               onClick={() => handleSetDefault(policy.id)}
-                              className="text-[11px] text-gray-600 hover:text-gray-700"
+                              className="cursor-pointer"
                             >
+                              <FontAwesomeIcon icon="fa-solid fa-star" className="h-3 w-3 mr-2" />
                               Set default
-                            </button>
+                            </DropdownMenuItem>
                           )}
-                          <button
-                            type="button"
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
                             onClick={() => handleDelete(policy.id)}
                             disabled={deletingPolicyId === policy.id}
-                            className="text-[11px] text-red-600 hover:text-red-700 disabled:opacity-50"
+                            className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
                           >
+                            <FontAwesomeIcon icon="fa-solid fa-trash" className="h-3 w-3 mr-2" />
                             {deletingPolicyId === policy.id ? 'Deleting...' : 'Delete'}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Create Policy Modal */}
