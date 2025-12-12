@@ -19,6 +19,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { App } from '@/lib/types';
 import { usePersona } from '../contexts/persona-context';
 import { cn } from '@/lib/utils';
+import { isValidWorkspace, getWorkspaceConfig } from '../student-lifecycle/lib/workspaces';
 
 const apps: App[] = [
   {
@@ -28,6 +29,14 @@ const apps: App[] = [
     icon: 'fa-solid fa-house',
     color: '#3B82F6',
     path: '/dashboard',
+  },
+  {
+    id: 'student-lifecycle',
+    name: 'Student Lifecycle',
+    shortName: 'Student Lifecycle',
+    icon: 'fa-solid fa-graduation-cap',
+    color: '#8B5CF6',
+    path: '/student-lifecycle',
   },
   {
     id: 'admissions',
@@ -135,6 +144,19 @@ export function AppHeader() {
       .substring(0, 2);
   };
 
+  // Extract workspace from pathname if in Student Lifecycle workspace route
+  const getWorkspaceFromPathname = (pathname: string | null) => {
+    if (!pathname) return null;
+    const match = pathname.match(/^\/student-lifecycle\/([^/]+)/);
+    const candidate = match?.[1];
+    if (candidate && isValidWorkspace(candidate)) {
+      return getWorkspaceConfig(candidate);
+    }
+    return null;
+  };
+
+  const workspaceConfig = getWorkspaceFromPathname(pathname);
+
   return (
     <header className="fixed top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-14 items-center px-2 sm:px-4 gap-2 sm:gap-4">
@@ -161,6 +183,11 @@ export function AppHeader() {
             <span className="font-semibold text-xs sm:text-sm hidden sm:inline">
               {activeApp.shortName}
             </span>
+            {workspaceConfig && (
+              <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-purple-100 text-purple-700 border border-purple-200 hidden sm:inline">
+                {workspaceConfig.label}
+              </span>
+            )}
           </div>
         </div>
 
