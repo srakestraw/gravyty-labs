@@ -24,3 +24,10 @@ export const MOCK_CONTACTS: Contact[] = [
   },
 ];
 
+/**
+ * Find a contact by ID
+ */
+export function findContactById(id: string): Contact | undefined {
+  return MOCK_CONTACTS.find((c) => c.id === id);
+}
+

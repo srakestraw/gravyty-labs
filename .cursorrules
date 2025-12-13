@@ -52,3 +52,78 @@ import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 - Firebase Authentication
 - Zustand for state management
 - Multi-app platform (Admissions, SIS, AI Teammates)
+
+## Data Provider Pattern (REQUIRED)
+
+### NEVER Import Mock Data Directly
+**CRITICAL**: All data access MUST go through the unified data provider (`@/lib/data`). Never import mock data files directly.
+
+**FORBIDDEN:**
+```typescript
+// ❌ NEVER DO THIS
+import { getMockAgentOpsItems } from '@/lib/agent-ops/mock';
+import { MOCK_CONTACTS } from '@/lib/contacts/mock-contacts';
+import { MOCK_SEGMENTS } from '@/lib/segments/mock-segments';
+import { getMockGuardrailPolicies } from '@/lib/guardrails/mockPolicies';
+import { MOCK_DO_NOT_ENGAGE } from '@/lib/do-not-engage/mockDoNotEngage';
+```
+
+**REQUIRED:**
+```typescript
+// ✅ ALWAYS DO THIS
+import { dataClient } from '@/lib/data';
+
+// In components/hooks:
+const items = await dataClient.listQueueItems({ workspace: 'admissions', app: 'student-lifecycle', mode: 'operator', userId: currentUser?.id });
+const contacts = await dataClient.listContacts({ workspace: 'admissions' });
+const segments = await dataClient.listSegments({ workspace: 'admissions' });
+```
+
+### Data Context Usage
+Always provide a `DataContext` object with relevant filtering context:
+- `workspace`: Workspace ID (e.g., 'admissions', 'registrar', 'financial-aid')
+- `app`: App ID (e.g., 'student-lifecycle', 'advancement')
+- `mode`: Working mode ('operator', 'leadership', 'global', 'workspace')
+- `userId`: Current user ID for user-specific filtering
+
+**Example:**
+```typescript
+// Queue items filtered by workspace, app, mode, and user
+const queueItems = await dataClient.listQueueItems({
+  workspace: 'admissions',
+  app: 'student-lifecycle',
+  mode: 'operator',
+  userId: currentUser?.id,
+});
+
+// Segments filtered by workspace/app scope
+const segments = await dataClient.listSegmentDefinitions({
+  workspace: 'admissions',
+  app: 'student-lifecycle',
+});
+```
+
+### Single Source of Truth
+- **ONE data provider**: `lib/data/index.ts` exports `dataClient`
+- **NO duplicate providers**: Do not create alternative data fetching patterns
+- **Context-based filtering**: All data is filtered by context (workspace, app, mode, user) at the provider level
+- **Future-proof**: The provider pattern enables switching between mock, HTTP API, and MCP without changing UI code
+
+### Migration Checklist
+When updating existing code:
+1. ✅ Replace direct mock imports with `dataClient` calls
+2. ✅ Pass appropriate `DataContext` for filtering
+3. ✅ Remove direct mock data imports
+4. ✅ Use async/await for all data provider calls
+5. ✅ Handle loading and error states appropriately
+
+### Provider Methods Available
+- `listQueueItems(ctx)` - Queue/agent ops items (filtered by workspace/app/mode/user)
+- `listContacts(ctx)` - Contact list
+- `getContact(ctx, id)` - Single contact by ID
+- `listSegments(ctx)` - Segments (lib/segments type)
+- `getSegment(ctx, id)` - Single segment by ID
+- `listSegmentDefinitions(ctx)` - Segment definitions (AI platform type, filtered by workspace/app)
+- `getSegmentDefinition(ctx, id)` - Single segment definition by ID
+- `listGuardrailPolicies(ctx)` - Guardrail policies
+- `listDoNotEngage(ctx)` - Do-not-engage entries
