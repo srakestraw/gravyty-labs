@@ -1,16 +1,42 @@
-'use client';
-
-import { useWorkspace } from '../../../_components/use-workspace';
 import { AgentDetailPageClient } from '@/components/shared/ai-platform/AgentDetailPageClient';
+import { getWorkspaceConfig, WORKSPACES } from '../../../lib/workspaces';
 
-export default function StudentLifecycleAgentDetailPage({ params }: { params: { id: string } }) {
-  const { workspaceId, workspaceLabel, peopleLabel } = useWorkspace();
+export const dynamic = 'force-static';
+
+// Required for static export with dynamic routes
+export async function generateStaticParams() {
+  const workspaces = WORKSPACES.map((w) => w.id);
+  const agentIds = [
+    'agent-transcript-helper',
+    'agent-registration-requirements',
+    'agent-high-intent-prospect',
+    'agent-donor-warmup',
+    'agent-international-visa',
+  ];
+  
+  // Generate all combinations of workspace and agent id
+  const params: { workspace: string; id: string }[] = [];
+  for (const workspace of workspaces) {
+    for (const id of agentIds) {
+      params.push({ workspace, id });
+    }
+  }
+  
+  return params;
+}
+
+interface PageProps {
+  params: { workspace: string; id: string };
+}
+
+export default function StudentLifecycleAgentDetailPage({ params }: PageProps) {
+  const workspaceConfig = getWorkspaceConfig(params.workspace);
 
   const context = {
     appId: 'student-lifecycle',
     mode: 'workspace' as const,
-    workspaceId,
-    peopleLabel,
+    workspaceId: params.workspace,
+    peopleLabel: workspaceConfig.peopleLabel,
   };
 
   return (

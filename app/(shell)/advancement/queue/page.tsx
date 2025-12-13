@@ -1,8 +1,14 @@
 'use client';
 
-import { QueuePageClient } from '@/components/shared/queue/QueuePageClient';
+import { AgentOpsQueuePageClient } from '@/components/shared/ai-platform/AgentOpsQueuePageClient';
 
 export default function QueuePage() {
-  return <QueuePageClient basePath="/advancement" />;
+  const context = {
+    appId: 'advancement',
+    mode: 'workspace' as const,
+    workspaceId: 'advancement',
+  };
+
+  return <AgentOpsQueuePageClient context={context} />;
 }
 

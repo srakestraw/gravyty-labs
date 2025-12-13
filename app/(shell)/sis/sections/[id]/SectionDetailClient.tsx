@@ -194,9 +194,9 @@ export function SectionDetailClient({ sectionId }: SectionDetailClientProps) {
         <FontAwesomeIcon icon="fa-solid fa-exclamation-circle" className="h-12 w-12 mx-auto mb-4 text-red-500" />
         <p className="text-lg font-medium text-gray-900 mb-2">Error</p>
         <p className="text-gray-600 mb-4">{error}</p>
-        <Link href="/sis">
-          <Button variant="outline">Back to SIS</Button>
-        </Link>
+        <Button asChild variant="outline">
+          <Link href="/sis">Back to SIS</Link>
+        </Button>
       </div>
     );
   }
@@ -215,11 +215,11 @@ export function SectionDetailClient({ sectionId }: SectionDetailClientProps) {
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-200 pb-4">
         <div className="flex items-center gap-3">
-          <Link href="/sis">
-            <Button variant="ghost" size="icon">
+          <Button asChild variant="ghost" size="icon">
+            <Link href="/sis">
               <FontAwesomeIcon icon="fa-solid fa-arrow-left" />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
               {courseCode}: {section.title || section.course.title}

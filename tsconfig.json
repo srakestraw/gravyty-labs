@@ -38,6 +38,9 @@
   ],
   "exclude": [
     "node_modules",
-    "functions"
+    "functions",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/__tests__/**"
   ]
 }

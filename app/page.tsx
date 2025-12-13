@@ -42,16 +42,12 @@ export default function HomePage() {
             Your integrated platform for admissions management, student information systems, and AI-powered automation.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <Link href="/login">
-              <Button size="lg" className="w-full sm:w-auto">
-                Sign In
-              </Button>
-            </Link>
-            <Link href="/dashboard">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                Go to Applications
-              </Button>
-            </Link>
+            <Button asChild size="lg" className="w-full sm:w-auto">
+              <Link href="/login">Sign In</Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
+              <Link href="/dashboard">Go to Applications</Link>
+            </Button>
           </div>
         </div>
       </div>

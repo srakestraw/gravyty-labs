@@ -46,9 +46,9 @@ export default function StudentDetailClient({ studentId }: StudentDetailClientPr
     return (
       <div className="p-6">
         <h2 className="text-2xl font-bold mb-4">Student Not Found</h2>
-        <Link href="/sis/students">
-          <Button>Back to Students</Button>
-        </Link>
+        <Button asChild>
+          <Link href="/sis/students">Back to Students</Link>
+        </Button>
       </div>
     );
   }
@@ -65,9 +65,9 @@ export default function StudentDetailClient({ studentId }: StudentDetailClientPr
         <DoNotEngagePanel personId={student.person.id} />
       )}
 
-      <Link href="/sis/students">
-        <Button className="mt-4">Back to Students</Button>
-      </Link>
+      <Button asChild className="mt-4">
+        <Link href="/sis/students">Back to Students</Link>
+      </Button>
     </div>
   );
 }

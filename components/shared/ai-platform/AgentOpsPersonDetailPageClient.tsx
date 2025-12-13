@@ -35,9 +35,9 @@ export function AgentOpsPersonDetailPageClient({ person, context }: AgentOpsPers
           <FontAwesomeIcon icon="fa-solid fa-user-slash" className="h-12 w-12 text-gray-300 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Person Not Found</h2>
           <p className="text-sm text-gray-600 mb-4">The person you're looking for doesn't exist.</p>
-          <Link href={peopleIndexHref}>
-            <Button variant="outline">Back to People</Button>
-          </Link>
+          <Button asChild variant="outline">
+            <Link href={peopleIndexHref}>Back to People</Link>
+          </Button>
         </div>
       </div>
     );

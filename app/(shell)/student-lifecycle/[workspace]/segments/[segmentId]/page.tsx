@@ -1,22 +1,40 @@
-'use client';
-
-import { useWorkspace } from '../../../_components/use-workspace';
 import { SegmentDetailPageClient } from '@/components/shared/ai-platform/segments/SegmentDetailPageClient';
-import { getWorkspaceDefaults } from '../../../lib/workspaces';
+import { getWorkspaceDefaults, WORKSPACES } from '../../../lib/workspaces';
+import { MOCK_SEGMENTS } from '@/components/shared/ai-platform/segments/mock-data';
 
-export default function StudentLifecycleSegmentDetailPage({
-  params,
-}: {
+export const dynamic = 'force-static';
+
+// Required for static export with dynamic routes
+// Return placeholder to satisfy static export requirement
+// Actual routes will be handled client-side
+export async function generateStaticParams() {
+  const workspaces = WORKSPACES.map((w) => w.id);
+  const segmentIds = MOCK_SEGMENTS.map((s) => s.id);
+  
+  // Generate all combinations of workspace and segmentId
+  const params: { workspace: string; segmentId: string }[] = [];
+  for (const workspace of workspaces) {
+    for (const segmentId of segmentIds) {
+      params.push({ workspace, segmentId });
+    }
+  }
+  
+  return params;
+}
+
+interface PageProps {
   params: { workspace: string; segmentId: string };
-}) {
-  const { workspaceId, workspaceLabel, peopleLabel } = useWorkspace();
-  const defaults = getWorkspaceDefaults(workspaceId);
+}
+
+export default function StudentLifecycleSegmentDetailPage({ params }: PageProps) {
+  const defaults = getWorkspaceDefaults(params.workspace);
+  const workspaceConfig = WORKSPACES.find((w) => w.id === params.workspace);
 
   const context = {
     appId: 'student-lifecycle',
     mode: 'workspace' as const,
-    workspaceId,
-    peopleLabel,
+    workspaceId: params.workspace,
+    peopleLabel: workspaceConfig?.peopleLabel || 'People',
     defaults: {
       recommendedAgents: defaults.recommendedAgents,
       recommendedSegments: defaults.recommendedSegments,

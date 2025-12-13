@@ -147,11 +147,9 @@ export function TodaysGamePlanCard({ data, basePath = '/student-lifecycle/admiss
                       {task.ctas.map((cta, index) => {
                         if (cta.href) {
                           return (
-                            <Link key={index} href={cta.href}>
-                              <Button size="sm" variant={index === 0 ? 'outline' : 'ghost'}>
-                                {cta.label}
-                              </Button>
-                            </Link>
+                            <Button key={index} asChild size="sm" variant={index === 0 ? 'outline' : 'ghost'}>
+                              <Link href={cta.href}>{cta.label}</Link>
+                            </Button>
                           );
                         }
                         return (

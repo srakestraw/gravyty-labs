@@ -37,11 +37,9 @@ export default function InsightsPage() {
           <p className="text-sm text-muted-foreground mb-4">
             Dashboards and metrics across products.
           </p>
-          <Link href="/data">
-            <Button variant="outline" size="sm">
-              Open Reporting
-            </Button>
-          </Link>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/data">Open Reporting</Link>
+          </Button>
           {/* TODO: Update route when dedicated reporting/analytics page is available */}
         </div>
 
@@ -55,11 +53,9 @@ export default function InsightsPage() {
           <p className="text-sm text-muted-foreground mb-4">
             Data sources, sync status, and tables powering your insights.
           </p>
-          <Link href="/data">
-            <Button variant="outline" size="sm">
-              Open Data
-            </Button>
-          </Link>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/data">Open Data</Link>
+          </Button>
         </div>
       </div>
 

@@ -1,28 +1,28 @@
-'use client';
+import { getWorkspaceDefaults, WORKSPACES } from '../../lib/workspaces';
+import { AIPageClientWrapper } from './AIPageClientWrapper';
 
-import { useWorkspace } from '../../_components/use-workspace';
-import { CommandCenterPageClient } from '@/components/shared/ai-platform/CommandCenterPageClient';
-import { getWorkspaceDefaults } from '../../lib/workspaces';
-import { useSearchParams } from 'next/navigation';
-import { getSegmentIdFromSearchParams } from '@/components/shared/ai-platform/segments/segment-context';
-import { getSegmentById } from '@/components/shared/ai-platform/segments/mock-data';
+export const dynamic = 'force-static';
 
-export default function StudentLifecycleCommandCenterPage() {
-  const { workspaceId, workspaceLabel, peopleLabel } = useWorkspace();
-  const defaults = getWorkspaceDefaults(workspaceId);
-  const searchParams = useSearchParams();
-  
-  // Get segment from URL
-  const segmentId = getSegmentIdFromSearchParams(Object.fromEntries(searchParams.entries()));
-  const activeSegment = segmentId ? getSegmentById(segmentId) : undefined;
+// Required for static export with dynamic routes
+export async function generateStaticParams() {
+  return WORKSPACES.map((w) => ({
+    workspace: w.id,
+  }));
+}
+
+interface PageProps {
+  params: { workspace: string };
+}
+
+export default function StudentLifecycleCommandCenterPage({ params }: PageProps) {
+  const defaults = getWorkspaceDefaults(params.workspace);
+  const workspaceConfig = WORKSPACES.find((w) => w.id === params.workspace);
 
   const context = {
     appId: 'student-lifecycle',
     mode: 'workspace' as const,
-    workspaceId,
-    peopleLabel,
-    activeSegmentId: segmentId,
-    activeSegment,
+    workspaceId: params.workspace,
+    peopleLabel: workspaceConfig?.peopleLabel || 'People',
     defaults: {
       recommendedAgents: defaults.recommendedAgents,
       recommendedSegments: defaults.recommendedSegments,
@@ -33,7 +33,7 @@ export default function StudentLifecycleCommandCenterPage() {
 
   return (
     <main className="space-y-6 p-6">
-      <CommandCenterPageClient context={context} />
+      <AIPageClientWrapper context={context} />
     </main>
   );
 }

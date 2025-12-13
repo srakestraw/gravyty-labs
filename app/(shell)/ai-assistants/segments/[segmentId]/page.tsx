@@ -1,9 +1,12 @@
 import { SegmentDetailPageClient } from '@/components/shared/ai-platform/segments/SegmentDetailPageClient';
 
+export const dynamic = 'force-static';
+
 // Required for static export with dynamic routes
+// Return placeholder to satisfy static export requirement
+// Actual routes will be handled client-side
 export async function generateStaticParams() {
-  // Return empty array for dynamic segments - they'll be generated on demand
-  return [];
+  return [{ segmentId: 'placeholder' }];
 }
 
 export default function AiAssistantsSegmentDetailPage({
