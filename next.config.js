@@ -13,7 +13,7 @@ const nextConfig = {
   }),
   trailingSlash: true,
   assetPrefix: '',
-  transpilePackages: ['@gravyty-labs/contracts', '@gravyty-labs/db'],
+  transpilePackages: ['@gravyty-labs/contracts', '@gravyty-labs/db', 'recharts'],
   webpack: (config, { isServer, isProduction }) => {
     // Prevent @prisma/client from being bundled on client-side
     if (!isServer) {
