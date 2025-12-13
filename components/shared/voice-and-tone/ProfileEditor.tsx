@@ -355,3 +355,4 @@ function GeneralTab({ profile, onUpdate }: GeneralTabProps) {
     </section>
   );
 }
+

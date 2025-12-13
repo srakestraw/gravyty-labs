@@ -1,8 +1,8 @@
 'use client';
 
-import { QueuePageClient } from '@/components/shared/queue/QueuePageClient';
+import { AgentOpsQueuePageClient } from '@/components/shared/ai-platform/AgentOpsQueuePageClient';
 
 export default function QueuePage() {
-  return <QueuePageClient basePath="/ai-assistants" />;
+  return <AgentOpsQueuePageClient />;
 }
 

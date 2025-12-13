@@ -23,3 +23,4 @@ export const MOCK_CONTACTS: Contact[] = [
     lastActivityAt: "2025-01-04T18:45:00Z",
   },
 ];
+

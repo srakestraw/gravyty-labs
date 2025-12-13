@@ -12,3 +12,4 @@ export interface Segment {
   usageContexts: ("assistants" | "agents" | "campaigns")[];
   lastEvaluatedAt?: string;
 }
+

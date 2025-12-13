@@ -19,7 +19,8 @@ import { useRouter, usePathname } from 'next/navigation';
 import { App } from '@/lib/types';
 import { usePersona } from '../contexts/persona-context';
 import { cn } from '@/lib/utils';
-import { isValidWorkspace, getWorkspaceConfig } from '../student-lifecycle/lib/workspaces';
+import { isValidWorkspace, getWorkspaceConfig, WORKSPACES } from '../student-lifecycle/lib/workspaces';
+import { WorkspaceSwitcher } from './workspace-switcher';
 
 const apps: App[] = [
   {
@@ -156,6 +157,9 @@ export function AppHeader() {
   };
 
   const workspaceConfig = getWorkspaceFromPathname(pathname);
+  
+  // Get available workspaces for Student Lifecycle
+  const availableWorkspaces = pathname?.startsWith('/student-lifecycle') ? WORKSPACES : [];
 
   return (
     <header className="fixed top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -183,11 +187,10 @@ export function AppHeader() {
             <span className="font-semibold text-xs sm:text-sm hidden sm:inline">
               {activeApp.shortName}
             </span>
-            {workspaceConfig && (
-              <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-purple-100 text-purple-700 border border-purple-200 hidden sm:inline">
-                {workspaceConfig.label}
-              </span>
-            )}
+            <WorkspaceSwitcher
+              currentWorkspace={workspaceConfig}
+              availableWorkspaces={availableWorkspaces}
+            />
           </div>
         </div>
 

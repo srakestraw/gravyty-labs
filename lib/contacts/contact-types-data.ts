@@ -132,3 +132,4 @@ export const CONTACT_TYPES: ContactType[] = [
     workspaces: ["career_services", "ai_assistants"],
   },
 ];
+

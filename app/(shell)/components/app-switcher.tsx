@@ -16,192 +16,33 @@ import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { canAccessAIAssistants } from '@/lib/roles';
 import { useFeatureFlag } from '@/lib/features';
+import { cn } from '@/lib/utils';
 import { usePersona, type Persona } from '../contexts/persona-context';
+import { getAppRegistry } from '@/lib/apps/registry';
+import type { AppDefinition } from '@/lib/apps/types';
+import { getActivePillId, isAppActiveInSwitcher } from '@/lib/apps/active';
 
-interface AppItem {
-  id: string;
-  name: string;
-  icon: string;
-  path: string;
-  color?: string;
-  requiresRole?: boolean;
-  poweredBy?: string | string[];
-  description?: string; // Short description shown under the label
-}
-
-// Main apps - persona-aware function
-// Higher Ed persona keeps all existing labels/descriptions exactly as they were
-// Only NPO persona uses different labels/descriptions
-function getMainApps(persona: Persona): AppItem[] {
-  const isHigherEd = persona === 'higher-ed';
-
-  return [
-    {
-      id: 'home',
-      name: 'Home',
-      icon: 'fa-solid fa-house',
-      path: '/dashboard',
-      color: '#3B82F6',
-      poweredBy: 'Platform',
-      description: 'Your unified dashboard with insights, alerts, and shortcuts across your programs.',
-    },
-    {
-      id: 'student-lifecycle-ai',
-      name: isHigherEd ? 'Student Lifecycle AI' : 'Supporter Lifecycle AI',
-      icon: 'fa-solid fa-robot',
-      path: '/ai-assistants',
-      color: '#8B5CF6',
-      requiresRole: true,
-      description: isHigherEd
-        ? 'AI assistants for admissions, financial aid, registrar, student success, and workflows.'
-        : 'AI assistants for supporter onboarding, donations, renewals, stewardship workflows, and service interactions.',
-    },
-    {
-      id: 'ai-chatbots-messaging',
-      name: 'AI Chatbots & Messaging',
-      icon: 'fa-solid fa-comments',
-      path: '/ai-assistants/assistant',
-      color: '#8B5CF6',
-      requiresRole: true,
-      description: isHigherEd
-        ? '24/7 student-facing chatbot and messaging powered by Ivy & Ocelot.'
-        : '24/7 supporter-facing chatbot and messaging powered by Ivy & Ocelot.',
-    },
-    {
-      id: 'engagement-hub',
-      name: isHigherEd ? 'Engagement Hub' : 'Community Engagement',
-      icon: 'fa-solid fa-users',
-      path: '/community',
-      color: '#7C3AED',
-      poweredBy: 'Platform',
-      description: isHigherEd
-        ? 'Community and alumni engagement — events, volunteering, mentoring, groups, and messaging. Includes: Graduway & Athlete Network.'
-        : 'Constituent and community engagement — events, volunteering, peer programs, groups, and messaging.',
-    },
-    {
-      id: 'advancement-philanthropy',
-      name: isHigherEd ? 'Advancement & Philanthropy' : 'Development & Fundraising',
-      icon: 'fa-solid fa-gift',
-      path: '/advancement',
-      color: '#DC2626',
-      poweredBy: 'Platform',
-      description: isHigherEd
-        ? 'Fundraising and annual giving — giving forms, campaigns, appeals, Giving Day, recurring gifts, stewardship, and fundraising ambassadors. Includes: Advance, Raise, Gratavid.'
-        : 'Donor development and fundraising — campaigns, appeals, recurring giving, stewardship, and ambassadors.',
-    },
-    {
-      id: 'career-services',
-      name: 'Career Services',
-      icon: 'fa-solid fa-briefcase',
-      path: '/career',
-      color: '#00B8D9',
-      poweredBy: ['AI Career Hub', 'Graduway', 'Athlete Network'],
-      description: isHigherEd
-        ? 'Career Hub for students and alumni – jobs, internships, and employer recruiting.'
-        : 'Career Hub for supporters, alumni, or program participants — jobs, internships, and employer recruiting.',
-    },
-    {
-      id: 'insights',
-      name: 'Insights',
-      icon: 'fa-solid fa-chart-bar',
-      path: '/data',
-      color: '#059669',
-      poweredBy: 'Platform',
-      description: 'Reporting and data across all products.',
-    },
-    {
-      id: 'admin-settings',
-      name: 'Admin & Settings',
-      icon: 'fa-solid fa-shield',
-      path: '/admin',
-      color: '#059669',
-      poweredBy: 'Platform',
-      description: 'Organization, users & permissions, AI policies, and platform configuration.',
-    },
-  ];
-}
-
-// SIM Apps - grouped list with section header
-const simApps: AppItem[] = [
-  {
-    id: 'banner-sis-sim',
-    name: 'Banner SIS (SIM)',
-    icon: 'fa-solid fa-database',
-    path: '/sim/banner-sis',
-    color: '#6366F1',
-    poweredBy: 'Simulation',
-  },
-  {
-    id: 'colleague-sis-sim',
-    name: 'Colleague SIS (SIM)',
-    icon: 'fa-solid fa-database',
-    path: '/sim/colleague-sis',
-    color: '#6366F1',
-    poweredBy: 'Simulation',
-  },
-  {
-    id: 'slate-sis-sim',
-    name: 'Slate SIS (SIM)',
-    icon: 'fa-solid fa-layer-group',
-    path: '/sim/slate-sis',
-    color: '#6366F1',
-    poweredBy: 'Simulation',
-  },
-  {
-    id: 'salesforce-crm-sim',
-    name: 'Salesforce CRM (SIM)',
-    icon: 'fa-solid fa-cloud',
-    path: '/sim/salesforce-crm',
-    color: '#6366F1',
-    poweredBy: 'Simulation',
-  },
-  {
-    id: 'blackbaud-crm-sim',
-    name: 'Blackbaud CRM (SIM)',
-    icon: 'fa-solid fa-building',
-    path: '/sim/blackbaud-crm',
-    color: '#6366F1',
-    poweredBy: 'Simulation',
-  },
-  {
-    id: 'canvas-lms-sim',
-    name: 'Canvas LMS (SIM)',
-    icon: 'fa-solid fa-book',
-    path: '/sim/canvas-lms',
-    color: '#6366F1',
-    poweredBy: 'Simulation',
-  },
-  {
-    id: 'blackboard-lms-sim',
-    name: 'Blackboard LMS (SIM)',
-    icon: 'fa-solid fa-desktop',
-    path: '/sim/blackboard-lms',
-    color: '#6366F1',
-    poweredBy: 'Simulation',
-  },
-];
+type AppItem = AppDefinition;
 
 // Helper component for rendering app rows
 function AppRow({ 
   item, 
   isActive, 
-  onSelect 
+  onSelect,
+  activePillId,
+  onPillSelect,
 }: { 
   item: AppItem; 
   isActive: boolean;
   onSelect: (e: React.MouseEvent) => void;
+  activePillId?: string | null;
+  onPillSelect?: (e: React.MouseEvent, pill: { id: string; label: string; href: string }) => void;
 }) {
   return (
     <div
       onClick={onSelect}
       className="flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer hover:bg-gray-50 transition-colors relative group"
     >
-      {isActive && (
-        <FontAwesomeIcon 
-          icon="fa-solid fa-check" 
-          className="absolute right-3 h-4 w-4 text-primary" 
-        />
-      )}
       <div 
         className="flex items-center justify-center w-8 h-8 rounded-md flex-shrink-0"
         style={{ backgroundColor: `${item.color || '#3B82F6'}15` }}
@@ -212,14 +53,47 @@ function AppRow({
           style={{ color: item.color || '#3B82F6' }}
         />
       </div>
-      <div className="flex-1 min-w-0">
-        <span className="text-sm text-gray-700 font-medium block">
-          {item.name}
-        </span>
+      <div className="flex-1 min-w-0 pr-8">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-700 font-medium">
+            {item.label}
+          </span>
+          {isActive && (
+            <FontAwesomeIcon 
+              icon="fa-solid fa-check" 
+              className="h-4 w-4 text-primary flex-shrink-0 ml-2" 
+            />
+          )}
+        </div>
         {item.description && (
           <span className="mt-0.5 text-xs text-gray-500 block">
             {item.description}
           </span>
+        )}
+        {item.pills && item.pills.length > 0 && (
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            {item.pills.map((pill) => {
+              const isPillActive = !!activePillId && activePillId === pill.id;
+              return (
+                <button
+                  key={pill.id}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onPillSelect?.(e, pill);
+                  }}
+                  className={cn(
+                    'inline-flex items-center gap-1 rounded-full bg-gray-50 px-2 py-0.5 text-[11px] text-gray-700 border border-gray-200',
+                    'hover:bg-gray-100 hover:border-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 transition-colors',
+                    isPillActive && 'bg-gray-100 border-gray-300'
+                  )}
+                >
+                  {pill.label}
+                </button>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>
@@ -235,8 +109,10 @@ export function AppSwitcher() {
   const { persona } = usePersona();
   const [open, setOpen] = useState(false);
 
-  // Get persona-aware main apps
-  const mainApps = useMemo(() => getMainApps(persona), [persona]);
+  // Registry is the single source of truth for the app list/order.
+  const registry = useMemo(() => getAppRegistry({ persona }), [persona]);
+  const mainApps = useMemo(() => registry.filter(a => a.group !== 'sim'), [registry]);
+  const simApps = useMemo(() => registry.filter(a => a.group === 'sim'), [registry]);
 
   // Filter main apps based on feature flags and roles
   const visibleMainApps = useMemo(() => {
@@ -249,7 +125,7 @@ export function AppSwitcher() {
   }, [mainApps, aiAssistantsEnabled, user?.email, user?.uid]);
 
   // SIM Apps don't need filtering, but keep for consistency
-  const visibleSimApps = useMemo(() => simApps, []);
+  const visibleSimApps = useMemo(() => simApps, [simApps]);
 
   const handleAppSelect = (item: AppItem) => (e: React.MouseEvent) => {
     e.preventDefault();
@@ -261,30 +137,41 @@ export function AppSwitcher() {
     // Create app object for store
     const app = {
       id: item.id,
-      name: item.name,
-      shortName: item.name,
+      name: item.label,
+      shortName: item.label,
       icon: item.icon,
       color: item.color || '#3B82F6',
-      path: item.path,
+      path: item.href,
     };
     
     setActiveApp(app);
     
     // Use Next.js router for smooth client-side navigation
-    router.push(item.path);
+    router.push(item.href);
   };
 
-  const getIsActive = (item: AppItem) => {
-    return activeApp.id === item.id || 
-      (item.id.includes('home') && activeApp.id === 'dashboard') ||
-      (item.id === 'student-lifecycle-ai' && activeApp.id === 'ai-assistants') ||
-      (item.id === 'ai-chatbots-messaging' && pathname?.startsWith('/ai-assistants/assistant')) ||
-      (item.id === 'engagement-hub' && (activeApp.id === 'community' || activeApp.id === 'alumni-engagement' || activeApp.id === 'graduway-community')) ||
-      (item.id === 'advancement-philanthropy' && (activeApp.id === 'advancement' || activeApp.id === 'annual-giving' || activeApp.id === 'pipeline-outreach' || activeApp.id === 'stewardship-gratavid')) ||
-      (item.id === 'career-services' && (activeApp.id === 'career' || activeApp.id === 'career-hub')) ||
-      (item.id === 'insights' && (activeApp.id === 'data' || activeApp.id === 'reporting-analytics')) ||
-      (item.id === 'admin-settings' && (activeApp.id === 'admin' || activeApp.id === 'ai-control-center' || activeApp.id === 'settings'));
-  };
+  const handlePillSelect =
+    (appItem: AppItem, pill: { id: string; label: string; href: string }) => (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      setOpen(false);
+
+      const app = {
+        id: appItem.id,
+        name: appItem.label,
+        shortName: appItem.label,
+        icon: appItem.icon,
+        color: appItem.color || '#3B82F6',
+        path: appItem.href,
+      };
+
+      setActiveApp(app);
+      router.push(pill.href);
+    };
+
+  const getIsActive = (item: AppItem) =>
+    isAppActiveInSwitcher({ app: item, activeAppId: activeApp.id, pathname });
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -316,6 +203,8 @@ export function AppSwitcher() {
                 item={item}
                 isActive={getIsActive(item)}
                 onSelect={handleAppSelect(item)}
+                activePillId={getActivePillId(item, pathname || '')}
+                onPillSelect={(e, pill) => handlePillSelect(item, pill)(e)}
               />
             ))}
           </div>
@@ -330,8 +219,10 @@ export function AppSwitcher() {
                 <AppRow
                   key={item.id}
                   item={item}
-                  isActive={activeApp.id === item.id}
+                  isActive={getIsActive(item)}
                   onSelect={handleAppSelect(item)}
+                  activePillId={getActivePillId(item, pathname || '')}
+                  onPillSelect={(e, pill) => handlePillSelect(item, pill)(e)}
                 />
               ))}
             </div>

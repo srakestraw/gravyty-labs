@@ -7,3 +7,4 @@ import { PermissionsPageClient } from '@/components/shared/permissions/Permissio
 export default function PermissionsPage() {
   return <PermissionsPageClient />;
 }
+

@@ -29,3 +29,4 @@ export function getContactTypeById(
 ): ContactType | undefined {
   return CONTACT_TYPES.find((ct) => ct.id === id);
 }
+

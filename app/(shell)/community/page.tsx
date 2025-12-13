@@ -1,27 +1,20 @@
 'use client';
 
-/**
- * Community Page - Stub Implementation
- * 
- * TODO: Implement Community workspace (Graduway + Athlete Network).
- */
+import { CommandCenterPageClient } from '@/components/shared/ai-platform/CommandCenterPageClient';
 
 export default function CommunityPage() {
-  return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Community
-        </h1>
-        <p className="text-gray-600">
-          Manage alumni, community engagement, events, and groups.
-        </p>
-      </div>
+  const context = {
+    appId: 'alumni-engagement',
+    workspaceId: 'alumni-engagement',
+    mode: 'workspace' as const,
+  };
 
-      {/* TODO: Implement Community workspace (Graduway + Athlete Network). */}
-    </div>
+  return (
+    <main className="space-y-6 p-6">
+      <CommandCenterPageClient context={context} />
+    </main>
   );
 }
+
 
 

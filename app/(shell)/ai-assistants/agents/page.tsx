@@ -1,7 +1,7 @@
 "use client";
 
-import { AgentsPageClient } from "@/components/shared/agents/AgentsPageClient";
+import { AgentsListPageClient } from "@/components/shared/ai-platform/AgentsListPageClient";
 
 export default function Page() {
-  return <AgentsPageClient basePath="/ai-assistants" />;
+  return <AgentsListPageClient />;
 }

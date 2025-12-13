@@ -11,6 +11,18 @@ import { canAccessAIAssistants } from '@/lib/roles';
 import { useFeatureFlag } from '@/lib/features';
 import { useQueueAttentionCount } from '@/lib/agent-ops/useQueueAttentionCount';
 import { usePersona, type Persona } from '../contexts/persona-context';
+import { getAppRegistry } from '@/lib/apps/registry';
+import { getActiveAppId } from '@/lib/apps/active';
+import type { NavSection } from '@/lib/apps/types';
+import { getAppNav as getAiAssistantsNav } from '../ai-assistants/_nav';
+import { getAppNav as getAdminNav } from '../admin/_nav';
+import { getAppNav as getAdvancementNav } from '../advancement/_nav';
+import { getAppNav as getCommunityNav } from '../community/_nav';
+import { getAppNav as getDataNav } from '../data/_nav';
+import { getAppNav as getSimAppsNav } from '../sim-apps/_nav';
+import { getAppNav as getStudentLifecycleNav } from '../student-lifecycle/_nav';
+import { isValidWorkspace, getWorkspaceConfig, type WorkingMode } from '../student-lifecycle/lib/workspaces';
+import { useWorkspaceMode } from '@/lib/hooks/useWorkspaceMode';
 
 type NavItem = { name: string; href: string; icon: string; id?: string; external?: boolean };
 
@@ -78,6 +90,67 @@ export function AppSidebar() {
   const isInAdmin = pathname?.startsWith('/admin');
   // Check if we're in the Advancement app
   const isInAdvancement = pathname?.startsWith('/advancement');
+  // Check if we're in the Student Lifecycle app
+  const isInStudentLifecycle = pathname?.startsWith('/student-lifecycle');
+  // Check if we're in the Community/Engagement Hub app
+  const isInCommunity = pathname?.startsWith('/community');
+
+  // Extract workspace ID from pathname for Student Lifecycle
+  const workspaceId = useMemo(() => {
+    if (!isInStudentLifecycle || !pathname) return undefined;
+    const match = pathname.match(/^\/student-lifecycle\/([^/]+)/);
+    const candidate = match?.[1];
+    if (candidate && isValidWorkspace(candidate)) return candidate;
+    return undefined;
+  }, [isInStudentLifecycle, pathname]);
+
+  // Get workspace config if in Student Lifecycle
+  const workspaceConfig = useMemo(() => {
+    if (!workspaceId) return undefined;
+    try {
+      return getWorkspaceConfig(workspaceId);
+    } catch {
+      return undefined;
+    }
+  }, [workspaceId]);
+
+  // Working mode hook - only used if selector is enabled
+  const { mode: workingMode, setMode: setWorkingMode } = useWorkspaceMode(
+    workspaceConfig?.enableWorkingModeSelector ? workspaceId : undefined,
+    workspaceConfig?.workingModeDefault || 'operator'
+  );
+
+  const appRegistry = useMemo(() => getAppRegistry({ persona }), [persona]);
+  const activeRegistryAppId = useMemo(
+    () => getActiveAppId(pathname || '', appRegistry),
+    [pathname, appRegistry]
+  );
+
+  const appNavByAppId: Record<string, (params: { pathname: string }) => { sections: NavSection[] }> = useMemo(
+    () => ({
+      // AI Assistants area
+      'student-lifecycle-ai': getAiAssistantsNav,
+      'ai-chatbots-messaging': getAiAssistantsNav,
+
+      // Admin area
+      'admin-settings': getAdminNav,
+
+      // Advancement area
+      'advancement-philanthropy': getAdvancementNav,
+
+      // These exist but currently have no sidebar sub-nav; keep map for completeness.
+      'engagement-hub': getCommunityNav,
+      insights: getDataNav,
+
+      // SIM Apps are currently separate links in the sidebar and not part of the switcher registry.
+      // Keep for future use if registry grows a /sim-apps entry.
+      'sim-apps': getSimAppsNav,
+
+      // Student Lifecycle app boundary
+      'student-lifecycle': getStudentLifecycleNav,
+    }),
+    []
+  );
 
 type NavItem = { name: string; href: string; icon: string; id?: string; external?: boolean };
 
@@ -96,6 +169,25 @@ type Navigation =
 
   // Build navigation items - use useMemo to prevent recreation on every render
   const navigation: Navigation = useMemo(() => {
+    // Prefer app-local nav contract when available and non-empty; otherwise fall back to existing behavior.
+    const contract = activeRegistryAppId ? appNavByAppId[activeRegistryAppId] : undefined;
+    const contractSections = contract ? contract({ pathname: pathname || '' }).sections : [];
+    const hasContractItems = contractSections.some((s) => s.items && s.items.length > 0);
+
+    if (hasContractItems) {
+      const getItems = (id: string) => contractSections.find((s) => s.id === id)?.items ?? [];
+      const aiPlatform = getItems('aiPlatform');
+      const topLevel = getItems('topLevel');
+      const dataAndAudiences = getItems('dataAndAudiences');
+      const adminTools = getItems('adminTools');
+
+      return {
+        topLevel: [...aiPlatform, ...topLevel],
+        dataAndAudiences: dataAndAudiences.length > 0 ? dataAndAudiences : undefined,
+        adminTools,
+      };
+    }
+
     // If in Advancement app, show sub-navigation
     // Advancement & Philanthropy workspace includes Data and audiences section
     if (isInAdvancement) {
@@ -167,7 +259,7 @@ type Navigation =
     });
 
     return filteredNav;
-  }, [isInAIAssistants, isInAdmin, isInAdvancement, aiAssistantsEnabled, user?.email, user?.uid, persona]);
+  }, [activeRegistryAppId, appNavByAppId, pathname, isInAIAssistants, isInAdmin, isInAdvancement, isInStudentLifecycle, isInCommunity, aiAssistantsEnabled, user?.email, user?.uid, persona]);
 
   return (
     <>
@@ -187,8 +279,8 @@ type Navigation =
           sidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64 md:w-16'
         )}
       >
-        <nav className="flex flex-col gap-1 p-2">
-          {(isInAIAssistants || isInAdmin || isInAdvancement) && !Array.isArray(navigation) ? (
+        <nav className="flex flex-col gap-1 p-2 h-full">
+          {(isInAIAssistants || isInAdmin || isInAdvancement || isInStudentLifecycle || isInCommunity) && !Array.isArray(navigation) ? (
             <>
               {/* Top-level navigation items */}
               {navigation.topLevel.map((item) => {
@@ -363,6 +455,43 @@ type Navigation =
                 </Link>
               );
             })
+          )}
+
+          {/* Working Mode Selector - shown only for workspaces that enable it */}
+          {workspaceConfig?.enableWorkingModeSelector && (sidebarOpen || isMobile) && (
+            <>
+              <div className="mt-auto pt-4 border-t border-gray-200">
+                <div className="px-3 mb-2">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                    Working mode
+                  </label>
+                </div>
+                <div className="flex gap-1 px-3">
+                  <button
+                    onClick={() => setWorkingMode('operator')}
+                    className={cn(
+                      'flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                      workingMode === 'operator'
+                        ? 'bg-purple-600 text-white shadow-sm'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    )}
+                  >
+                    Operator
+                  </button>
+                  <button
+                    onClick={() => setWorkingMode('leadership')}
+                    className={cn(
+                      'flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                      workingMode === 'leadership'
+                        ? 'bg-purple-600 text-white shadow-sm'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    )}
+                  >
+                    Leadership
+                  </button>
+                </div>
+              </div>
+            </>
           )}
         </nav>
       </aside>

@@ -1,27 +1,20 @@
 'use client';
 
-/**
- * Advancement Page - Stub Implementation
- * 
- * TODO: Implement Advancement workspace (Advance, Raise, Gratavid).
- */
+import { CommandCenterPageClient } from '@/components/shared/ai-platform/CommandCenterPageClient';
 
 export default function AdvancementPage() {
-  return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Advancement
-        </h1>
-        <p className="text-gray-600">
-          Manage fundraising, pipeline outreach, and stewardship.
-        </p>
-      </div>
+  const context = {
+    appId: 'advancement',
+    workspaceId: 'advancement',
+    mode: 'workspace' as const,
+  };
 
-      {/* TODO: Implement Advancement workspace (Advance, Raise, Gratavid). */}
-    </div>
+  return (
+    <main className="space-y-6 p-6">
+      <CommandCenterPageClient context={context} />
+    </main>
   );
 }
+
 
 

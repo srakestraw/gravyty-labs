@@ -2,6 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
+import type { AiPlatformPageContext } from '@/components/shared/ai-platform/types';
+import { getAiPlatformBasePath } from '@/components/shared/ai-platform/types';
 
 type RoleKey =
   | "admissions"
@@ -25,7 +27,7 @@ type AgentStatus = "active" | "paused" | "error";
 type AgentType = "proactive" | "on-demand" | "workflow";
 
 interface AgentsPageClientProps {
-  basePath?: string;
+  context?: AiPlatformPageContext;
 }
 
 const ROLES: Role[] = [
@@ -240,7 +242,8 @@ const renderStatusPill = (status: AgentStatus) => {
   }
 };
 
-export function AgentsPageClient({ basePath = "/ai-assistants" }: AgentsPageClientProps) {
+export function AgentsPageClient({ context }: AgentsPageClientProps) {
+  const basePath = getAiPlatformBasePath(context);
   const [search, setSearch] = React.useState("");
   const [selectedRole, setSelectedRole] = React.useState<RoleFilter>("All");
   const [statusFilter, setStatusFilter] = React.useState<AgentStatus | "all">("all");
@@ -464,3 +467,4 @@ export function AgentsPageClient({ basePath = "/ai-assistants" }: AgentsPageClie
     </div>
   );
 }
+

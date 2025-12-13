@@ -20,6 +20,7 @@ interface PersonDetailPaneProps {
   assignments: PersonAgentAssignment[];
   queueItems: AgentOpsItem[];
   activity: PersonActivity[];
+  basePath?: string;
 }
 
 function getSeverityColor(severity: string) {
@@ -95,7 +96,7 @@ function formatStatusLabel(raw: string): string {
   return STATUS_LABELS[raw] ?? raw;
 }
 
-export function PersonDetailPane({ person, assignments, queueItems, activity }: PersonDetailPaneProps) {
+export function PersonDetailPane({ person, assignments, queueItems, activity, basePath = '/ai-assistants' }: PersonDetailPaneProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = React.useState<'overview' | 'activity' | 'queue' | 'guardrails'>('overview');
 
@@ -116,13 +117,13 @@ export function PersonDetailPane({ person, assignments, queueItems, activity }: 
 
   const handleViewInQueue = () => {
     if (person) {
-      router.push(`/ai-assistants/agent-ops/queue?personId=${encodeURIComponent(person.id)}`);
+      router.push(`${basePath}/agent-ops/queue?personId=${encodeURIComponent(person.id)}`);
     }
   };
 
   const handleViewInLogs = () => {
     if (person) {
-      router.push(`/ai-assistants/logs?scope=person&personId=${encodeURIComponent(person.id)}`);
+      router.push(`${basePath}/logs?scope=person&personId=${encodeURIComponent(person.id)}`);
     }
   };
 
@@ -284,7 +285,9 @@ export function PersonDetailPane({ person, assignments, queueItems, activity }: 
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => router.push(`/ai-assistants/agents/${assignment.agentId}`)}
+                        onClick={() => {
+                          router.push(`${basePath}/agents/${assignment.agentId}`);
+                        }}
                         className="text-xs ml-2 flex-shrink-0"
                       >
                         View Agent
@@ -388,7 +391,7 @@ export function PersonDetailPane({ person, assignments, queueItems, activity }: 
                   <p className="text-xs text-gray-500 mt-0.5">Recent activity for this person.</p>
                 </div>
                 <Link
-                  href={`/ai-assistants/logs?scope=person&personId=${encodeURIComponent(person.id)}`}
+                  href={`${basePath}/logs?scope=person&personId=${encodeURIComponent(person.id)}`}
                   className="text-xs text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1"
                 >
                   View in Logs
@@ -446,7 +449,7 @@ export function PersonDetailPane({ person, assignments, queueItems, activity }: 
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-semibold text-gray-900">Activity</h3>
                   <Link
-                    href={`/ai-assistants/logs?scope=person&personId=${encodeURIComponent(person.id)}`}
+                    href={`${basePath}/logs?scope=person&personId=${encodeURIComponent(person.id)}`}
                     className="text-xs text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1"
                   >
                     View this person in Logs

@@ -20,3 +20,4 @@ export const MOCK_SEGMENTS: Segment[] = [
     usageContexts: ["agents", "campaigns"],
   },
 ];
+

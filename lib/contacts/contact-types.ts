@@ -54,3 +54,4 @@ export interface PersonContactTypes {
   personId: ContactId;
   contactTypeIds: ContactTypeId[];
 }
+

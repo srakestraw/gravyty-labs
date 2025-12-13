@@ -1,18 +1,25 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { AgentOpsFilters, AgentOpsItem } from '@/lib/agent-ops/types';
-import { getMockAgentOpsItems } from '@/lib/agent-ops/mock';
+import { getMockAgentOpsItems, getMockAgentOpsItemsForWorkspace } from '@/lib/agent-ops/mock';
 import { AgentOpsFiltersBar } from '@/components/ai-assistants/agent-ops/AgentOpsFiltersBar';
 import { QueueList, type QueueAction } from '@/components/ai-assistants/agent-ops/queue/QueueList';
 import { QueueDetail } from '@/components/ai-assistants/agent-ops/queue/QueueDetail';
 import { ShortcutFooter } from '@/components/ai-assistants/agent-ops/queue/ShortcutFooter';
 import { useHotkeys } from '@/lib/hooks/useHotkeys';
 import { cn } from '@/lib/utils';
+import { getSegmentFromSearchParams } from '@/components/shared/ai-platform/segments/segment-context';
+import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
+import { Button } from '@/components/ui/button';
 
 interface QueuePageClientProps {
   basePath?: string;
+  defaultFilters?: Partial<AgentOpsFilters>;
+  activeSegmentId?: string;
+  activeSegment?: import('@/components/shared/ai-platform/segments/types').SegmentDefinition;
+  workspaceId?: string;
 }
 
 function applyActionToItem(item: AgentOpsItem, action: QueueAction): AgentOpsItem {
@@ -36,18 +43,60 @@ function applyActionToItem(item: AgentOpsItem, action: QueueAction): AgentOpsIte
   }
 }
 
-export function QueuePageClient({ basePath = '/ai-assistants' }: QueuePageClientProps) {
+export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, activeSegmentId, activeSegment, workspaceId }: QueuePageClientProps) {
   const router = useRouter();
-  const [allItems, setAllItems] = useState<AgentOpsItem[]>(getMockAgentOpsItems());
-  const [filters, setFilters] = useState<AgentOpsFilters>({
-    role: 'All',
-    status: 'All',
-    type: 'All',
-    severity: 'All',
-    assignee: 'All',
-    search: '',
-  });
+  const searchParams = useSearchParams();
+  const [allItems, setAllItems] = useState<AgentOpsItem[]>(
+    workspaceId ? getMockAgentOpsItemsForWorkspace(workspaceId) : getMockAgentOpsItems()
+  );
+  
+  // Detect active segment: prefer props, then URL param
+  const segment = useMemo(() => {
+    if (activeSegment) return activeSegment;
+    if (activeSegmentId) {
+      const { getSegmentById } = require('@/components/shared/ai-platform/segments/mock-data');
+      return getSegmentById(activeSegmentId);
+    }
+    return getSegmentFromSearchParams(Object.fromEntries(searchParams.entries()));
+  }, [activeSegment, activeSegmentId, searchParams]);
+
+  // Clear segment from URL
+  const handleClearSegment = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('segment');
+    const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
+    router.replace(newUrl);
+  };
+  
+  // Initialize filters with defaults if provided
+  const getInitialFilters = (): AgentOpsFilters => {
+    const baseFilters: AgentOpsFilters = {
+      role: 'All',
+      status: 'All',
+      type: 'All',
+      severity: 'All',
+      assignee: 'All',
+      search: '',
+    };
+    
+    if (defaultFilters) {
+      return { ...baseFilters, ...defaultFilters };
+    }
+    
+    return baseFilters;
+  };
+  
+  const [filters, setFilters] = useState<AgentOpsFilters>(getInitialFilters);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const defaultsAppliedRef = useRef(false);
+  
+  // Apply defaults only once on mount
+  useEffect(() => {
+    if (!defaultsAppliedRef.current && defaultFilters) {
+      defaultsAppliedRef.current = true;
+      setFilters((prev) => ({ ...prev, ...defaultFilters }));
+    }
+  }, [defaultFilters]);
 
   const filteredItems = useMemo(() => {
     return allItems.filter((item) => {
@@ -175,6 +224,28 @@ export function QueuePageClient({ basePath = '/ai-assistants' }: QueuePageClient
 
   return (
     <div className="relative flex flex-col h-full pb-16">
+      {/* Segment Banner */}
+      {segment && (
+        <div className="sticky top-0 z-10 bg-blue-50 border-b border-blue-200 px-4 py-2 mb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm">
+              <FontAwesomeIcon icon="fa-solid fa-filter" className="h-4 w-4 text-blue-600" />
+              <span className="text-gray-700">
+                Queue scoped to segment: <span className="font-semibold text-blue-900">{segment.title}</span>
+              </span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClearSegment}
+              className="text-blue-700 hover:text-blue-900 hover:bg-blue-100"
+            >
+              Clear segment
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Fixed Header + Toolbar */}
       <div className="flex-shrink-0 space-y-3 mb-3">
         <div>
@@ -236,3 +307,4 @@ export function QueuePageClient({ basePath = '/ai-assistants' }: QueuePageClient
     </div>
   );
 }
+

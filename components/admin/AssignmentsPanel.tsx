@@ -617,3 +617,4 @@ export function AssignmentsPanel<TRule extends AssignmentRuleBase>({
     </div>
   );
 }
+

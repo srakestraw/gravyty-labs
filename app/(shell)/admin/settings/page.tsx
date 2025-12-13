@@ -7,3 +7,4 @@ import { SettingsPageClient } from '@/components/shared/settings/SettingsPageCli
 export default function SettingsPage() {
   return <SettingsPageClient />;
 }
+

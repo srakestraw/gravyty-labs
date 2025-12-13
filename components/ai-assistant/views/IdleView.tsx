@@ -10,9 +10,10 @@ import { useAuth } from '@/lib/firebase/auth-context';
 
 interface IdleViewProps {
   onPromptSelect: (prompt: string) => void;
+  customSuggestions?: string[];
 }
 
-export function IdleView({ onPromptSelect }: IdleViewProps) {
+export function IdleView({ onPromptSelect, customSuggestions }: IdleViewProps) {
   const { user } = useAuth();
   const [inputValue, setInputValue] = useState('');
   const userName = user?.displayName || user?.email?.split('@')[0] || 'Jake';
@@ -42,6 +43,10 @@ export function IdleView({ onPromptSelect }: IdleViewProps) {
     // Placeholder for voice input functionality
     console.log('Voice input clicked');
   };
+
+  const promptsToShow = customSuggestions && customSuggestions.length > 0 
+    ? [...customSuggestions, ...suggestedPrompts]
+    : suggestedPrompts;
 
   return (
     <FadeInSection className="max-w-4xl mx-auto px-4">
@@ -91,7 +96,7 @@ export function IdleView({ onPromptSelect }: IdleViewProps) {
 
         <div className="pt-6">
           <StaggerList className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
-            {suggestedPrompts.map((prompt, index) => (
+            {promptsToShow.map((prompt, index) => (
               <button
                 key={index}
                 onClick={() => onPromptSelect(prompt)}
