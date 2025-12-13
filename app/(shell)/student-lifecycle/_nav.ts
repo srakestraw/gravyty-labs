@@ -1,5 +1,5 @@
 import type { NavSection } from '@/lib/apps/types';
-import { isValidWorkspace, type WorkspaceId, getWorkspaceConfig } from './lib/workspaces';
+import { isValidWorkspace, type WorkspaceId, getWorkspaceConfig } from '@/lib/student-lifecycle/workspaces';
 import { buildAiPlatformNav } from '@/lib/nav/ai-platform-nav';
 
 function resolveWorkspaceFromPathname(pathname: string): WorkspaceId {

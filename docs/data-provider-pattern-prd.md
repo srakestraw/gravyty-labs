@@ -440,7 +440,7 @@ export function ContactDetail({ contactId, workspaceId }) {
 ### Internal
 - Existing mock data files (must remain functional)
 - Type definitions in `lib/agent-ops/types.ts`, `lib/contacts/contact-types.ts`, etc.
-- Workspace configuration in `app/(shell)/student-lifecycle/lib/workspaces.ts`
+- Workspace configuration in `lib/student-lifecycle/workspaces.ts`
 
 ### External
 - None (self-contained pattern)
@@ -459,7 +459,7 @@ export function ContactDetail({ contactId, workspaceId }) {
 
 - [Mock Data Provider Consolidation Plan](../.cursor/plans/mock_data_provider_consolidation_661e1008.plan.md)
 - [Cursor Rules](../.cursorrules) - Data Provider Pattern section
-- [Workspace Configuration](../app/(shell)/student-lifecycle/lib/workspaces.ts)
+- [Workspace Configuration](../lib/student-lifecycle/workspaces.ts)
 
 ---
 

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import type { WorkspaceConfig, WorkspaceId } from '../lib/workspaces';
+import type { WorkspaceConfig, WorkspaceId } from '@/lib/student-lifecycle/workspaces';
 
 type WorkspaceContextValue = {
   workspaceId: WorkspaceId;

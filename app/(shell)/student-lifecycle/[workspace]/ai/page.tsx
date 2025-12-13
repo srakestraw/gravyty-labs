@@ -1,4 +1,4 @@
-import { getWorkspaceDefaults, WORKSPACES } from '../../lib/workspaces';
+import { getWorkspaceDefaults, WORKSPACES } from '@/lib/student-lifecycle/workspaces';
 import { AIPageClientWrapper } from './AIPageClientWrapper';
 
 export const dynamic = 'force-static';

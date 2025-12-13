@@ -1,5 +1,5 @@
 import { AgentOpsQueuePageClient } from '@/components/shared/ai-platform/AgentOpsQueuePageClient';
-import { getWorkspaceDefaults, WORKSPACES } from '../../../lib/workspaces';
+import { getWorkspaceDefaults, WORKSPACES } from '@/lib/student-lifecycle/workspaces';
 import { QueuePageClientWrapper } from './QueuePageClientWrapper';
 
 export const dynamic = 'force-static';

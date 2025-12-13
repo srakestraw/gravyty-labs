@@ -1,5 +1,5 @@
 import { AgentNewPageClient } from '@/components/shared/ai-platform/AgentNewPageClient';
-import { getWorkspaceConfig } from '../../../lib/workspaces';
+import { getWorkspaceConfig } from '@/lib/student-lifecycle/workspaces';
 
 export const dynamic = 'force-static';
 

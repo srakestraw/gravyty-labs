@@ -1,5 +1,5 @@
 import { SegmentDetailPageClient } from '@/components/shared/ai-platform/segments/SegmentDetailPageClient';
-import { getWorkspaceDefaults, WORKSPACES } from '../../../lib/workspaces';
+import { getWorkspaceDefaults, WORKSPACES } from '@/lib/student-lifecycle/workspaces';
 import { MOCK_SEGMENTS } from '@/components/shared/ai-platform/segments/mock-data';
 
 export const dynamic = 'force-static';

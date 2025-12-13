@@ -21,7 +21,7 @@ import { getAppNav as getCommunityNav } from '../community/_nav';
 import { getAppNav as getDataNav } from '../data/_nav';
 import { getAppNav as getSimAppsNav } from '../sim-apps/_nav';
 import { getAppNav as getStudentLifecycleNav } from '../student-lifecycle/_nav';
-import { isValidWorkspace, getWorkspaceConfig, type WorkingMode } from '../student-lifecycle/lib/workspaces';
+import { isValidWorkspace, getWorkspaceConfig, type WorkingMode } from '@/lib/student-lifecycle/workspaces';
 import { useWorkspaceMode } from '@/lib/hooks/useWorkspaceMode';
 
 type NavItem = { name: string; href: string; icon: string; id?: string; external?: boolean };

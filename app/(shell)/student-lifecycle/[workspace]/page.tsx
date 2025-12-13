@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { WORKSPACES } from '../lib/workspaces';
+import { WORKSPACES } from '@/lib/student-lifecycle/workspaces';
 
 export const dynamic = 'force-static';
 

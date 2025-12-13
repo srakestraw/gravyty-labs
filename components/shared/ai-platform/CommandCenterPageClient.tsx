@@ -13,7 +13,7 @@ import type { AiPlatformPageContext } from '@/components/shared/ai-platform/type
 import { getAiPlatformBasePath } from '@/components/shared/ai-platform/types';
 import { getSegmentById } from '@/components/shared/ai-platform/segments/mock-data';
 import { useWorkspaceMode } from '@/lib/hooks/useWorkspaceMode';
-import { getWorkspaceConfig } from '@/app/(shell)/student-lifecycle/lib/workspaces';
+import { getWorkspaceConfig } from '@/lib/student-lifecycle/workspaces';
 import { resolveCommandCenterInstance, isExistingInstance } from '@/lib/command-center/resolver';
 import type { WorkingMode } from '@/lib/command-center/workingModeUtils';
 import { normalizeWorkingMode } from '@/lib/command-center/workingModeUtils';

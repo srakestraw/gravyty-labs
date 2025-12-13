@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 import { cn } from '@/lib/utils';
-import type { WorkspaceConfig } from '../student-lifecycle/lib/workspaces';
+import type { WorkspaceConfig } from '@/lib/student-lifecycle/workspaces';
 
 interface WorkspaceSwitcherProps {
   currentWorkspace: WorkspaceConfig | null;

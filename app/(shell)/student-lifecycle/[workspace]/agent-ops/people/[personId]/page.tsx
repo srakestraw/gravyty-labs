@@ -1,6 +1,6 @@
 import { AgentOpsPersonDetailPageClient } from '@/components/shared/ai-platform/AgentOpsPersonDetailPageClient';
 import { getPersonById, MOCK_PEOPLE } from '@/lib/agent-ops/people-mock';
-import { getWorkspaceConfig, WORKSPACES } from '../../../../lib/workspaces';
+import { getWorkspaceConfig, WORKSPACES } from '@/lib/student-lifecycle/workspaces';
 
 export const dynamic = 'force-static';
 

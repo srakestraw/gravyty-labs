@@ -19,7 +19,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { App } from '@/lib/types';
 import { usePersona } from '../contexts/persona-context';
 import { cn } from '@/lib/utils';
-import { isValidWorkspace, getWorkspaceConfig, WORKSPACES } from '@/app/(shell)/student-lifecycle/lib/workspaces';
+import { isValidWorkspace, getWorkspaceConfig, WORKSPACES } from '@/lib/student-lifecycle/workspaces';
 import { WorkspaceSwitcher } from './workspace-switcher';
 
 const apps: App[] = [

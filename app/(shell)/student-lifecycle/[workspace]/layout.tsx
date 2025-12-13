@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { isValidWorkspace, getWorkspaceConfig } from '../lib/workspaces';
+import { isValidWorkspace, getWorkspaceConfig } from '@/lib/student-lifecycle/workspaces';
 import { WorkspaceProvider } from '../_components/workspace-provider';
 
 export default function WorkspaceLayout({
