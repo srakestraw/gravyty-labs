@@ -12,6 +12,9 @@ export type GoalMetric = {
   unit?: string; // e.g. "donors", "apps", "students"
   trend?: 'up' | 'down' | 'flat'; // optional, for arrows
   status?: GoalStatus; // optional, for backward compatibility
+  // PHASE 2: Goal impact highlight
+  highlight?: boolean;
+  impactMessage?: string;
 };
 
 export type PersonaGoalTrackerProps = {
@@ -90,11 +93,11 @@ export function PersonaGoalTracker({
   const overallStyles = getStatusStyles(overallStatus);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-5">
-      <div className="flex items-center justify-between gap-4 mb-4">
+    <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div className="flex items-center justify-between gap-4 mb-3">
         <div>
           <h3 className="text-base font-semibold text-gray-900">{title}</h3>
-          {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
+          {subtitle && <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>}
         </div>
         <div className="flex items-center gap-2">
           <span
@@ -111,7 +114,7 @@ export function PersonaGoalTracker({
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         {metrics.map((metric) => {
           const status = metric.status || calculateStatus(metric.current, metric.target);
           const pct = Math.min((metric.current / metric.target) * 100, 120);
@@ -119,7 +122,7 @@ export function PersonaGoalTracker({
           const trendIcon = getTrendIcon(metric.trend);
 
           return (
-            <div key={metric.id} className="space-y-1">
+            <div key={metric.id} className={cn('space-y-1 transition-all duration-300', metric.highlight && 'bg-green-50/50 rounded p-2 -m-2')}>
               <div className="flex items-center justify-between gap-3">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
@@ -137,6 +140,10 @@ export function PersonaGoalTracker({
                         ? `${metric.current} / ${metric.target} ${metric.unit}`
                         : `${metric.current} / ${metric.target}`}
                   </p>
+                  {/* PHASE 2: Impact message microcopy */}
+                  {metric.highlight && metric.impactMessage && (
+                    <p className="text-xs text-green-700 font-medium mt-1">{metric.impactMessage}</p>
+                  )}
                 </div>
                 <span
                   className={cn(
@@ -147,9 +154,9 @@ export function PersonaGoalTracker({
                   {label}
                 </span>
               </div>
-              <div className="h-2 rounded-full bg-gray-100">
+              <div className="h-1.5 rounded-full bg-gray-100">
                 <div
-                  className={cn('h-2 rounded-full', bar)}
+                  className={cn('h-1.5 rounded-full transition-all duration-300', bar, metric.highlight && 'ring-2 ring-green-400 ring-opacity-50')}
                   style={{ width: `${Math.min(pct, 100)}%` }}
                 />
               </div>

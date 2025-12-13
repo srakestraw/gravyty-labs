@@ -20,8 +20,8 @@ export function resolveCommandCenterInstance(
   workspaceId: string | undefined,
   mode: WorkingMode
 ): CommandCenterInstanceKey {
-  // Normalize mode: accept 'leadership' or 'leader', always return 'leadership'
-  const normalizedMode: WorkingMode = mode === 'leader' || mode === 'leadership' ? 'leadership' : 'operator';
+  // Mode is already normalized to 'operator' or 'leadership'
+  const normalizedMode: WorkingMode = mode;
   
   // For single-app cases (Career Services, Alumni Engagement, Advancement, Housing),
   // use the appId as both app and workspace if workspaceId is not provided

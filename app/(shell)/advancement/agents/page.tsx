@@ -3,6 +3,12 @@
 import { AgentsPageClient } from "@/components/shared/agents/AgentsPageClient";
 
 export default function Page() {
-  return <AgentsPageClient basePath="/advancement" />;
+  const context = {
+    appId: 'advancement',
+    mode: 'workspace' as const,
+    workspaceId: 'advancement',
+  };
+  
+  return <AgentsPageClient context={context} />;
 }
 

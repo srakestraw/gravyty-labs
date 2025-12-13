@@ -14,7 +14,8 @@
 'use client';
 
 import { useState } from 'react';
-import { getAllContactTypes, getContactTypesForWorkspace, type ContactDomain, type WorkspaceContext } from '@/lib/contacts';
+import { getAllContactTypes, getContactTypesForWorkspace } from '@/lib/contacts';
+import type { ContactDomain, WorkspaceContext } from '@/lib/contacts/contact-types';
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 
 const DOMAIN_OPTIONS: { value: ContactDomain | 'all'; label: string }[] = [

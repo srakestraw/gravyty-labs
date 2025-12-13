@@ -16,6 +16,8 @@ import { useWorkspaceMode } from '@/lib/hooks/useWorkspaceMode';
 import { getWorkspaceConfig } from '@/app/(shell)/student-lifecycle/lib/workspaces';
 import { resolveCommandCenterInstance, isExistingInstance, type WorkingMode } from '@/lib/command-center/resolver';
 import { CommandCenterPlaceholder } from './CommandCenterPlaceholder';
+import { AdmissionsLeadershipCommandCenter } from './AdmissionsLeadershipCommandCenter';
+import { AdmissionsOperatorCommandCenter } from './AdmissionsOperatorCommandCenter';
 
 type Persona =
   | 'admissions'
@@ -1231,7 +1233,7 @@ export function CommandCenterPageClient({ context }: { context?: AiPlatformPageC
   // Get recommended agents for workspace mode
   const recommendedAgentIds = context?.mode === 'workspace' ? context?.defaults?.recommendedAgents : undefined;
 
-  // Get working mode for workspace (only for Admissions for now)
+  // Get working mode for workspace (works for all workspaces, but only Admissions has mode selector enabled)
   const workspaceConfig = useMemo(() => {
     if (context?.mode === 'workspace' && context?.workspaceId) {
       try {
@@ -1298,47 +1300,178 @@ export function CommandCenterPageClient({ context }: { context?: AiPlatformPageC
 
   // Get workspace label for placeholder
   const workspaceLabel = workspaceConfig?.label || 
-    (context?.workspaceId ? context.workspaceId.charAt(0).toUpperCase() + context.workspaceId.slice(1) : 'Workspace');
+    (context?.workspaceId 
+      ? context.workspaceId
+          .split('-')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ')
+      : 'Workspace');
+
+  // Check if we should show Admissions Leadership view
+  const isAdmissionsLeadership = 
+    context?.mode === 'workspace' &&
+    context?.workspaceId === 'admissions' &&
+    workingMode === 'leadership';
+
+  // Check if we should show Admissions Operator view (two-column layout)
+  const isAdmissionsOperator = 
+    context?.mode === 'workspace' &&
+    context?.workspaceId === 'admissions' &&
+    workingMode === 'operator';
+
+  // For admissions leadership, use admissions persona for header
+  const leadershipPersona = isAdmissionsLeadership ? personaConfigs['admissions'] : persona;
+  const leadershipPersonaLabel = isAdmissionsLeadership ? personaLabels['admissions'] : personaLabel;
 
   return (
     <div className="space-y-6">
-      {/* Hero / Greeting */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            {personaLabel && (
-              <div className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500">
-                {personaLabel} Workspace
+      {/* Admissions Leadership mode - special case */}
+      {isAdmissionsLeadership ? (
+        <>
+          {/* Hero / Greeting - Same header as operator mode */}
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                {leadershipPersonaLabel && (
+                  <div className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500">
+                    {leadershipPersonaLabel} Workspace
+                  </div>
+                )}
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  {getGreeting()}, {userName}.
+                </h2>
+                <p className="text-gray-600 mb-3">
+                  You're viewing the {leadershipPersonaLabel ? `${leadershipPersonaLabel} ` : 'current '}workspace in the AI Command Center.
+                </p>
+                <div className="space-y-1">
+                  <p className="text-sm text-gray-700 font-medium">{leadershipPersona.description}</p>
+                  <ul className="list-disc list-inside space-y-1 text-sm text-gray-600 ml-2">
+                    {leadershipPersona.descriptionBullets.map((bullet, index) => (
+                      <li key={index}>{bullet}</li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-            )}
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              {getGreeting()}, {userName}.
-            </h2>
-            <p className="text-gray-600 mb-3">
-              You're viewing the {personaLabel ? `${personaLabel} ` : 'current '}workspace in the AI Command Center.
-            </p>
-            <div className="space-y-1">
-              <p className="text-sm text-gray-700 font-medium">{persona.description}</p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-gray-600 ml-2">
-                {persona.descriptionBullets.map((bullet, index) => (
-                  <li key={index}>{bullet}</li>
-                ))}
-              </ul>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Show placeholder for non-existing instances, otherwise show existing content */}
-      {shouldShowPlaceholder ? (
-        <CommandCenterPlaceholder
-          workspaceLabel={workspaceLabel}
-          mode={workingMode as WorkingMode}
-        />
+          <AdmissionsLeadershipCommandCenter />
+        </>
+      ) : isAdmissionsOperator ? (
+        <>
+          {/* Compact header - reduced height for better focus */}
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-1">
+                  {personaLabel && (
+                    <span className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                      {personaLabel} Workspace
+                    </span>
+                  )}
+                  <h2 className="text-xl font-bold text-gray-900">
+                    {getGreeting()}, {userName}.
+                  </h2>
+                </div>
+                <p className="text-sm text-gray-600">{persona.description}</p>
+              </div>
+            </div>
+          </div>
+          {/* Active Segment if present */}
+          {activeSegment && (
+            <div key="activeSegment" className="bg-white border border-blue-200 rounded-lg p-4 shadow-sm">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FontAwesomeIcon icon="fa-solid fa-filter" className="h-4 w-4 text-blue-600" />
+                    <h3 className="text-sm font-semibold text-gray-900">Active Segment</h3>
+                  </div>
+                  <h4 className="text-base font-semibold text-gray-900 mb-1">{activeSegment.title}</h4>
+                  {activeSegment.description && (
+                    <p className="text-sm text-gray-600 mb-3">{activeSegment.description}</p>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    <Link
+                      href={`${basePath}/segments/${activeSegment.id}`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+                    >
+                      View Segment
+                      <FontAwesomeIcon icon="fa-solid fa-arrow-right" className="h-3 w-3" />
+                    </Link>
+                    <Link
+                      href={`${basePath}/agent-ops/queue?segment=${activeSegment.id}`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+                    >
+                      Open in Queue
+                      <FontAwesomeIcon icon="fa-solid fa-arrow-right" className="h-3 w-3" />
+                    </Link>
+                    <Link
+                      href={`${basePath}/assistant?segment=${activeSegment.id}`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+                    >
+                      Open in Assistant
+                      <FontAwesomeIcon icon="fa-solid fa-arrow-right" className="h-3 w-3" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          <AdmissionsOperatorCommandCenter 
+            context={context} 
+            recommendedAgents={recommendedAgents}
+            basePath={basePath}
+          />
+        </>
+      ) : shouldShowPlaceholder ? (
+        <>
+          {/* Simplified greeting for placeholder mode */}
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  {getGreeting()}, {userName}.
+                </h2>
+                <p className="text-gray-600">
+                  You're viewing the {workspaceLabel} workspace in the AI Command Center.
+                </p>
+              </div>
+            </div>
+          </div>
+          <CommandCenterPlaceholder
+            workspaceLabel={workspaceLabel}
+            mode={workingMode as WorkingMode}
+          />
+        </>
       ) : (
         <>
+          {/* Hero / Greeting - Full persona content */}
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                {personaLabel && (
+                  <div className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500">
+                    {personaLabel} Workspace
+                  </div>
+                )}
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  {getGreeting()}, {userName}.
+                </h2>
+                <p className="text-gray-600 mb-3">
+                  You're viewing the {personaLabel ? `${personaLabel} ` : 'current '}workspace in the AI Command Center.
+                </p>
+                <div className="space-y-1">
+                  <p className="text-sm text-gray-700 font-medium">{persona.description}</p>
+                  <ul className="list-disc list-inside space-y-1 text-sm text-gray-600 ml-2">
+                    {persona.descriptionBullets.map((bullet, index) => (
+                      <li key={index}>{bullet}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
           {/* Render sections */}
-      {activeSegment && (
+          {activeSegment && (
         <div key="activeSegment" className="bg-white border border-blue-200 rounded-lg p-4 shadow-sm">
           <div className="flex items-start justify-between">
             <div className="flex-1">

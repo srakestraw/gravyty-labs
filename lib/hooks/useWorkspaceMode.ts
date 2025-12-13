@@ -19,7 +19,7 @@ export function useWorkspaceMode(
 ): { mode: WorkingMode; setMode: (mode: WorkingMode) => void } {
   const [mode, setModeState] = useState<WorkingMode>(defaultMode);
 
-  // Load from localStorage on mount
+  // Load from localStorage on mount and listen for changes from other components
   useEffect(() => {
     if (!workspaceId || typeof window === 'undefined') {
       setModeState(defaultMode);
@@ -27,14 +27,45 @@ export function useWorkspaceMode(
     }
 
     const storageKey = `${STORAGE_PREFIX}${workspaceId}`;
-    const stored = window.localStorage.getItem(storageKey);
     
-    // Validate stored value
-    if (stored === 'operator' || stored === 'leadership') {
-      setModeState(stored);
-    } else {
-      setModeState(defaultMode);
-    }
+    const loadFromStorage = () => {
+      const stored = window.localStorage.getItem(storageKey);
+      
+      // Validate stored value
+      if (stored === 'operator' || stored === 'leadership') {
+        setModeState(stored);
+      } else {
+        setModeState(defaultMode);
+      }
+    };
+
+    // Load initial value
+    loadFromStorage();
+
+    // Listen for storage events (changes from other components/tabs)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === storageKey && e.newValue) {
+        if (e.newValue === 'operator' || e.newValue === 'leadership') {
+          setModeState(e.newValue);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    // Also listen for custom events for same-tab updates (storage event only fires across tabs)
+    const handleCustomStorageChange = (e: CustomEvent) => {
+      if (e.detail?.key === storageKey) {
+        loadFromStorage();
+      }
+    };
+
+    window.addEventListener('workspaceModeChange' as any, handleCustomStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('workspaceModeChange' as any, handleCustomStorageChange);
+    };
   }, [workspaceId, defaultMode]);
 
   const setMode = (newMode: WorkingMode) => {
@@ -43,6 +74,11 @@ export function useWorkspaceMode(
     setModeState(newMode);
     const storageKey = `${STORAGE_PREFIX}${workspaceId}`;
     window.localStorage.setItem(storageKey, newMode);
+    
+    // Dispatch custom event for same-tab synchronization
+    window.dispatchEvent(new CustomEvent('workspaceModeChange', {
+      detail: { key: storageKey, value: newMode }
+    }));
   };
 
   return { mode, setMode };

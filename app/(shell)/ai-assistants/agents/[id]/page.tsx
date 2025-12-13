@@ -1,5 +1,3 @@
-"use client";
-
 import { AgentDetailPageClient } from "@/components/shared/ai-platform/AgentDetailPageClient";
 
 export const dynamic = 'force-static';
