@@ -1,6 +1,6 @@
 [build]
   publish = "out"
-  command = "npm install --legacy-peer-deps && NODE_ENV=production npm run build:static"
+  command = "(npm install --legacy-peer-deps && echo '✓ npm install succeeded') || (echo 'ERROR: npm install failed' && exit 1); NODE_ENV=production npm run build:static || (echo 'ERROR: build:static failed' && exit 1)"
 
 [build.environment]
   NODE_VERSION = "20"
