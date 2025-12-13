@@ -1,8 +1,9 @@
 'use client';
 
+import { Suspense } from 'react';
 import { AssistantPageClient } from '@/components/shared/ai-platform/AssistantPageClient';
 
-export default function AdvancementAssistantPage() {
+function AssistantContent() {
   const context = {
     appId: 'advancement',
     workspaceId: 'advancement',
@@ -13,6 +14,14 @@ export default function AdvancementAssistantPage() {
     <main className="space-y-6 p-6">
       <AssistantPageClient context={context} />
     </main>
+  );
+}
+
+export default function AdvancementAssistantPage() {
+  return (
+    <Suspense fallback={<main className="space-y-6 p-6"><div>Loading...</div></main>}>
+      <AssistantContent />
+    </Suspense>
   );
 }
 
