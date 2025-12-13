@@ -117,7 +117,7 @@ export function AppSidebar() {
   // Working mode hook - only used if selector is enabled
   const { mode: workingMode, setMode: setWorkingMode } = useWorkspaceMode(
     workspaceConfig?.enableWorkingModeSelector ? workspaceId : undefined,
-    workspaceConfig?.workingModeDefault || 'operator'
+    workspaceConfig?.workingModeDefault || 'team'
   );
 
   const appRegistry = useMemo(() => getAppRegistry({ persona }), [persona]);
@@ -468,15 +468,15 @@ type Navigation =
                 </div>
                 <div className="flex gap-1 px-3">
                   <button
-                    onClick={() => setWorkingMode('operator')}
+                    onClick={() => setWorkingMode('team')}
                     className={cn(
                       'flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors',
-                      workingMode === 'operator'
+                      workingMode === 'team'
                         ? 'bg-purple-600 text-white shadow-sm'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     )}
                   >
-                    Operator
+                    Team
                   </button>
                   <button
                     onClick={() => setWorkingMode('leadership')}

@@ -1,5 +1,6 @@
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
-import type { WorkingMode } from '@/lib/command-center/resolver';
+import type { WorkingMode } from '@/lib/command-center/workingModeUtils';
+import { normalizeWorkingMode } from '@/lib/command-center/workingModeUtils';
 
 interface CommandCenterPlaceholderProps {
   workspaceLabel: string;
@@ -11,7 +12,8 @@ interface CommandCenterPlaceholderProps {
  * Shows a message indicating the view is coming soon and suggests switching modes.
  */
 export function CommandCenterPlaceholder({ workspaceLabel, mode }: CommandCenterPlaceholderProps) {
-  const modeLabel = mode === 'operator' ? 'Operator' : 'Leader';
+  const normalizedMode = normalizeWorkingMode(mode);
+  const modeLabel = normalizedMode === 'team' ? 'Team' : 'Leader';
   
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6">

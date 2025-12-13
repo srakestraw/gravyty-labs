@@ -333,7 +333,9 @@ export const mockProvider: DataProvider = {
   async getAdmissionsOperatorTodaysFocus(ctx: DataContext): Promise<AdmissionsOperatorTodaysFocusData | null> {
     await delay(100);
     
-    if (ctx.workspace !== 'admissions' || ctx.mode !== 'operator') {
+    // Normalize mode for backwards compatibility (accept 'operator' or 'team')
+    const normalizedMode = ctx.mode === 'operator' || ctx.mode === 'team' ? 'team' : ctx.mode;
+    if (ctx.workspace !== 'admissions' || normalizedMode !== 'team') {
       return null;
     }
 
@@ -345,7 +347,9 @@ export const mockProvider: DataProvider = {
   async getAdmissionsOperatorGamePlan(ctx: DataContext): Promise<AdmissionsOperatorGamePlanData | null> {
     await delay(150);
     
-    if (ctx.workspace !== 'admissions' || ctx.mode !== 'operator') {
+    // Normalize mode for backwards compatibility (accept 'operator' or 'team')
+    const normalizedMode = ctx.mode === 'operator' || ctx.mode === 'team' ? 'team' : ctx.mode;
+    if (ctx.workspace !== 'admissions' || normalizedMode !== 'team') {
       return null;
     }
 
@@ -416,7 +420,9 @@ export const mockProvider: DataProvider = {
   async getAdmissionsOperatorMomentum(ctx: DataContext): Promise<AdmissionsOperatorMomentumData | null> {
     await delay(100);
     
-    if (ctx.workspace !== 'admissions' || ctx.mode !== 'operator') {
+    // Normalize mode for backwards compatibility (accept 'operator' or 'team')
+    const normalizedMode = ctx.mode === 'operator' || ctx.mode === 'team' ? 'team' : ctx.mode;
+    if (ctx.workspace !== 'admissions' || normalizedMode !== 'team') {
       return null;
     }
 
@@ -434,7 +440,9 @@ export const mockProvider: DataProvider = {
   async getAdmissionsOperatorFlaggedRisks(ctx: DataContext): Promise<AdmissionsOperatorFlaggedRiskData[]> {
     await delay(100);
     
-    if (ctx.workspace !== 'admissions' || ctx.mode !== 'operator') {
+    // Normalize mode for backwards compatibility (accept 'operator' or 'team')
+    const normalizedMode = ctx.mode === 'operator' || ctx.mode === 'team' ? 'team' : ctx.mode;
+    if (ctx.workspace !== 'admissions' || normalizedMode !== 'team') {
       return [];
     }
 
@@ -457,7 +465,9 @@ export const mockProvider: DataProvider = {
   async getAdmissionsOperatorGoalTracker(ctx: DataContext): Promise<AdmissionsOperatorGoalTrackerData | null> {
     await delay(100);
     
-    if (ctx.workspace !== 'admissions' || ctx.mode !== 'operator') {
+    // Normalize mode for backwards compatibility (accept 'operator' or 'team')
+    const normalizedMode = ctx.mode === 'operator' || ctx.mode === 'team' ? 'team' : ctx.mode;
+    if (ctx.workspace !== 'admissions' || normalizedMode !== 'team') {
       return null;
     }
 
@@ -505,7 +515,9 @@ export const mockProvider: DataProvider = {
   async getAdmissionsOperatorAssistants(ctx: DataContext): Promise<AdmissionsOperatorAssistantData[]> {
     await delay(100);
     
-    if (ctx.workspace !== 'admissions' || ctx.mode !== 'operator') {
+    // Normalize mode for backwards compatibility (accept 'operator' or 'team')
+    const normalizedMode = ctx.mode === 'operator' || ctx.mode === 'team' ? 'team' : ctx.mode;
+    if (ctx.workspace !== 'admissions' || normalizedMode !== 'team') {
       return [];
     }
 
@@ -536,7 +548,9 @@ export const mockProvider: DataProvider = {
   async getAdmissionsOperatorRecentWins(ctx: DataContext): Promise<AdmissionsOperatorRecentWinData[]> {
     await delay(100);
     
-    if (ctx.workspace !== 'admissions' || ctx.mode !== 'operator') {
+    // Normalize mode for backwards compatibility (accept 'operator' or 'team')
+    const normalizedMode = ctx.mode === 'operator' || ctx.mode === 'team' ? 'team' : ctx.mode;
+    if (ctx.workspace !== 'admissions' || normalizedMode !== 'team') {
       return [];
     }
 
@@ -559,7 +573,9 @@ export const mockProvider: DataProvider = {
   async getAdmissionsOperatorRecentActivity(ctx: DataContext): Promise<AdmissionsOperatorRecentActivityData[]> {
     await delay(100);
     
-    if (ctx.workspace !== 'admissions' || ctx.mode !== 'operator') {
+    // Normalize mode for backwards compatibility (accept 'operator' or 'team')
+    const normalizedMode = ctx.mode === 'operator' || ctx.mode === 'team' ? 'team' : ctx.mode;
+    if (ctx.workspace !== 'admissions' || normalizedMode !== 'team') {
       return [];
     }
 

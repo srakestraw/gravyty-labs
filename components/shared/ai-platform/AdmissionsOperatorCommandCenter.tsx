@@ -57,7 +57,7 @@ export function AdmissionsOperatorCommandCenter({
       const ctx = {
         workspace: 'admissions',
         app: 'student-lifecycle',
-        mode: 'operator' as const,
+        mode: 'team' as const,
       };
 
       try {

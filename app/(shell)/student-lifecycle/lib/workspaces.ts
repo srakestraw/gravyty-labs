@@ -20,7 +20,8 @@ export type WorkspaceDefaults = {
   // supportedPersonas?: ('frontline' | 'manager' | 'executive')[];
 };
 
-export type WorkingMode = 'operator' | 'leadership';
+import type { WorkingMode } from '@/lib/command-center/workingModeUtils';
+export type { WorkingMode } from '@/lib/command-center/workingModeUtils';
 
 export type WorkspaceConfig = {
   id: WorkspaceId;
@@ -57,7 +58,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     recommendedAgents: ['agent-transcript-helper', 'agent-high-intent-prospect'],
     recommendedSegments: ['seg-high-intent-prospects', 'seg-missing-transcript', 'seg-incomplete-app-7d', 'seg-melt-risk'],
     enableWorkingModeSelector: true,
-    workingModeDefault: 'operator',
+    workingModeDefault: 'team',
     // Future: persona support
     // defaultPersona: 'frontline',
     // supportedPersonas: ['frontline', 'manager'],

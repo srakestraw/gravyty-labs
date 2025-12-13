@@ -14,7 +14,9 @@ import { getAiPlatformBasePath } from '@/components/shared/ai-platform/types';
 import { getSegmentById } from '@/components/shared/ai-platform/segments/mock-data';
 import { useWorkspaceMode } from '@/lib/hooks/useWorkspaceMode';
 import { getWorkspaceConfig } from '@/app/(shell)/student-lifecycle/lib/workspaces';
-import { resolveCommandCenterInstance, isExistingInstance, type WorkingMode } from '@/lib/command-center/resolver';
+import { resolveCommandCenterInstance, isExistingInstance } from '@/lib/command-center/resolver';
+import type { WorkingMode } from '@/lib/command-center/workingModeUtils';
+import { normalizeWorkingMode } from '@/lib/command-center/workingModeUtils';
 import { CommandCenterPlaceholder } from './CommandCenterPlaceholder';
 import { AdmissionsLeadershipCommandCenter } from './AdmissionsLeadershipCommandCenter';
 import { AdmissionsOperatorCommandCenter } from './AdmissionsOperatorCommandCenter';
@@ -1247,16 +1249,18 @@ export function CommandCenterPageClient({ context }: { context?: AiPlatformPageC
 
   const { mode: workingMode } = useWorkspaceMode(
     workspaceConfig?.enableWorkingModeSelector ? context?.workspaceId : undefined,
-    workspaceConfig?.workingModeDefault || 'operator'
+    workspaceConfig?.workingModeDefault || 'team'
   );
 
   // Resolve the Command Center instance key (only for workspace mode)
   const instanceKey = useMemo(() => {
     if (context?.mode === 'workspace') {
+      // Normalize working mode (handles legacy 'operator' values)
+      const normalizedMode = normalizeWorkingMode(workingMode);
       return resolveCommandCenterInstance(
         context?.appId,
         context?.workspaceId,
-        workingMode as WorkingMode
+        normalizedMode
       );
     }
     return null; // Global mode - use persona selector as before
@@ -1264,6 +1268,15 @@ export function CommandCenterPageClient({ context }: { context?: AiPlatformPageC
 
   // Map instance keys to personas for existing content
   const instanceKeyToPersona: Record<string, Persona> = {
+    'student-lifecycle:admissions:team': 'admissions',
+    'student-lifecycle:registrar:team': 'registrar',
+    'student-lifecycle:student-success:team': 'student-success',
+    'student-lifecycle:financial-aid:team': 'financial-aid',
+    'student-lifecycle:housing:team': 'housing',
+    'career-services:career-services:team': 'career-services',
+    'alumni-engagement:alumni-engagement:team': 'alumni-engagement',
+    'advancement:advancement:team': 'advancement',
+    // Legacy support: also accept 'operator' keys for backwards compatibility
     'student-lifecycle:admissions:operator': 'admissions',
     'student-lifecycle:registrar:operator': 'registrar',
     'student-lifecycle:student-success:operator': 'student-success',
@@ -1313,11 +1326,11 @@ export function CommandCenterPageClient({ context }: { context?: AiPlatformPageC
     context?.workspaceId === 'admissions' &&
     workingMode === 'leadership';
 
-  // Check if we should show Admissions Operator view (two-column layout)
-  const isAdmissionsOperator = 
+  // Check if we should show Admissions Team view (two-column layout)
+  const isAdmissionsTeam = 
     context?.mode === 'workspace' &&
     context?.workspaceId === 'admissions' &&
-    workingMode === 'operator';
+    workingMode === 'team';
 
   // For admissions leadership, use admissions persona for header
   const leadershipPersona = isAdmissionsLeadership ? personaConfigs['admissions'] : persona;
@@ -1356,7 +1369,7 @@ export function CommandCenterPageClient({ context }: { context?: AiPlatformPageC
           </div>
           <AdmissionsLeadershipCommandCenter />
         </>
-      ) : isAdmissionsOperator ? (
+      ) : isAdmissionsTeam ? (
         <>
           {/* Compact header - reduced height for better focus */}
           <div className="bg-white border border-gray-200 rounded-lg p-4">

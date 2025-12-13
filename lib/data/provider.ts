@@ -5,10 +5,13 @@ import type { SegmentDefinition } from "@/components/shared/ai-platform/segments
 import type { GuardrailPolicy } from "@/lib/guardrails/types";
 import type { DoNotEngageEntry } from "@/lib/do-not-engage/mockDoNotEngage";
 
+import type { WorkingMode } from '@/lib/command-center/workingModeUtils';
+import { normalizeWorkingMode } from '@/lib/command-center/workingModeUtils';
+
 export type DataContext = {
   workspace?: string;
   app?: string;
-  mode?: 'operator' | 'leadership' | 'global' | 'workspace'; // working mode for filtering
+  mode?: WorkingMode | 'operator' | 'global' | 'workspace'; // working mode for filtering ('operator' accepted for backwards compatibility)
   userId?: string; // current user ID for user-specific filtering
   persona?: string; // optional, keep if useful for scenario data
 };

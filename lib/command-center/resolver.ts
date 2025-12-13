@@ -3,7 +3,10 @@
  * Maps (appId, workspaceId, mode) to unique instance keys.
  */
 
-export type WorkingMode = 'operator' | 'leadership';
+import type { WorkingMode } from './workingModeUtils';
+import { normalizeWorkingMode } from './workingModeUtils';
+
+export type { WorkingMode } from './workingModeUtils';
 
 export type CommandCenterInstanceKey = string;
 
@@ -12,16 +15,16 @@ export type CommandCenterInstanceKey = string;
  * 
  * @param appId - The app ID (e.g., 'student-lifecycle', 'career-services')
  * @param workspaceId - The workspace ID (e.g., 'admissions', 'registrar')
- * @param mode - The working mode ('operator' or 'leadership')
+ * @param mode - The working mode ('team' or 'leadership', accepts legacy 'operator' for backwards compatibility)
  * @returns Instance key in format: <appId>:<workspaceId>:<mode>
  */
 export function resolveCommandCenterInstance(
   appId: string | undefined,
   workspaceId: string | undefined,
-  mode: WorkingMode
+  mode: WorkingMode | 'operator' // Accept legacy 'operator' for backwards compatibility
 ): CommandCenterInstanceKey {
-  // Mode is already normalized to 'operator' or 'leadership'
-  const normalizedMode: WorkingMode = mode;
+  // Normalize mode: accept 'operator' or 'team', always return 'team' or 'leadership'
+  const normalizedMode: WorkingMode = normalizeWorkingMode(mode);
   
   // For single-app cases (Career Services, Alumni Engagement, Advancement, Housing),
   // use the appId as both app and workspace if workspaceId is not provided
@@ -37,6 +40,15 @@ export function resolveCommandCenterInstance(
  */
 export function isExistingInstance(key: CommandCenterInstanceKey): boolean {
   const existingInstances: CommandCenterInstanceKey[] = [
+    'student-lifecycle:admissions:team',
+    'student-lifecycle:registrar:team',
+    'student-lifecycle:student-success:team',
+    'student-lifecycle:financial-aid:team',
+    'student-lifecycle:housing:team',
+    'career-services:career-services:team',
+    'alumni-engagement:alumni-engagement:team',
+    'advancement:advancement:team',
+    // Legacy support: also accept 'operator' keys for backwards compatibility
     'student-lifecycle:admissions:operator',
     'student-lifecycle:registrar:operator',
     'student-lifecycle:student-success:operator',

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import type { WorkingMode } from '@/app/(shell)/student-lifecycle/lib/workspaces';
+import type { WorkingMode } from '@/lib/command-center/workingModeUtils';
+import { normalizeWorkingMode, isValidWorkingMode } from '@/lib/command-center/workingModeUtils';
 
 const STORAGE_PREFIX = 'workspaceMode:';
 
@@ -15,7 +16,7 @@ const STORAGE_PREFIX = 'workspaceMode:';
  */
 export function useWorkspaceMode(
   workspaceId: string | undefined,
-  defaultMode: WorkingMode = 'operator'
+  defaultMode: WorkingMode = 'team'
 ): { mode: WorkingMode; setMode: (mode: WorkingMode) => void } {
   const [mode, setModeState] = useState<WorkingMode>(defaultMode);
 
@@ -31,9 +32,9 @@ export function useWorkspaceMode(
     const loadFromStorage = () => {
       const stored = window.localStorage.getItem(storageKey);
       
-      // Validate stored value
-      if (stored === 'operator' || stored === 'leadership') {
-        setModeState(stored);
+      // Normalize stored value (accepts legacy 'operator' for backwards compatibility)
+      if (isValidWorkingMode(stored)) {
+        setModeState(normalizeWorkingMode(stored));
       } else {
         setModeState(defaultMode);
       }
@@ -45,8 +46,8 @@ export function useWorkspaceMode(
     // Listen for storage events (changes from other components/tabs)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === storageKey && e.newValue) {
-        if (e.newValue === 'operator' || e.newValue === 'leadership') {
-          setModeState(e.newValue);
+        if (isValidWorkingMode(e.newValue)) {
+          setModeState(normalizeWorkingMode(e.newValue));
         }
       }
     };
@@ -71,9 +72,11 @@ export function useWorkspaceMode(
   const setMode = (newMode: WorkingMode) => {
     if (!workspaceId || typeof window === 'undefined') return;
     
-    setModeState(newMode);
+    // Normalize mode before storing (always store canonical 'team' or 'leadership')
+    const normalizedMode = normalizeWorkingMode(newMode);
+    setModeState(normalizedMode);
     const storageKey = `${STORAGE_PREFIX}${workspaceId}`;
-    window.localStorage.setItem(storageKey, newMode);
+    window.localStorage.setItem(storageKey, normalizedMode);
     
     // Dispatch custom event for same-tab synchronization
     window.dispatchEvent(new CustomEvent('workspaceModeChange', {
