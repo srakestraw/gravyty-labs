@@ -26,3 +26,4 @@ export function QueuePageClientWrapper({ context }: QueuePageClientWrapperProps)
   return <AgentOpsQueuePageClient context={enhancedContext} />;
 }
 
+

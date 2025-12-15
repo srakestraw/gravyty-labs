@@ -757,3 +757,4 @@ export function LogsPageClient({ basePath = '/ai-assistants/logs' }: LogsPageCli
   );
 }
 
+

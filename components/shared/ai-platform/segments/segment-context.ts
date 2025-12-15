@@ -20,3 +20,4 @@ export function getSegmentFromSearchParams(searchParams: SearchParams): SegmentD
   return getSegmentById(segmentId);
 }
 
+

@@ -26,3 +26,4 @@ export function AIPageClientWrapper({ context }: AIPageClientWrapperProps) {
   return <CommandCenterPageClient context={enhancedContext} />;
 }
 
+

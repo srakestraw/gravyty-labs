@@ -107,3 +107,4 @@ export function getTemplateById(id: string): SegmentTemplate | undefined {
   return MOCK_SEGMENT_TEMPLATES.find((tpl) => tpl.id === id);
 }
 
+

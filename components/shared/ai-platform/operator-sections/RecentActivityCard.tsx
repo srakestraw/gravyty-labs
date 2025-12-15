@@ -54,3 +54,4 @@ export function RecentActivityCard({ data, basePath = '/student-lifecycle/admiss
   );
 }
 
+
