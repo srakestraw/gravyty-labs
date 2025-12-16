@@ -67,7 +67,7 @@ function MainAppCard({
         </div>
       </div>
       {item.pills && item.pills.length > 0 && (
-        <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
+        <div className="flex flex-col gap-1 pt-2 border-t border-gray-100">
           {item.pills.map((pill) => {
             const isPillActive = !!activePillId && activePillId === pill.id;
             return (
@@ -80,12 +80,12 @@ function MainAppCard({
                   onPillSelect?.(e, pill);
                 }}
                 className={cn(
-                  'inline-flex items-center gap-1 text-sm text-gray-700 hover:text-gray-900',
+                  'flex items-center justify-between w-full px-0 py-1.5 text-sm text-gray-700 hover:text-gray-900',
                   'focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 transition-colors',
                   isPillActive && 'font-semibold text-gray-900'
                 )}
               >
-                {pill.label}
+                <span>{pill.label}</span>
                 <FontAwesomeIcon icon="fa-solid fa-chevron-right" className="h-3 w-3" />
               </button>
             );
@@ -134,7 +134,7 @@ export function AppSwitcher() {
   const router = useRouter();
   const pathname = usePathname();
   const aiAssistantsEnabled = useFeatureFlag('ai_assistants');
-  const { persona } = usePersona();
+  const { persona, setPersona } = usePersona();
   const [open, setOpen] = useState(false);
 
   // Registry is the single source of truth for the app list/order.
@@ -152,6 +152,21 @@ export function AppSwitcher() {
       return true;
     });
   }, [mainApps, aiAssistantsEnabled, user?.email, user?.uid]);
+
+  // Split apps into two columns as specified
+  const column1Apps = useMemo(() => {
+    const order = ['home', 'insights', 'student-lifecycle'];
+    return visibleMainApps
+      .filter(item => order.includes(item.id))
+      .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+  }, [visibleMainApps]);
+
+  const column2Apps = useMemo(() => {
+    const order = ['ai-chatbots-messaging', 'career-services', 'engagement-hub', 'advancement-philanthropy'];
+    return visibleMainApps
+      .filter(item => order.includes(item.id))
+      .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+  }, [visibleMainApps]);
 
   // SIM Apps don't need filtering
   const visibleSimApps = useMemo(() => simApps, [simApps]);
@@ -251,8 +266,34 @@ export function AppSwitcher() {
           className="relative w-full max-w-6xl h-full sm:h-auto sm:max-h-[90vh] bg-white rounded-lg shadow-2xl overflow-hidden pointer-events-auto flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header with close button */}
+          {/* Header with persona tabs and close button */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                onClick={() => setPersona('higher-ed')}
+                className={cn(
+                  'px-0 py-2 text-sm font-medium border-b-2 transition-colors',
+                  persona === 'higher-ed'
+                    ? 'text-gray-900 border-gray-900'
+                    : 'text-gray-500 border-transparent hover:text-gray-700'
+                )}
+              >
+                Higher Ed
+              </button>
+              <button
+                type="button"
+                onClick={() => setPersona('nonprofit')}
+                className={cn(
+                  'px-0 py-2 text-sm font-medium border-b-2 transition-colors',
+                  persona === 'nonprofit'
+                    ? 'text-gray-900 border-gray-900'
+                    : 'text-gray-500 border-transparent hover:text-gray-700'
+                )}
+              >
+                Nonprofit
+              </button>
+            </div>
             <h2 className="text-lg font-semibold text-gray-900">Switch Apps</h2>
             <Button
               variant="ghost"
@@ -267,19 +308,35 @@ export function AppSwitcher() {
           {/* Main content */}
           <div className="flex-1 overflow-y-auto">
             <div className="flex flex-col lg:flex-row gap-6 p-4 lg:p-6">
-              {/* Left: Main apps grid */}
+              {/* Left: Main apps in two explicit columns */}
               <div className="flex-1">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {visibleMainApps.map((item) => (
-                    <MainAppCard
-                      key={item.id}
-                      item={item}
-                      isActive={getIsActive(item)}
-                      onSelect={handleAppSelect(item)}
-                      activePillId={getActivePillId(item, pathname || '')}
-                      onPillSelect={(e, pill) => handlePillSelect(item, pill)(e)}
-                    />
-                  ))}
+                  {/* Column 1 */}
+                  <div className="flex flex-col gap-4">
+                    {column1Apps.map((item) => (
+                      <MainAppCard
+                        key={item.id}
+                        item={item}
+                        isActive={getIsActive(item)}
+                        onSelect={handleAppSelect(item)}
+                        activePillId={getActivePillId(item, pathname || '')}
+                        onPillSelect={(e, pill) => handlePillSelect(item, pill)(e)}
+                      />
+                    ))}
+                  </div>
+                  {/* Column 2 */}
+                  <div className="flex flex-col gap-4">
+                    {column2Apps.map((item) => (
+                      <MainAppCard
+                        key={item.id}
+                        item={item}
+                        isActive={getIsActive(item)}
+                        onSelect={handleAppSelect(item)}
+                        activePillId={getActivePillId(item, pathname || '')}
+                        onPillSelect={(e, pill) => handlePillSelect(item, pill)(e)}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -309,9 +366,9 @@ export function AppSwitcher() {
             <div className="border-t border-gray-200 px-6 py-4 flex justify-end">
               <button
                 onClick={handleAppSelect(adminApp)}
-                className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900 transition-colors"
+                className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
               >
-                <FontAwesomeIcon icon={adminApp.icon || 'fa-solid fa-gear'} className="h-4 w-4" />
+                <FontAwesomeIcon icon="fa-solid fa-gear" className="h-4 w-4" />
                 <span>{adminApp.label}</span>
               </button>
             </div>
