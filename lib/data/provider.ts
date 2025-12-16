@@ -59,6 +59,11 @@ export interface DataProvider {
   getAdmissionsOperatorAssistants(ctx: DataContext): Promise<AdmissionsOperatorAssistantData[]>;
   getAdmissionsOperatorRecentWins(ctx: DataContext): Promise<AdmissionsOperatorRecentWinData[]>;
   getAdmissionsOperatorRecentActivity(ctx: DataContext): Promise<AdmissionsOperatorRecentActivityData[]>;
+
+  // Admissions Team Game Plan (for Queue integration)
+  getAdmissionsTeamGamePlan(ctx: DataContext): Promise<AdmissionsTeamGamePlanData | null>;
+  getAdmissionsQueueGamePlanCounts(ctx: DataContext): Promise<Record<string, number>>;
+  getAdmissionsQueueItemsByObjective(ctx: DataContext, objectiveId: string, limit?: number): Promise<QueueItem[]>;
 }
 
 // Admissions Leadership Chart Data Types
@@ -206,5 +211,20 @@ export interface AdmissionsOperatorRecentActivityData {
   id: string;
   timestamp: string;
   text: string;
+}
+
+// Admissions Team Game Plan (for Queue integration)
+export interface AdmissionsTeamGamePlanObjective {
+  id: string;
+  title: string;
+  shortTitle?: string;
+  description?: string;
+  impactText?: string;
+}
+
+export interface AdmissionsTeamGamePlanData {
+  completedCount: number;
+  totalCount: number; // should be 3
+  objectives: AdmissionsTeamGamePlanObjective[];
 }
 

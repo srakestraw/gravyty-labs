@@ -14,6 +14,7 @@ import type {
   AdmissionsOperatorAssistantData,
   AdmissionsOperatorRecentWinData,
   AdmissionsOperatorRecentActivityData,
+  AdmissionsTeamGamePlanData,
 } from "@/lib/data/provider";
 
 import { getMockAgentOpsItems, getMockAgentOpsItemsForWorkspace } from "@/lib/agent-ops/mock";
@@ -602,5 +603,128 @@ export const mockProvider: DataProvider = {
       },
     ];
   },
+
+  // Admissions Team Game Plan (for Queue integration)
+  async getAdmissionsTeamGamePlan(ctx: DataContext): Promise<AdmissionsTeamGamePlanData | null> {
+    await delay(100);
+    
+    // Normalize mode for backwards compatibility (accept 'operator' or 'team')
+    const normalizedMode = ctx.mode === 'operator' || ctx.mode === 'team' ? 'team' : ctx.mode;
+    if (ctx.workspace !== 'admissions' || (normalizedMode !== 'team' && ctx.mode !== 'leadership')) {
+      return null;
+    }
+
+    // Get the game plan from the operator game plan and extract objectives
+    const gamePlan = await this.getAdmissionsOperatorGamePlan(ctx);
+    if (!gamePlan) {
+      return null;
+    }
+
+    return {
+      completedCount: gamePlan.completed,
+      totalCount: gamePlan.total,
+      objectives: gamePlan.items.map((item) => ({
+        id: item.id,
+        title: item.title,
+        shortTitle: item.title,
+        description: item.description,
+        impactText: item.impactHint,
+      })),
+    };
+  },
+
+  async getAdmissionsQueueGamePlanCounts(ctx: DataContext): Promise<Record<string, number>> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return {};
+    }
+
+    // Get all queue items for the context
+    const items = await this.listQueueItems(ctx);
+    
+    // Map items to objectives based on tags
+    const objectiveIds = ['stalled-applicants', 'missing-documents', 'melt-risk'];
+    const counts: Record<string, number> = {};
+    
+    for (const objectiveId of objectiveIds) {
+      counts[objectiveId] = items.filter((item) => 
+        itemMatchesObjective(item, objectiveId)
+      ).length;
+    }
+
+    return counts;
+  },
+
+  async getAdmissionsQueueItemsByObjective(ctx: DataContext, objectiveId: string, limit?: number): Promise<QueueItem[]> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return [];
+    }
+
+    // Get all queue items for the context
+    const items = await this.listQueueItems(ctx);
+    
+    // Filter items that match the objective
+    let matchingItems = items.filter((item) => itemMatchesObjective(item, objectiveId));
+    
+    // Apply limit if provided
+    if (limit !== undefined && limit > 0) {
+      matchingItems = matchingItems.slice(0, limit);
+    }
+
+    return matchingItems;
+  },
 };
+
+// Helper function to map queue items to objectives based on tags
+function itemMatchesObjective(item: QueueItem, objectiveId: string): boolean {
+  const tags = item.tags || [];
+  const titleLower = item.title.toLowerCase();
+  const summaryLower = item.summary.toLowerCase();
+  
+  switch (objectiveId) {
+    case 'stalled-applicants':
+      // Items tagged stalled, inactive, no-activity, incomplete-application
+      return (
+        tags.some(tag => 
+          ['stalled', 'inactive', 'no-activity', 'incomplete-app', 'incomplete-application'].includes(tag.toLowerCase())
+        ) ||
+        titleLower.includes('stalled') ||
+        titleLower.includes('incomplete') ||
+        summaryLower.includes('stalled') ||
+        summaryLower.includes('no activity')
+      );
+    
+    case 'missing-documents':
+      // Items tagged missing-transcript, missing-docs, verification, recommendation-letter
+      return (
+        tags.some(tag => 
+          ['missing-transcript', 'missing-docs', 'verification', 'recommendation-letter', 'transcript', 'missing'].includes(tag.toLowerCase())
+        ) ||
+        titleLower.includes('missing') ||
+        titleLower.includes('transcript') ||
+        titleLower.includes('document') ||
+        summaryLower.includes('missing') ||
+        summaryLower.includes('transcript')
+      );
+    
+    case 'melt-risk':
+      // Items tagged melt-risk, deposit-window, admitted-no-deposit, high-intent
+      return (
+        tags.some(tag => 
+          ['melt-risk', 'deposit-window', 'admitted-no-deposit', 'high-intent', 'deposit'].includes(tag.toLowerCase())
+        ) ||
+        titleLower.includes('melt') ||
+        titleLower.includes('deposit') ||
+        titleLower.includes('admitted') ||
+        summaryLower.includes('melt') ||
+        summaryLower.includes('deposit')
+      );
+    
+    default:
+      return false;
+  }
+}
 
