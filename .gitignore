@@ -43,3 +43,6 @@ firebase-debug.*.log
 # Functions
 /functions/lib/
 /functions/node_modules/
+
+# Netlify build artifacts
+.netlify/
