@@ -23,6 +23,11 @@ import type {
   ProgramMatchAnalyticsSummary,
   ProgramMatchDraftConfig,
   VoiceToneProfile,
+  ProgramMatchTrait,
+  ProgramMatchSkill,
+  ProgramMatchProgram,
+  ProgramMatchICPBuckets,
+  ProgramMatchProgramICP,
 } from "@/lib/data/provider";
 import { loadCommunicationConfig } from "@/lib/communication/store";
 
@@ -43,6 +48,12 @@ let programMatchDraftConfig: ProgramMatchDraftConfig = {
   voiceToneProfileId: null,
   updatedAt: new Date().toISOString(),
 };
+
+// In-memory storage for Program Match libraries and programs
+const programMatchTraits: ProgramMatchTrait[] = [];
+const programMatchSkills: ProgramMatchSkill[] = [];
+const programMatchPrograms: ProgramMatchProgram[] = [];
+const programMatchICPByProgramId = new Map<string, ProgramMatchProgramICP>();
 
 export const mockProvider: DataProvider = {
   async listQueueItems(ctx: DataContext) {
@@ -838,9 +849,12 @@ export const mockProvider: DataProvider = {
       return null;
     }
 
+    const activeTraits = programMatchTraits.filter(t => t.isActive);
+    const activeSkills = programMatchSkills.filter(s => s.isActive);
+
     return {
-      traitsCount: 0,
-      skillsCount: 0,
+      traitsCount: activeTraits.length,
+      skillsCount: activeSkills.length,
       outcomesEnabled: false,
     };
   },
@@ -852,10 +866,17 @@ export const mockProvider: DataProvider = {
       return null;
     }
 
+    const activePrograms = programMatchPrograms.filter(p => p.status === 'active');
+    const draftPrograms = programMatchPrograms.filter(p => p.status === 'draft');
+
     return {
-      activeProgramsCount: 0,
-      draftProgramsCount: 0,
-      programs: [],
+      activeProgramsCount: activePrograms.length,
+      draftProgramsCount: draftPrograms.length,
+      programs: programMatchPrograms.map(p => ({
+        id: p.id,
+        name: p.name,
+        status: p.status === 'active' ? 'active' as const : 'draft' as const,
+      })),
     };
   },
 
@@ -909,6 +930,215 @@ export const mockProvider: DataProvider = {
         },
       ],
     };
+  },
+
+  // Program Match Traits
+  async listProgramMatchTraits(ctx: DataContext): Promise<ProgramMatchTrait[]> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return [];
+    }
+
+    return [...programMatchTraits];
+  },
+
+  async createProgramMatchTrait(ctx: DataContext, input: { name: string; category: string; description: string }): Promise<ProgramMatchTrait> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    const now = new Date().toISOString();
+    const trait: ProgramMatchTrait = {
+      id: `trait_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      name: input.name,
+      category: input.category,
+      description: input.description,
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    programMatchTraits.push(trait);
+    return { ...trait };
+  },
+
+  async updateProgramMatchTrait(ctx: DataContext, id: string, input: Partial<{ name: string; category: string; description: string; isActive: boolean }>): Promise<ProgramMatchTrait> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    const index = programMatchTraits.findIndex(t => t.id === id);
+    if (index === -1) {
+      throw new Error(`Trait with id ${id} not found`);
+    }
+
+    const updated: ProgramMatchTrait = {
+      ...programMatchTraits[index],
+      ...input,
+      updatedAt: new Date().toISOString(),
+    };
+
+    programMatchTraits[index] = updated;
+    return { ...updated };
+  },
+
+  // Program Match Skills
+  async listProgramMatchSkills(ctx: DataContext): Promise<ProgramMatchSkill[]> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return [];
+    }
+
+    return [...programMatchSkills];
+  },
+
+  async createProgramMatchSkill(ctx: DataContext, input: { name: string; category: string; description: string }): Promise<ProgramMatchSkill> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    const now = new Date().toISOString();
+    const skill: ProgramMatchSkill = {
+      id: `skill_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      name: input.name,
+      category: input.category,
+      description: input.description,
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    programMatchSkills.push(skill);
+    return { ...skill };
+  },
+
+  async updateProgramMatchSkill(ctx: DataContext, id: string, input: Partial<{ name: string; category: string; description: string; isActive: boolean }>): Promise<ProgramMatchSkill> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    const index = programMatchSkills.findIndex(s => s.id === id);
+    if (index === -1) {
+      throw new Error(`Skill with id ${id} not found`);
+    }
+
+    const updated: ProgramMatchSkill = {
+      ...programMatchSkills[index],
+      ...input,
+      updatedAt: new Date().toISOString(),
+    };
+
+    programMatchSkills[index] = updated;
+    return { ...updated };
+  },
+
+  // Program Match Programs
+  async listProgramMatchPrograms(ctx: DataContext): Promise<ProgramMatchProgram[]> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return [];
+    }
+
+    return [...programMatchPrograms];
+  },
+
+  async createProgramMatchProgram(ctx: DataContext, input: { name: string }): Promise<ProgramMatchProgram> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    const now = new Date().toISOString();
+    const program: ProgramMatchProgram = {
+      id: `program_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      name: input.name,
+      status: 'draft',
+      updatedAt: now,
+    };
+
+    programMatchPrograms.push(program);
+    return { ...program };
+  },
+
+  async updateProgramMatchProgram(ctx: DataContext, id: string, input: Partial<{ name: string; status: 'draft' | 'active' | 'inactive' }>): Promise<ProgramMatchProgram> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    const index = programMatchPrograms.findIndex(p => p.id === id);
+    if (index === -1) {
+      throw new Error(`Program with id ${id} not found`);
+    }
+
+    const updated: ProgramMatchProgram = {
+      ...programMatchPrograms[index],
+      ...input,
+      updatedAt: new Date().toISOString(),
+    };
+
+    programMatchPrograms[index] = updated;
+    return { ...updated };
+  },
+
+  // Program Match ICP
+  async getProgramMatchProgramICP(ctx: DataContext, programId: string): Promise<ProgramMatchProgramICP | null> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return null;
+    }
+
+    const existing = programMatchICPByProgramId.get(programId);
+    if (existing) {
+      return { ...existing };
+    }
+
+    // Initialize empty buckets if none exists
+    const now = new Date().toISOString();
+    const emptyICP: ProgramMatchProgramICP = {
+      programId,
+      buckets: {
+        critical: { traitIds: [], skillIds: [] },
+        veryImportant: { traitIds: [], skillIds: [] },
+        important: { traitIds: [], skillIds: [] },
+        niceToHave: { traitIds: [], skillIds: [] },
+      },
+      updatedAt: now,
+    };
+
+    programMatchICPByProgramId.set(programId, emptyICP);
+    return { ...emptyICP };
+  },
+
+  async updateProgramMatchProgramICP(ctx: DataContext, programId: string, buckets: ProgramMatchICPBuckets): Promise<ProgramMatchProgramICP> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    const updated: ProgramMatchProgramICP = {
+      programId,
+      buckets,
+      updatedAt: new Date().toISOString(),
+    };
+
+    programMatchICPByProgramId.set(programId, updated);
+    return { ...updated };
   },
 
 };

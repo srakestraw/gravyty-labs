@@ -76,6 +76,25 @@ export interface DataProvider {
   updateProgramMatchDraftConfig(ctx: DataContext, input: { voiceToneProfileId?: string | null }): Promise<ProgramMatchDraftConfig | null>;
   listVoiceToneProfiles(ctx: DataContext): Promise<VoiceToneProfile[]>;
 
+  // Program Match Traits
+  listProgramMatchTraits(ctx: DataContext): Promise<ProgramMatchTrait[]>;
+  createProgramMatchTrait(ctx: DataContext, input: { name: string; category: string; description: string }): Promise<ProgramMatchTrait>;
+  updateProgramMatchTrait(ctx: DataContext, id: string, input: Partial<{ name: string; category: string; description: string; isActive: boolean }>): Promise<ProgramMatchTrait>;
+
+  // Program Match Skills
+  listProgramMatchSkills(ctx: DataContext): Promise<ProgramMatchSkill[]>;
+  createProgramMatchSkill(ctx: DataContext, input: { name: string; category: string; description: string }): Promise<ProgramMatchSkill>;
+  updateProgramMatchSkill(ctx: DataContext, id: string, input: Partial<{ name: string; category: string; description: string; isActive: boolean }>): Promise<ProgramMatchSkill>;
+
+  // Program Match Programs
+  listProgramMatchPrograms(ctx: DataContext): Promise<ProgramMatchProgram[]>;
+  createProgramMatchProgram(ctx: DataContext, input: { name: string }): Promise<ProgramMatchProgram>;
+  updateProgramMatchProgram(ctx: DataContext, id: string, input: Partial<{ name: string; status: 'draft' | 'active' | 'inactive' }>): Promise<ProgramMatchProgram>;
+
+  // Program Match ICP
+  getProgramMatchProgramICP(ctx: DataContext, programId: string): Promise<ProgramMatchProgramICP | null>;
+  updateProgramMatchProgramICP(ctx: DataContext, programId: string, buckets: ProgramMatchICPBuckets): Promise<ProgramMatchProgramICP>;
+
 }
 
 // Admissions Leadership Chart Data Types
@@ -260,16 +279,11 @@ export interface ProgramMatchLibrariesSummary {
   outcomesEnabled: boolean;
 }
 
-export interface ProgramMatchProgram {
-  id: string;
-  name: string;
-  status: 'active' | 'draft';
-}
 
 export interface ProgramMatchProgramsSummary {
   activeProgramsCount: number;
   draftProgramsCount: number;
-  programs: ProgramMatchProgram[];
+  programs: Array<{ id: string; name: string; status: 'active' | 'draft' }>;
 }
 
 export interface ProgramMatchCandidatesSummary {
@@ -300,5 +314,45 @@ export interface VoiceToneProfile {
   id: string;
   name: string;
   description?: string;
+}
+
+export interface ProgramMatchTrait {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProgramMatchSkill {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProgramMatchProgram {
+  id: string;
+  name: string;
+  status: 'draft' | 'active' | 'inactive';
+  updatedAt: string;
+}
+
+export interface ProgramMatchICPBuckets {
+  critical: { traitIds: string[]; skillIds: string[] };
+  veryImportant: { traitIds: string[]; skillIds: string[] };
+  important: { traitIds: string[]; skillIds: string[] };
+  niceToHave: { traitIds: string[]; skillIds: string[] };
+}
+
+export interface ProgramMatchProgramICP {
+  programId: string;
+  buckets: ProgramMatchICPBuckets;
+  updatedAt: string;
 }
 
