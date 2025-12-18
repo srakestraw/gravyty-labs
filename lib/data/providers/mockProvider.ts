@@ -16,6 +16,25 @@ import type {
   AdmissionsOperatorRecentActivityData,
   AdmissionsTeamGamePlanData,
 } from "@/lib/data/provider";
+import type {
+  ProgramMatchConfig,
+  ProgramMatchLead,
+  ProgramMatchProgress,
+  ProgramMatchOutcome,
+  ProgramMatchReadiness,
+  ProgramMatchEvent,
+  ProgramMatchAnalytics,
+} from "@/lib/program-match/types";
+import {
+  getMockProgramMatchConfig,
+  createMockLead,
+  getMockLead,
+  getMockLeadByToken,
+  saveMockProgress,
+  getMockProgress,
+  saveMockOutcome,
+  getMockOutcome,
+} from "@/lib/program-match/mock-data";
 
 import { getMockAgentOpsItems, getMockAgentOpsItemsForWorkspace } from "@/lib/agent-ops/mock";
 import { MOCK_CONTACTS } from "@/lib/contacts/mock-contacts";
@@ -675,6 +694,235 @@ export const mockProvider: DataProvider = {
     }
 
     return matchingItems;
+  },
+
+  // Program Match methods
+  async getProgramMatchConfig(ctx: DataContext, quizId: string, versionId?: string): Promise<ProgramMatchConfig | null> {
+    await delay(150);
+    const institutionId = ctx.workspace || 'inst_123';
+    return getMockProgramMatchConfig(institutionId, quizId, versionId);
+  },
+
+  async createProgramMatchLead(ctx: DataContext, data: {
+    quiz_id: string;
+    version_id: string;
+    email: string;
+    first_name?: string;
+    last_name?: string;
+    phone?: string;
+    intended_start_term?: string;
+    modality_preference?: string;
+    email_consent?: boolean;
+    sms_consent?: boolean;
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign?: string;
+    referrer?: string;
+    device_type?: 'desktop' | 'mobile' | 'tablet';
+  }): Promise<ProgramMatchLead> {
+    await delay(200);
+    return createMockLead(data);
+  },
+
+  async saveProgramMatchProgress(ctx: DataContext, leadId: string, data: {
+    responses_partial: Record<string, string | string[]>;
+    current_step: 'gate' | 'quiz' | 'results' | 'readiness';
+    current_question_index?: number;
+  }): Promise<ProgramMatchProgress> {
+    await delay(100);
+    return saveMockProgress(leadId, data);
+  },
+
+  async getProgramMatchResume(ctx: DataContext, leadId: string, token: string): Promise<{
+    config: ProgramMatchConfig;
+    progress?: ProgramMatchProgress;
+    outcome?: ProgramMatchOutcome;
+  } | null> {
+    await delay(150);
+    const lead = getMockLeadByToken(token);
+    if (!lead || lead.lead_id !== leadId) {
+      return null;
+    }
+
+    // Check if token expired
+    const expiresAt = new Date(lead.resume_expires_at);
+    if (expiresAt < new Date()) {
+      return null;
+    }
+
+    const config = await this.getProgramMatchConfig(ctx, lead.quiz_id, lead.version_id);
+    if (!config) {
+      return null;
+    }
+
+    const progress = getMockProgress(leadId);
+    const outcome = getMockOutcome(leadId);
+
+    return {
+      config,
+      progress: progress || undefined,
+      outcome: outcome || undefined,
+    };
+  },
+
+  async scoreProgramMatch(ctx: DataContext, leadId: string, responses: Record<string, string | string[]>): Promise<ProgramMatchOutcome> {
+    await delay(300);
+    
+    // Get lead to find quiz
+    const lead = getMockLead(leadId);
+    if (!lead) {
+      throw new Error('Lead not found');
+    }
+
+    // Get config to access programs and quiz
+    const config = await this.getProgramMatchConfig(ctx, lead.quiz_id, lead.version_id);
+    if (!config) {
+      throw new Error('Config not found');
+    }
+
+    // Get quiz questions (in real implementation, this would come from quiz data)
+    // For now, use mock quiz questions
+    const { MOCK_QUIZ } = await import('@/lib/program-match/mock-data');
+    const questions = MOCK_QUIZ.questions;
+
+    // Import scoring function
+    const { scorePrograms } = await import('@/lib/program-match/scoring');
+    const { MOCK_TRAITS, MOCK_SKILLS } = await import('@/lib/program-match/mock-data');
+
+    // Build trait and skill labels
+    const traitLabels = MOCK_TRAITS.reduce((acc, trait) => {
+      acc[trait.trait_id] = trait.label;
+      return acc;
+    }, {} as Record<string, string>);
+
+    const skillLabels = MOCK_SKILLS.reduce((acc, skill) => {
+      acc[skill.skill_id] = skill.label;
+      return acc;
+    }, {} as Record<string, string>);
+
+    // Score programs (with optional AI assistance)
+    // For now, AI is disabled by default - can be enabled per institution
+    const outcome = await scorePrograms(
+      config.programs,
+      questions,
+      responses,
+      traitLabels,
+      skillLabels,
+      {
+        useAI: false, // TODO: Make configurable per institution
+        voiceToneProfile: config.voice_tone_profile_id,
+      }
+    );
+
+    outcome.lead_id = leadId;
+    saveMockOutcome(leadId, outcome);
+    return outcome;
+  },
+
+  async startReadinessAssessment(ctx: DataContext, leadId: string, programId: string): Promise<void> {
+    await delay(100);
+    // Track that readiness was started
+    const progress = getMockProgress(leadId);
+    if (progress) {
+      saveMockProgress(leadId, {
+        ...progress,
+        current_step: 'readiness',
+      });
+    }
+  },
+
+  async completeReadinessAssessment(ctx: DataContext, leadId: string, programId: string, responses: Record<string, string | string[]>): Promise<ProgramMatchReadiness> {
+    await delay(300);
+    
+    // Import readiness scoring and mock data
+    const { scoreReadiness } = await import('@/lib/program-match/readiness-scoring');
+    const {
+      MOCK_READINESS_RUBRICS,
+      MOCK_READINESS_QUESTIONS,
+      MOCK_PREP_GUIDANCE,
+      saveMockReadiness,
+    } = await import('@/lib/program-match/mock-data');
+
+    // Get rubric and questions for program
+    const rubric = MOCK_READINESS_RUBRICS[programId];
+    const questions = MOCK_READINESS_QUESTIONS[programId] || [];
+
+    if (!rubric || questions.length === 0) {
+      throw new Error(`Readiness assessment not configured for program: ${programId}`);
+    }
+
+    // Get program name
+    const config = await this.getProgramMatchConfig(ctx, 'quiz_grad_match_v1', 'v1');
+    const program = config?.programs.find((p) => p.program_id === programId);
+    const programName = program?.name || 'this program';
+
+    // Score readiness
+    const readiness = scoreReadiness(
+      rubric,
+      questions,
+      responses,
+      MOCK_PREP_GUIDANCE.filter((g) => g.program_id === programId),
+      programName
+    );
+
+    readiness.lead_id = leadId;
+    saveMockReadiness(readiness);
+
+    return readiness;
+  },
+
+  async trackProgramMatchEvent(ctx: DataContext, event: ProgramMatchEvent): Promise<void> {
+    await delay(50);
+    // In a real implementation, this would send to analytics service
+    // For now, log to console (in production, send to analytics pipeline)
+    console.log('Program Match Event:', event);
+    
+    // Store events for analytics aggregation (in production, use event store)
+    // This is a placeholder - real implementation would use proper event storage
+  },
+
+  async getProgramMatchAnalytics(ctx: DataContext, quizId: string, dateRange: { start: string; end: string }): Promise<ProgramMatchAnalytics | null> {
+    await delay(200);
+    // TODO: Implement analytics aggregation (Phase 3)
+    // For now, return mock analytics
+    return {
+      funnel: {
+        date_range: dateRange,
+        gate_viewed: 1000,
+        gate_submitted: 800,
+        gate_error_count: 5,
+        quiz_started: 750,
+        quiz_completed: 600,
+        results_viewed: 580,
+        readiness_started: 200,
+        readiness_completed: 150,
+        resume_link_opened: 50,
+        completed_matches: 580,
+      },
+      rates: {
+        gate_submit_rate: 0.80,
+        abandon_rate: 0.20,
+        resume_rate: 0.06,
+        completion_rate: 0.77,
+        readiness_opt_in_rate: 0.34,
+        readiness_completion_rate: 0.75,
+      },
+      match_distribution: {
+        mba: 250,
+        ms_data_science: 200,
+        ma_education: 130,
+      },
+      confidence_distribution: {
+        strong: 350,
+        good: 180,
+        explore: 50,
+      },
+      readiness_distribution: {
+        ready: 60,
+        nearly_ready: 70,
+        explore_prep_path: 20,
+      },
+    };
   },
 };
 

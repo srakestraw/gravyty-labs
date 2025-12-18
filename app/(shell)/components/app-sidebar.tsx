@@ -21,9 +21,9 @@ import { getAppNav as getCommunityNav } from '../community/_nav';
 import { getAppNav as getDataNav } from '../data/_nav';
 import { getAppNav as getSimAppsNav } from '../sim-apps/_nav';
 import { getAppNav as getStudentLifecycleNav } from '../student-lifecycle/_nav';
+import { getAppNav as getAdmissionsNav } from '../admissions/_nav';
 import { isValidWorkspace, getWorkspaceConfig, type WorkingMode } from '@/lib/student-lifecycle/workspaces';
 import { useWorkspaceMode } from '@/lib/hooks/useWorkspaceMode';
-
 type NavItem = { name: string; href: string; icon: string; id?: string; external?: boolean };
 
 // Sidebar navigation - persona-aware function
@@ -90,6 +90,8 @@ export function AppSidebar() {
   const isInAdmin = pathname?.startsWith('/admin');
   // Check if we're in the Advancement app
   const isInAdvancement = pathname?.startsWith('/advancement');
+  // Check if we're in the Admissions app
+  const isInAdmissions = pathname?.startsWith('/admissions');
   // Check if we're in the Student Lifecycle app
   const isInStudentLifecycle = pathname?.startsWith('/student-lifecycle');
   // Check if we're in the Community/Engagement Hub app
@@ -138,6 +140,9 @@ export function AppSidebar() {
       // Advancement area
       'advancement-philanthropy': getAdvancementNav,
 
+      // Admissions area
+      'admissions': getAdmissionsNav,
+
       // These exist but currently have no sidebar sub-nav; keep map for completeness.
       'engagement-hub': getCommunityNav,
       insights: getDataNav,
@@ -181,8 +186,16 @@ type Navigation =
       const dataAndAudiences = getItems('dataAndAudiences');
       const adminTools = getItems('adminTools');
 
+      // Flatten all sections - include items from sections with titles as regular items
+      const allItems: NavItem[] = [];
+      contractSections.forEach((section) => {
+        if (section.items && section.items.length > 0) {
+          allItems.push(...section.items);
+        }
+      });
+
       return {
-        topLevel: [...aiPlatform, ...topLevel],
+        topLevel: allItems.length > 0 ? allItems : [...aiPlatform, ...topLevel],
         dataAndAudiences: dataAndAudiences.length > 0 ? dataAndAudiences : undefined,
         adminTools,
       };
@@ -259,7 +272,7 @@ type Navigation =
     });
 
     return filteredNav;
-  }, [activeRegistryAppId, appNavByAppId, pathname, isInAIAssistants, isInAdmin, isInAdvancement, isInStudentLifecycle, isInCommunity, aiAssistantsEnabled, user?.email, user?.uid, persona]);
+  }, [activeRegistryAppId, appNavByAppId, pathname, isInAIAssistants, isInAdmin, isInAdvancement, isInAdmissions, isInStudentLifecycle, isInCommunity, aiAssistantsEnabled, user?.email, user?.uid, persona, sidebarOpen, isMobile]);
 
   return (
     <>
@@ -280,7 +293,7 @@ type Navigation =
         )}
       >
         <nav className="flex flex-col gap-1 p-2 h-full">
-          {(isInAIAssistants || isInAdmin || isInAdvancement || isInStudentLifecycle || isInCommunity) && !Array.isArray(navigation) ? (
+          {(isInAIAssistants || isInAdmin || isInAdvancement || isInAdmissions || isInStudentLifecycle || isInCommunity) && !Array.isArray(navigation) ? (
             <>
               {/* Top-level navigation items */}
               {navigation.topLevel.map((item) => {

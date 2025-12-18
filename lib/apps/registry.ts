@@ -96,6 +96,18 @@ export function getAppRegistry(params?: { persona?: 'higher-ed' | 'nonprofit' })
       group: 'main',
     },
     {
+      id: 'admissions',
+      label: 'Admissions Management',
+      icon: 'fa-solid fa-clipboard-check',
+      href: '/admissions',
+      color: '#00B8D9',
+      poweredBy: 'Platform',
+      description: isHigherEd
+        ? 'Streamline your admissions process with intelligent automation, program matching, and lead management.'
+        : 'Streamline your admissions process with intelligent automation, program matching, and lead management.',
+      group: 'main',
+    },
+    {
       id: 'admin-settings',
       label: 'Admin & Settings',
       icon: 'fa-solid fa-shield',

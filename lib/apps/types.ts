@@ -28,6 +28,8 @@ export type NavItem = { name: string; href: string; icon: string; id?: string; e
 export type NavSection = {
   id: string;
   title?: string;
+  href?: string; // Parent link href for collapsible groups
+  icon?: string; // Parent icon for collapsible groups
   items: NavItem[];
 };
 
