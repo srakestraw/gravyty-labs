@@ -65,6 +65,14 @@ export interface DataProvider {
   getAdmissionsQueueGamePlanCounts(ctx: DataContext): Promise<Record<string, number>>;
   getAdmissionsQueueItemsByObjective(ctx: DataContext, objectiveId: string, limit?: number): Promise<QueueItem[]>;
 
+  // Program Match
+  getProgramMatchHubSummary(ctx: DataContext): Promise<ProgramMatchHubSummary | null>;
+  getProgramMatchChecklist(ctx: DataContext): Promise<ProgramMatchChecklistItem[]>;
+  getProgramMatchLibrariesSummary(ctx: DataContext): Promise<ProgramMatchLibrariesSummary | null>;
+  getProgramMatchProgramsSummary(ctx: DataContext): Promise<ProgramMatchProgramsSummary | null>;
+  getProgramMatchCandidatesSummary(ctx: DataContext): Promise<ProgramMatchCandidatesSummary | null>;
+  getProgramMatchAnalyticsSummary(ctx: DataContext): Promise<ProgramMatchAnalyticsSummary | null>;
+
 }
 
 // Admissions Leadership Chart Data Types
@@ -227,5 +235,54 @@ export interface AdmissionsTeamGamePlanData {
   completedCount: number;
   totalCount: number; // should be 3
   objectives: AdmissionsTeamGamePlanObjective[];
+}
+
+// Program Match Data Types
+export interface ProgramMatchHubSummary {
+  status: 'draft' | 'published' | 'archived';
+  lastUpdated: string; // ISO string
+  progressPercent: number; // 0-100
+}
+
+export interface ProgramMatchChecklistItem {
+  id: string;
+  label: string;
+  state: 'not_started' | 'in_progress' | 'complete';
+  sectionId: string; // ID of the section to scroll to
+}
+
+export interface ProgramMatchLibrariesSummary {
+  traitsCount: number;
+  skillsCount: number;
+  outcomesEnabled: boolean;
+}
+
+export interface ProgramMatchProgram {
+  id: string;
+  name: string;
+  status: 'active' | 'draft';
+}
+
+export interface ProgramMatchProgramsSummary {
+  activeProgramsCount: number;
+  draftProgramsCount: number;
+  programs: ProgramMatchProgram[];
+}
+
+export interface ProgramMatchCandidatesSummary {
+  columns: Array<{ id: string; label: string }>;
+  rows: Array<Record<string, unknown>>;
+}
+
+export interface ProgramMatchAnalyticsTile {
+  id: string;
+  label: string;
+  value: number | string;
+  subtext?: string;
+}
+
+export interface ProgramMatchAnalyticsSummary {
+  tiles: ProgramMatchAnalyticsTile[];
+  // Chart placeholders can be added later
 }
 

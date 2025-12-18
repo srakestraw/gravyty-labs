@@ -15,6 +15,12 @@ import type {
   AdmissionsOperatorRecentWinData,
   AdmissionsOperatorRecentActivityData,
   AdmissionsTeamGamePlanData,
+  ProgramMatchHubSummary,
+  ProgramMatchChecklistItem,
+  ProgramMatchLibrariesSummary,
+  ProgramMatchProgramsSummary,
+  ProgramMatchCandidatesSummary,
+  ProgramMatchAnalyticsSummary,
 } from "@/lib/data/provider";
 
 import { getMockAgentOpsItems, getMockAgentOpsItemsForWorkspace } from "@/lib/agent-ops/mock";
@@ -675,6 +681,149 @@ export const mockProvider: DataProvider = {
     }
 
     return matchingItems;
+  },
+
+  // Program Match
+  async getProgramMatchHubSummary(ctx: DataContext): Promise<ProgramMatchHubSummary | null> {
+    await delay(100);
+    
+    // Only return data for admissions workspace
+    if (ctx.workspace !== 'admissions') {
+      return null;
+    }
+
+    return {
+      status: 'draft',
+      lastUpdated: new Date().toISOString(),
+      progressPercent: 0,
+    };
+  },
+
+  async getProgramMatchChecklist(ctx: DataContext): Promise<ProgramMatchChecklistItem[]> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return [];
+    }
+
+    return [
+      {
+        id: 'checklist-1',
+        label: 'Configure voice and tone',
+        state: 'not_started',
+        sectionId: 'voice-tone',
+      },
+      {
+        id: 'checklist-2',
+        label: 'Set up lead capture gate',
+        state: 'not_started',
+        sectionId: 'lead-capture',
+      },
+      {
+        id: 'checklist-3',
+        label: 'Build trait and skill libraries',
+        state: 'not_started',
+        sectionId: 'libraries',
+      },
+      {
+        id: 'checklist-4',
+        label: 'Define program ICPs',
+        state: 'not_started',
+        sectionId: 'program-icp',
+      },
+      {
+        id: 'checklist-5',
+        label: 'Create quiz questions',
+        state: 'not_started',
+        sectionId: 'quiz',
+      },
+      {
+        id: 'checklist-6',
+        label: 'Preview and deploy',
+        state: 'not_started',
+        sectionId: 'preview-deploy',
+      },
+    ];
+  },
+
+  async getProgramMatchLibrariesSummary(ctx: DataContext): Promise<ProgramMatchLibrariesSummary | null> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return null;
+    }
+
+    return {
+      traitsCount: 0,
+      skillsCount: 0,
+      outcomesEnabled: false,
+    };
+  },
+
+  async getProgramMatchProgramsSummary(ctx: DataContext): Promise<ProgramMatchProgramsSummary | null> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return null;
+    }
+
+    return {
+      activeProgramsCount: 0,
+      draftProgramsCount: 0,
+      programs: [],
+    };
+  },
+
+  async getProgramMatchCandidatesSummary(ctx: DataContext): Promise<ProgramMatchCandidatesSummary | null> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return null;
+    }
+
+    return {
+      columns: [
+        { id: 'name', label: 'Name' },
+        { id: 'email', label: 'Email' },
+        { id: 'matchedProgram', label: 'Matched Program' },
+        { id: 'score', label: 'Match Score' },
+        { id: 'completedAt', label: 'Completed At' },
+      ],
+      rows: [],
+    };
+  },
+
+  async getProgramMatchAnalyticsSummary(ctx: DataContext): Promise<ProgramMatchAnalyticsSummary | null> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return null;
+    }
+
+    return {
+      tiles: [
+        {
+          id: 'total-completions',
+          label: 'Total Completions',
+          value: 0,
+        },
+        {
+          id: 'unique-visitors',
+          label: 'Unique Visitors',
+          value: 0,
+        },
+        {
+          id: 'completion-rate',
+          label: 'Completion Rate',
+          value: '0%',
+        },
+        {
+          id: 'avg-match-score',
+          label: 'Avg Match Score',
+          value: '0.0',
+        },
+      ],
+    };
   },
 
 };
