@@ -73,6 +73,8 @@ export function AppSidebar() {
   const [isMobile, setIsMobile] = useState(false);
   const queueAttentionCount = useQueueAttentionCount();
   const queueDisplayCount = queueAttentionCount > 99 ? '99+' : queueAttentionCount.toString();
+  // Track expanded groups (e.g., Program Match)
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const checkMobile = () => {
@@ -83,6 +85,7 @@ export function AppSidebar() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
 
   // Check if we're in the AI Assistants app
   const isInAIAssistants = pathname?.startsWith('/ai-assistants');
@@ -297,14 +300,120 @@ type Navigation =
             <>
               {/* Top-level navigation items */}
               {navigation.topLevel.map((item) => {
+                const hasChildren = item.children && item.children.length > 0;
+                const isExpanded = hasChildren && expandedGroups.has(item.id || '');
+                
+                // For expandable groups, check if any child or the parent is active
                 // For /ai-assistants, /admin, and /advancement, only exact match. For others, exact match or starts with href + '/'
-                const isActive = (item.href === '/ai-assistants' || item.href === '/admin' || item.href === '/advancement')
+                const isParentActive = (item.href === '/ai-assistants' || item.href === '/admin' || item.href === '/advancement')
                   ? pathname === item.href
                   : pathname === item.href || pathname?.startsWith(item.href + '/');
                 
+                const isChildActive = hasChildren && item.children?.some(child => 
+                  pathname === child.href || pathname?.startsWith(child.href + '/')
+                );
+                const isActive = isParentActive || isChildActive;
+
+                // Handle expandable groups
+                if (hasChildren) {
+                  return (
+                    <div key={item.id || item.name} className="flex flex-col">
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            'flex items-center gap-3 flex-1 min-w-0 px-3 py-2 rounded-md text-sm transition-colors',
+                            'hover:bg-gray-100 text-gray-700',
+                            isActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : isInAdvancement ? 'bg-red-50 text-red-700 font-medium' : 'bg-purple-50 text-purple-700 font-medium')
+                          )}
+                          onClick={(e) => {
+                            // Don't navigate if clicking the chevron area
+                            if ((e.target as HTMLElement).closest('button')) {
+                              e.preventDefault();
+                              return;
+                            }
+                            // Close sidebar on mobile when navigating
+                            if (isMobile) {
+                              usePlatformStore.getState().toggleSidebar();
+                            }
+                          }}
+                        >
+                          <FontAwesomeIcon icon={item.icon} className="h-5 w-5 flex-shrink-0" />
+                          {(sidebarOpen || isMobile) && (
+                            <span className="truncate">{item.name}</span>
+                          )}
+                        </Link>
+                        {(sidebarOpen || isMobile) && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setExpandedGroups(prev => {
+                                const next = new Set(prev);
+                                if (next.has(item.id || '')) {
+                                  next.delete(item.id || '');
+                                } else {
+                                  next.add(item.id || '');
+                                }
+                                return next;
+                              });
+                            }}
+                            className={cn(
+                              'px-2 py-2 rounded-md text-sm transition-colors',
+                              'hover:bg-gray-100 text-gray-700',
+                              'focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-1'
+                            )}
+                            aria-expanded={isExpanded}
+                            aria-controls={`nav-group-${item.id || item.name}`}
+                            aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${item.name}`}
+                          >
+                            <FontAwesomeIcon 
+                              icon="fa-solid fa-chevron-right" 
+                              className={cn(
+                                'h-4 w-4 transition-transform',
+                                isExpanded && 'rotate-90'
+                              )} 
+                            />
+                          </button>
+                        )}
+                      </div>
+                      {/* Children */}
+                      {isExpanded && (sidebarOpen || isMobile) && item.children && (
+                        <div id={`nav-group-${item.id || item.name}`} className="ml-4 mt-1 space-y-1">
+                          {item.children.map((child) => {
+                            const isChildActive = pathname === child.href || pathname?.startsWith(child.href + '/');
+                            return (
+                              <Link
+                                key={child.id || child.name}
+                                href={child.href}
+                                className={cn(
+                                  'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
+                                  'hover:bg-gray-100 text-gray-700',
+                                  isChildActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : isInAdvancement ? 'bg-red-50 text-red-700 font-medium' : 'bg-purple-50 text-purple-700 font-medium')
+                                )}
+                                onClick={() => {
+                                  // Close sidebar on mobile when navigating
+                                  if (isMobile) {
+                                    usePlatformStore.getState().toggleSidebar();
+                                  }
+                                }}
+                              >
+                                <FontAwesomeIcon icon={child.icon} className="h-4 w-4 flex-shrink-0" />
+                                <span className="truncate text-xs">{child.name}</span>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                // Regular navigation item (no children)
                 return (
                   <Link
-                    key={item.name}
+                    key={item.id || item.name}
                     href={item.href}
                     className={cn(
                       'flex items-center justify-between gap-2 px-3 py-2 rounded-md text-sm transition-colors',

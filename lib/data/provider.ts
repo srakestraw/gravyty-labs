@@ -4,15 +4,6 @@ import type { Segment } from "@/lib/segments/types";
 import type { SegmentDefinition } from "@/components/shared/ai-platform/segments/types";
 import type { GuardrailPolicy } from "@/lib/guardrails/types";
 import type { DoNotEngageEntry } from "@/lib/do-not-engage/mockDoNotEngage";
-import type {
-  ProgramMatchConfig,
-  ProgramMatchLead,
-  ProgramMatchProgress,
-  ProgramMatchOutcome,
-  ProgramMatchReadiness,
-  ProgramMatchEvent,
-  ProgramMatchAnalytics,
-} from "@/lib/program-match/types";
 
 import type { WorkingMode } from '@/lib/command-center/workingModeUtils';
 import { normalizeWorkingMode } from '@/lib/command-center/workingModeUtils';
@@ -74,40 +65,6 @@ export interface DataProvider {
   getAdmissionsQueueGamePlanCounts(ctx: DataContext): Promise<Record<string, number>>;
   getAdmissionsQueueItemsByObjective(ctx: DataContext, objectiveId: string, limit?: number): Promise<QueueItem[]>;
 
-  // Program Match
-  getProgramMatchConfig(ctx: DataContext, quizId: string, versionId?: string): Promise<ProgramMatchConfig | null>;
-  createProgramMatchLead(ctx: DataContext, data: {
-    quiz_id: string;
-    version_id: string;
-    email: string;
-    first_name?: string;
-    last_name?: string;
-    phone?: string;
-    intended_start_term?: string;
-    modality_preference?: string;
-    email_consent?: boolean;
-    sms_consent?: boolean;
-    utm_source?: string;
-    utm_medium?: string;
-    utm_campaign?: string;
-    referrer?: string;
-    device_type?: 'desktop' | 'mobile' | 'tablet';
-  }): Promise<ProgramMatchLead>;
-  saveProgramMatchProgress(ctx: DataContext, leadId: string, data: {
-    responses_partial: Record<string, string | string[]>;
-    current_step: 'gate' | 'quiz' | 'results' | 'readiness';
-    current_question_index?: number;
-  }): Promise<ProgramMatchProgress>;
-  getProgramMatchResume(ctx: DataContext, leadId: string, token: string): Promise<{
-    config: ProgramMatchConfig;
-    progress?: ProgramMatchProgress;
-    outcome?: ProgramMatchOutcome;
-  } | null>;
-  scoreProgramMatch(ctx: DataContext, leadId: string, responses: Record<string, string | string[]>): Promise<ProgramMatchOutcome>;
-  startReadinessAssessment(ctx: DataContext, leadId: string, programId: string): Promise<void>;
-  completeReadinessAssessment(ctx: DataContext, leadId: string, programId: string, responses: Record<string, string | string[]>): Promise<ProgramMatchReadiness>;
-  trackProgramMatchEvent(ctx: DataContext, event: ProgramMatchEvent): Promise<void>;
-  getProgramMatchAnalytics(ctx: DataContext, quizId: string, dateRange: { start: string; end: string }): Promise<ProgramMatchAnalytics | null>;
 }
 
 // Admissions Leadership Chart Data Types

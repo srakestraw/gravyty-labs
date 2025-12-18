@@ -23,7 +23,14 @@ export type AppDefinition = {
   poweredBy?: string | string[];
 };
 
-export type NavItem = { name: string; href: string; icon: string; id?: string; external?: boolean };
+export type NavItem = { 
+  name: string; 
+  href: string; 
+  icon: string; 
+  id?: string; 
+  external?: boolean;
+  children?: NavItem[]; // For expandable groups
+};
 
 export type NavSection = {
   id: string;
