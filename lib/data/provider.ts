@@ -72,6 +72,9 @@ export interface DataProvider {
   getProgramMatchProgramsSummary(ctx: DataContext): Promise<ProgramMatchProgramsSummary | null>;
   getProgramMatchCandidatesSummary(ctx: DataContext): Promise<ProgramMatchCandidatesSummary | null>;
   getProgramMatchAnalyticsSummary(ctx: DataContext): Promise<ProgramMatchAnalyticsSummary | null>;
+  getProgramMatchDraftConfig(ctx: DataContext): Promise<ProgramMatchDraftConfig | null>;
+  updateProgramMatchDraftConfig(ctx: DataContext, input: { voiceToneProfileId?: string | null }): Promise<ProgramMatchDraftConfig | null>;
+  listVoiceToneProfiles(ctx: DataContext): Promise<VoiceToneProfile[]>;
 
 }
 
@@ -284,5 +287,18 @@ export interface ProgramMatchAnalyticsTile {
 export interface ProgramMatchAnalyticsSummary {
   tiles: ProgramMatchAnalyticsTile[];
   // Chart placeholders can be added later
+}
+
+export interface ProgramMatchDraftConfig {
+  id: string;
+  status: 'draft';
+  voiceToneProfileId: string | null;
+  updatedAt: string;
+}
+
+export interface VoiceToneProfile {
+  id: string;
+  name: string;
+  description?: string;
 }
 

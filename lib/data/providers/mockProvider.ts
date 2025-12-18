@@ -21,7 +21,10 @@ import type {
   ProgramMatchProgramsSummary,
   ProgramMatchCandidatesSummary,
   ProgramMatchAnalyticsSummary,
+  ProgramMatchDraftConfig,
+  VoiceToneProfile,
 } from "@/lib/data/provider";
+import { loadCommunicationConfig } from "@/lib/communication/store";
 
 import { getMockAgentOpsItems, getMockAgentOpsItemsForWorkspace } from "@/lib/agent-ops/mock";
 import { MOCK_CONTACTS } from "@/lib/contacts/mock-contacts";
@@ -32,6 +35,14 @@ import { MOCK_DO_NOT_ENGAGE } from "@/lib/do-not-engage/mockDoNotEngage";
 import type { QueueItem } from "@/lib/data/provider";
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// In-memory storage for Program Match draft config
+let programMatchDraftConfig: ProgramMatchDraftConfig = {
+  id: 'pm_draft_1',
+  status: 'draft',
+  voiceToneProfileId: null,
+  updatedAt: new Date().toISOString(),
+};
 
 export const mockProvider: DataProvider = {
   async listQueueItems(ctx: DataContext) {
@@ -684,19 +695,46 @@ export const mockProvider: DataProvider = {
   },
 
   // Program Match
-  async getProgramMatchHubSummary(ctx: DataContext): Promise<ProgramMatchHubSummary | null> {
+  async getProgramMatchDraftConfig(ctx: DataContext): Promise<ProgramMatchDraftConfig | null> {
     await delay(100);
     
-    // Only return data for admissions workspace
     if (ctx.workspace !== 'admissions') {
       return null;
     }
 
-    return {
-      status: 'draft',
-      lastUpdated: new Date().toISOString(),
-      progressPercent: 0,
+    return { ...programMatchDraftConfig };
+  },
+
+  async updateProgramMatchDraftConfig(ctx: DataContext, input: { voiceToneProfileId?: string | null }): Promise<ProgramMatchDraftConfig | null> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return null;
+    }
+
+    programMatchDraftConfig = {
+      ...programMatchDraftConfig,
+      ...input,
+      updatedAt: new Date().toISOString(),
     };
+
+    return { ...programMatchDraftConfig };
+  },
+
+  async listVoiceToneProfiles(ctx: DataContext): Promise<VoiceToneProfile[]> {
+    await delay(100);
+    
+    try {
+      const config = await loadCommunicationConfig();
+      return (config.voiceProfiles || []).map(profile => ({
+        id: profile.id,
+        name: profile.name,
+        description: profile.description,
+      }));
+    } catch (error) {
+      console.error('Failed to load voice tone profiles:', error);
+      return [];
+    }
   },
 
   async getProgramMatchChecklist(ctx: DataContext): Promise<ProgramMatchChecklistItem[]> {
@@ -706,44 +744,91 @@ export const mockProvider: DataProvider = {
       return [];
     }
 
+    // Compute checklist state from provider state
+    const voiceToneComplete = programMatchDraftConfig.voiceToneProfileId != null;
+
     return [
       {
         id: 'checklist-1',
-        label: 'Configure voice and tone',
-        state: 'not_started',
+        label: 'Voice and Tone selected',
+        state: voiceToneComplete ? 'complete' : 'not_started',
         sectionId: 'voice-tone',
       },
       {
         id: 'checklist-2',
-        label: 'Set up lead capture gate',
+        label: 'Lead capture gate configured',
         state: 'not_started',
         sectionId: 'lead-capture',
       },
       {
         id: 'checklist-3',
-        label: 'Build trait and skill libraries',
+        label: 'Traits library set up',
         state: 'not_started',
         sectionId: 'libraries',
       },
       {
         id: 'checklist-4',
-        label: 'Define program ICPs',
+        label: 'Skills library set up',
+        state: 'not_started',
+        sectionId: 'libraries',
+      },
+      {
+        id: 'checklist-5',
+        label: 'Programs added',
         state: 'not_started',
         sectionId: 'program-icp',
       },
       {
-        id: 'checklist-5',
-        label: 'Create quiz questions',
+        id: 'checklist-6',
+        label: 'ICP defined for active programs',
+        state: 'not_started',
+        sectionId: 'program-icp',
+      },
+      {
+        id: 'checklist-7',
+        label: 'Quiz created',
         state: 'not_started',
         sectionId: 'quiz',
       },
       {
-        id: 'checklist-6',
-        label: 'Preview and deploy',
+        id: 'checklist-8',
+        label: 'Preview reviewed',
+        state: 'not_started',
+        sectionId: 'preview-deploy',
+      },
+      {
+        id: 'checklist-9',
+        label: 'Published',
+        state: 'not_started',
+        sectionId: 'preview-deploy',
+      },
+      {
+        id: 'checklist-10',
+        label: 'Deployed and verified',
         state: 'not_started',
         sectionId: 'preview-deploy',
       },
     ];
+  },
+
+  async getProgramMatchHubSummary(ctx: DataContext): Promise<ProgramMatchHubSummary | null> {
+    await delay(100);
+    
+    // Only return data for admissions workspace
+    if (ctx.workspace !== 'admissions') {
+      return null;
+    }
+
+    // Compute progress from checklist completion
+    const checklist = await this.getProgramMatchChecklist(ctx);
+    const completedCount = checklist.filter(item => item.state === 'complete').length;
+    const progressPercent = Math.round((completedCount / 10) * 100);
+
+    return {
+      status: 'draft',
+      lastUpdated: programMatchDraftConfig.updatedAt,
+      progressPercent,
+    };
   },
 
   async getProgramMatchLibrariesSummary(ctx: DataContext): Promise<ProgramMatchLibrariesSummary | null> {
