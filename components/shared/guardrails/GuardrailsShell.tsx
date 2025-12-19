@@ -1,7 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { useClientSearchParams } from '@/lib/hooks/useClientSearchParams';
 import { GuardrailsPageClient } from './GuardrailsPageClient';
 import { PoliciesIndexPage } from './PoliciesIndexPage';
 import { PolicyEditor } from './PolicyEditor';
@@ -21,7 +22,7 @@ type GuardrailsTabId = (typeof GUARDRAILS_TABS)[number]['id'];
 
 export function GuardrailsShell({ context = 'admin' }: GuardrailsShellProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useClientSearchParams();
   
   // Mock data - TODO: Replace with real API/store
   const [policies, setPolicies] = React.useState<GuardrailPolicy[]>([]);

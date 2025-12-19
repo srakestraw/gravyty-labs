@@ -1,4 +1,3 @@
-import { Suspense } from 'react';
 import { getWorkspaceDefaults, WORKSPACES } from '@/lib/student-lifecycle/workspaces';
 import { AIPageClientWrapper } from './AIPageClientWrapper';
 
@@ -34,9 +33,7 @@ export default function StudentLifecycleCommandCenterPage({ params }: PageProps)
 
   return (
     <main className="space-y-6 p-6">
-      <Suspense fallback={<div>Loading...</div>}>
-        <AIPageClientWrapper context={context} />
-      </Suspense>
+      <AIPageClientWrapper context={context} />
     </main>
   );
 }

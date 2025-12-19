@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense } from 'react';
+import React from 'react';
 import { AppHeader } from './components/app-header';
 import { AppSidebar } from './components/app-sidebar';
 import { usePlatformStore } from '@/lib/store';
@@ -15,11 +15,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden">
       {chromeVisibility.header !== false && <AppHeader />}
-      {chromeVisibility.sidebar !== false && (
-        <Suspense fallback={<div className="w-16 md:w-64" />}>
-          <AppSidebar />
-        </Suspense>
-      )}
+      {chromeVisibility.sidebar !== false && <AppSidebar />}
       <main 
         className={cn(
           'flex-1 overflow-hidden transition-all duration-300',
@@ -35,9 +31,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
           // Only add padding when chrome is visible (to avoid double padding in focus mode)
           chromeVisibility.header !== false || chromeVisibility.sidebar !== false ? 'p-4 sm:p-6' : ''
         )}>
-          <Suspense fallback={<div>Loading...</div>}>
-            {children}
-          </Suspense>
+          {children}
         </div>
       </main>
     </div>

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { useClientSearchParams } from '@/lib/hooks/useClientSearchParams';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 import { Button } from '@/components/ui/button';
@@ -14,7 +15,7 @@ interface AssistantDetailClientProps {
 
 export function AssistantDetailClient({ assistantId }: AssistantDetailClientProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useClientSearchParams();
   const [activeTab, setActiveTab] = useState<'overview' | 'configuration' | 'logs' | 'eval'>('overview');
 
   useEffect(() => {

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { useClientSearchParams } from '@/lib/hooks/useClientSearchParams';
 import { AnimatePresence, motion } from 'framer-motion';
 import { IdleView } from '@/components/ai-assistant/views/IdleView';
 import { ThinkingView } from '@/components/ai-assistant/views/ThinkingView';
@@ -34,7 +35,7 @@ interface AssistantState {
 
 export function AssistantPageClient({ context }: { context?: AiPlatformPageContext }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useClientSearchParams();
   const [state, setState] = useState<AssistantState>({
     view: 'idle',
     prompt: '',

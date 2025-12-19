@@ -1,6 +1,5 @@
 'use client';
 
-import { Suspense } from 'react';
 import { CommandCenterPageClient } from '@/components/shared/ai-platform/CommandCenterPageClient';
 
 function CommunityAIContent() {
@@ -16,9 +15,7 @@ function CommunityAIContent() {
 export default function CommunityCommandCenterPage() {
   return (
     <main className="space-y-6 p-6">
-      <Suspense fallback={<div>Loading...</div>}>
-        <CommunityAIContent />
-      </Suspense>
+      <CommunityAIContent />
     </main>
   );
 }

@@ -1,14 +1,13 @@
 'use client';
 
-import { Suspense } from 'react';
 import { CommandCenterPageClient } from '@/components/shared/ai-platform/CommandCenterPageClient';
-import { useSearchParams } from 'next/navigation';
+import { useClientSearchParams } from '@/lib/hooks/useClientSearchParams';
 import { getSegmentIdFromSearchParams } from '@/components/shared/ai-platform/segments/segment-context';
 import { getSegmentById } from '@/components/shared/ai-platform/segments/mock-data';
 import type { AiPlatformPageContext } from '@/components/shared/ai-platform/types';
 
 function PipelineContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useClientSearchParams();
   
   // Get segment from URL
   const segmentId = getSegmentIdFromSearchParams(Object.fromEntries(searchParams.entries()));
@@ -31,9 +30,7 @@ function PipelineContent() {
 export default function PipelinePage() {
   return (
     <main className="space-y-6 p-6">
-      <Suspense fallback={<div>Loading...</div>}>
-        <PipelineContent />
-      </Suspense>
+      <PipelineContent />
     </main>
   );
 }

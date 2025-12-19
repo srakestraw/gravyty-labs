@@ -6,7 +6,7 @@ import { canManageAssistants } from '@/lib/roles';
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useClientSearchParams } from '@/lib/hooks/useClientSearchParams';
 import { cn } from '@/lib/utils';
 import { PersonaGoalTracker } from '@/components/shared/persona-goal-tracker';
 import { personaGoalConfigs, PersonaKey } from '@/components/shared/ai-platform/persona-goal-config';
@@ -1191,7 +1191,7 @@ const personaLabels: Record<Persona, string> = {
 export function CommandCenterPageClient({ context }: { context?: AiPlatformPageContext }) {
   const { user } = useAuth();
   const canManage = canManageAssistants(user?.email || user?.uid);
-  const searchParams = useSearchParams();
+  const searchParams = useClientSearchParams();
   const [selectedPersona, setSelectedPersona] = useState<Persona>('admissions');
   const [showWins, setShowWins] = useState(true);
   const [showAssistants, setShowAssistants] = useState(true);

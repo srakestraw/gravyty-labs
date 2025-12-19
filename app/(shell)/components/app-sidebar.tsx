@@ -4,7 +4,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { usePlatformStore } from '@/lib/store';
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useClientSearchParams } from '@/lib/hooks/useClientSearchParams';
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { canAccessAIAssistants } from '@/lib/roles';
@@ -67,7 +68,7 @@ export function AppSidebar() {
   const { sidebarOpen, activeApp } = usePlatformStore();
   const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useClientSearchParams();
   const { user } = useAuth();
   const aiAssistantsEnabled = useFeatureFlag('ai_assistants');
   const { persona } = usePersona();

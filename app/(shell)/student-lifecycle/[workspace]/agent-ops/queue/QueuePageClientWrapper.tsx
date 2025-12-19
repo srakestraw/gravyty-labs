@@ -1,7 +1,7 @@
 'use client';
 
 import { AgentOpsQueuePageClient } from '@/components/shared/ai-platform/AgentOpsQueuePageClient';
-import { useSearchParams } from 'next/navigation';
+import { useClientSearchParams } from '@/lib/hooks/useClientSearchParams';
 import { getSegmentIdFromSearchParams } from '@/components/shared/ai-platform/segments/segment-context';
 import { getSegmentById } from '@/components/shared/ai-platform/segments/mock-data';
 import type { AiPlatformPageContext } from '@/components/shared/ai-platform/types';
@@ -11,7 +11,7 @@ interface QueuePageClientWrapperProps {
 }
 
 export function QueuePageClientWrapper({ context }: QueuePageClientWrapperProps) {
-  const searchParams = useSearchParams();
+  const searchParams = useClientSearchParams();
   
   // Get segment from URL
   const segmentId = getSegmentIdFromSearchParams(Object.fromEntries(searchParams.entries()));

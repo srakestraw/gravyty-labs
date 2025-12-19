@@ -1,4 +1,3 @@
-import { Suspense } from 'react';
 import { AgentOpsQueuePageClient } from '@/components/shared/ai-platform/AgentOpsQueuePageClient';
 import { getWorkspaceDefaults, WORKSPACES } from '@/lib/student-lifecycle/workspaces';
 import { QueuePageClientWrapper } from './QueuePageClientWrapper';
@@ -36,9 +35,7 @@ export default function StudentLifecycleQueuePage({ params }: PageProps) {
 
   return (
     <main className="space-y-6 p-6">
-      <Suspense fallback={<div>Loading...</div>}>
-        <QueuePageClientWrapper context={context} />
-      </Suspense>
+      <QueuePageClientWrapper context={context} />
     </main>
   );
 }

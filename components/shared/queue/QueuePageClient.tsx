@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { useClientSearchParams } from '@/lib/hooks/useClientSearchParams';
 import { AgentOpsFilters, AgentOpsItem } from '@/lib/agent-ops/types';
 import { dataClient } from '@/lib/data';
 import { AgentOpsFiltersBar } from '@/components/ai-assistants/agent-ops/AgentOpsFiltersBar';
@@ -95,7 +96,7 @@ function itemMatchesObjective(item: AgentOpsItem, objectiveId: string): boolean 
 
 export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, activeSegmentId, activeSegment, workspaceId }: QueuePageClientProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useClientSearchParams();
   const [allItems, setAllItems] = useState<AgentOpsItem[]>([]);
   const [isLoadingItems, setIsLoadingItems] = useState(true);
   

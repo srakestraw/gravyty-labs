@@ -1,7 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { useClientSearchParams } from '@/lib/hooks/useClientSearchParams';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 import { cn } from '@/lib/utils';
@@ -231,7 +232,7 @@ const MOCK_AGENTS = [
 
 export function LogsPageClient({ basePath = '/ai-assistants/logs' }: LogsPageClientProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useClientSearchParams();
   
   // Initialize state from URL params
   const [scope, setScope] = React.useState<LogScope>(

@@ -1,7 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { useClientSearchParams } from '@/lib/hooks/useClientSearchParams';
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -553,7 +554,7 @@ function EvalRunDetail({ run, guardrailSummary, runLog, onViewInLogs, basePath =
 
 export function EvalsPageClient({ basePath = '/ai-assistants/evals' }: EvalsPageClientProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useClientSearchParams();
   
   // Initialize state from URL params
   const [scopeFilter, setScopeFilter] = React.useState<EvalScopeFilter>(
