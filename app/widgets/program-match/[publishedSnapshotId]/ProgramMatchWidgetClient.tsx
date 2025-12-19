@@ -44,6 +44,8 @@ export function ProgramMatchWidgetClient({ widgetConfig }: ProgramMatchWidgetCli
       };
       const rfi = await dataClient.createProgramMatchRFI(ctx, {
         publishedSnapshotId: widgetConfig.publishedSnapshotId,
+        quizId: widgetConfig.quiz.quizId,
+        quizVersionId: widgetConfig.quiz.id,
         contact: {
           email: email.trim(),
           firstName: firstName.trim() || undefined,
