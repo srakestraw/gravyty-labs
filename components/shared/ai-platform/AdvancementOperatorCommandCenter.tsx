@@ -14,7 +14,7 @@ import type {
 } from '@/lib/data/provider';
 import {
   TodaysFocusCard,
-  MomentumCard,
+  RotatingMomentumCard,
   TodaysGamePlanCard,
   FlaggedRisksCard,
   GoalTrackerCard,
@@ -27,10 +27,8 @@ import { getAiPlatformBasePath } from './types';
 import type { AiPlatformPageContext } from './types';
 
 /**
- * Advancement Operator Command Center with two-column layout.
+ * Advancement Pipeline Team Command Center with two-column layout.
  * Answers "What should I focus on today?" with Today's Game Plan as the dominant execution surface.
- * 
- * Note: Currently uses Admissions data methods as placeholders until Advancement-specific methods are implemented.
  */
 export function AdvancementOperatorCommandCenter({ 
   context,
@@ -56,8 +54,6 @@ export function AdvancementOperatorCommandCenter({
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
-      // TODO: Replace with Advancement-specific data methods when available
-      // For now, using Admissions methods as placeholders - they will return null for advancement workspace
       const ctx = {
         workspace: 'advancement',
         app: 'advancement',
@@ -75,14 +71,14 @@ export function AdvancementOperatorCommandCenter({
           winsData,
           activityData,
         ] = await Promise.all([
-          dataClient.getAdmissionsOperatorTodaysFocus(ctx),
-          dataClient.getAdmissionsOperatorGamePlan(ctx),
-          dataClient.getAdmissionsOperatorMomentum(ctx),
-          dataClient.getAdmissionsOperatorFlaggedRisks(ctx),
-          dataClient.getAdmissionsOperatorGoalTracker(ctx),
-          dataClient.getAdmissionsOperatorAssistants(ctx),
-          dataClient.getAdmissionsOperatorRecentWins(ctx),
-          dataClient.getAdmissionsOperatorRecentActivity(ctx),
+          dataClient.getPipelineTeamTodaysFocus(ctx),
+          dataClient.getPipelineTeamGamePlan(ctx),
+          dataClient.getPipelineTeamMomentum(ctx),
+          dataClient.getPipelineTeamFlaggedRisks(ctx),
+          dataClient.getPipelineTeamGoalTracker(ctx),
+          dataClient.getPipelineTeamAssistants(ctx),
+          dataClient.getPipelineTeamRecentWins(ctx),
+          dataClient.getPipelineTeamRecentActivity(ctx),
         ]);
 
         setTodaysFocus(focusData);
@@ -94,7 +90,7 @@ export function AdvancementOperatorCommandCenter({
         setRecentWins(winsData);
         setRecentActivity(activityData);
       } catch (error) {
-        console.error('Failed to load Advancement Operator data:', error);
+        console.error('Failed to load Pipeline Team data:', error);
       } finally {
         setIsLoading(false);
       }
@@ -148,7 +144,7 @@ export function AdvancementOperatorCommandCenter({
 
       {/* RIGHT COLUMN */}
       <div className="space-y-4">
-        <MomentumCard data={momentum} />
+        <RotatingMomentumCard data={momentum} />
         <FlaggedRisksCard data={flaggedRisks} />
         <RecentWinsCard data={recentWins} />
         <AssistantsWorkingCard data={assistants} basePath={effectiveBasePath} />

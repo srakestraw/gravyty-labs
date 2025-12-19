@@ -60,6 +60,16 @@ export interface DataProvider {
   getAdmissionsOperatorRecentWins(ctx: DataContext): Promise<AdmissionsOperatorRecentWinData[]>;
   getAdmissionsOperatorRecentActivity(ctx: DataContext): Promise<AdmissionsOperatorRecentActivityData[]>;
 
+  // Pipeline Team Command Center
+  getPipelineTeamTodaysFocus(ctx: DataContext): Promise<AdmissionsOperatorTodaysFocusData | null>;
+  getPipelineTeamGamePlan(ctx: DataContext): Promise<AdmissionsOperatorGamePlanData | null>;
+  getPipelineTeamMomentum(ctx: DataContext): Promise<AdmissionsOperatorMomentumData | null>;
+  getPipelineTeamFlaggedRisks(ctx: DataContext): Promise<AdmissionsOperatorFlaggedRiskData[]>;
+  getPipelineTeamGoalTracker(ctx: DataContext): Promise<AdmissionsOperatorGoalTrackerData | null>;
+  getPipelineTeamAssistants(ctx: DataContext): Promise<AdmissionsOperatorAssistantData[]>;
+  getPipelineTeamRecentWins(ctx: DataContext): Promise<AdmissionsOperatorRecentWinData[]>;
+  getPipelineTeamRecentActivity(ctx: DataContext): Promise<AdmissionsOperatorRecentActivityData[]>;
+
   // Admissions Team Game Plan (for Queue integration)
   getAdmissionsTeamGamePlan(ctx: DataContext): Promise<AdmissionsTeamGamePlanData | null>;
   getAdmissionsQueueGamePlanCounts(ctx: DataContext): Promise<Record<string, number>>;
@@ -260,6 +270,16 @@ export interface AdmissionsOperatorMomentumData {
     label?: string;
   };
   score: number;
+  // Pipeline Team rotating games support
+  games?: Array<{
+    key: string;
+    title: string;
+    subtitle: string;
+    todayCount?: number;
+    weekCurrent: number;
+    weekTarget: number;
+    hint: string;
+  }>;
 }
 
 export interface AdmissionsOperatorFlaggedRiskData {

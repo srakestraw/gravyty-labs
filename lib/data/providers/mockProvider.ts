@@ -1038,6 +1038,349 @@ export const mockProvider: DataProvider = {
     ];
   },
 
+  // Pipeline Team Command Center
+  async getPipelineTeamTodaysFocus(ctx: DataContext): Promise<AdmissionsOperatorTodaysFocusData | null> {
+    await delay(100);
+    
+    // Normalize mode for backwards compatibility (accept 'operator' or 'team')
+    const normalizedMode = ctx.mode === 'operator' || ctx.mode === 'team' ? 'team' : ctx.mode;
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || normalizedMode !== 'team') {
+      return null;
+    }
+
+    return {
+      text: "Re-engage stalled opportunities, lock next steps for top prospects, and protect near-term closes.",
+    };
+  },
+
+  async getPipelineTeamGamePlan(ctx: DataContext): Promise<AdmissionsOperatorGamePlanData | null> {
+    await delay(150);
+    
+    // Normalize mode for backwards compatibility (accept 'operator' or 'team')
+    const normalizedMode = ctx.mode === 'operator' || ctx.mode === 'team' ? 'team' : ctx.mode;
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || normalizedMode !== 'team') {
+      return null;
+    }
+
+    // Simulate some tasks as completed for demo purposes
+    const now = new Date();
+    const recentlyCompleted = new Date(now.getTime() - 2 * 60 * 1000); // 2 minutes ago
+    
+    return {
+      total: 4,
+      completed: 1,
+      todaysProgressSummary: {
+        movedForwardCount: 9,
+        narrative: "You've moved 9 opportunities forward today.",
+      },
+      coachMessage: "Your best leverage today is closing the loop. A clear next step for each top prospect keeps relationships warm and your forecast honest.",
+      items: [
+        {
+          id: 're-engage-stalled',
+          title: 'Reach out to 12 donors with overdue next steps',
+          description: 'No activity in 21+ days across qualified prospects.',
+          impactHint: 'Reduces forecast risk by restoring momentum.',
+          status: 'completed',
+          completedAt: recentlyCompleted.toISOString(),
+          lastOutcomeSummary: '→ 4 opportunities re-engaged',
+          goalImpacts: [
+            { goalId: 'meaningful-touches', deltaLabel: 'Meaningful touches', deltaValue: 4 },
+          ],
+          ctas: [
+            { label: 'Open', href: '/advancement/pipeline/agent-ops/queue?filter=stalled' },
+            { label: 'Let AI suggest next step', href: '/advancement/pipeline/assistant' },
+          ],
+        },
+        {
+          id: 'prep-briefs',
+          title: 'Prep briefs for 3 upcoming donor meetings',
+          description: 'Meetings scheduled in the next 48 hours.',
+          impactHint: 'Improves meeting quality and ask readiness.',
+          status: 'open',
+          goalImpacts: [
+            { goalId: 'meetings-held', deltaLabel: 'Meetings held', deltaValue: 3 },
+          ],
+          ctas: [
+            { label: 'Open', href: '/advancement/pipeline/agent-ops/queue?filter=meetings' },
+            { label: 'Let AI suggest next step', href: '/advancement/pipeline/assistant' },
+          ],
+        },
+        {
+          id: 'advance-proposals',
+          title: 'Advance 2 proposals stuck in review',
+          description: 'Late-stage proposals with close dates inside 30 days.',
+          impactHint: 'Protects near-term closes and forecast confidence.',
+          status: 'open',
+          goalImpacts: [
+            { goalId: 'proposals-advanced', deltaLabel: 'Proposals advanced', deltaValue: 2 },
+          ],
+          ctas: [
+            { label: 'Open', href: '/advancement/pipeline/agent-ops/queue?filter=proposals' },
+            { label: 'Let AI suggest next step', href: '/advancement/pipeline/assistant' },
+          ],
+        },
+        {
+          id: 'stewardship-followups',
+          title: 'Trigger stewardship follow-ups for 5 recent gifts',
+          description: 'Gifts received, no thank-you sequence logged.',
+          impactHint: 'Builds trust and increases repeat giving.',
+          status: 'open',
+          goalImpacts: [
+            { goalId: 'stewardship-completed', deltaLabel: 'Stewardship completed', deltaValue: 5 },
+          ],
+          ctas: [
+            { label: 'Open', href: '/advancement/pipeline/agent-ops/queue?filter=stewardship' },
+            { label: 'Let AI suggest next step', href: '/advancement/pipeline/assistant' },
+          ],
+        },
+      ],
+    };
+  },
+
+  async getPipelineTeamMomentum(ctx: DataContext): Promise<AdmissionsOperatorMomentumData | null> {
+    await delay(100);
+    
+    // Normalize mode for backwards compatibility (accept 'operator' or 'team')
+    const normalizedMode = ctx.mode === 'operator' || ctx.mode === 'team' ? 'team' : ctx.mode;
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || normalizedMode !== 'team') {
+      return null;
+    }
+
+    return {
+      streakDays: 3,
+      weeklyChallenge: {
+        completed: 9,
+        total: 25,
+        label: 'opportunities moved forward',
+      },
+      score: 74,
+      games: [
+        {
+          key: 'next-steps-scheduled',
+          title: 'Next Steps Scheduled',
+          subtitle: 'Keeping relationships moving forward',
+          todayCount: 3,
+          weekCurrent: 9,
+          weekTarget: 15,
+          hint: 'Scheduling clear next steps prevents opportunities from stalling.',
+        },
+        {
+          key: 'stewardship-on-time',
+          title: 'Stewardship On-Time',
+          subtitle: 'Building trust through timely follow-up',
+          todayCount: 2,
+          weekCurrent: 6,
+          weekTarget: 10,
+          hint: 'Thank-you notes within 48 hours increase repeat giving by 23%.',
+        },
+        {
+          key: 'opportunities-advanced',
+          title: 'Opportunities Advanced',
+          subtitle: 'Moving prospects through the pipeline',
+          todayCount: 1,
+          weekCurrent: 4,
+          weekTarget: 8,
+          hint: 'Each stage advancement brings you closer to closing.',
+        },
+        {
+          key: 'strategic-meetings-completed',
+          title: 'Strategic Meetings Completed',
+          subtitle: 'Engaging with top prospects',
+          todayCount: 1,
+          weekCurrent: 3,
+          weekTarget: 5,
+          hint: 'Face-to-face meetings have the highest conversion rate.',
+        },
+        {
+          key: 'lybunt-recovery-touches',
+          title: 'LYBUNT Recovery Touches',
+          subtitle: 'Re-engaging lapsed donors',
+          todayCount: 2,
+          weekCurrent: 5,
+          weekTarget: 12,
+          hint: 'Early re-engagement recovers 40% more donors than waiting.',
+        },
+      ],
+    };
+  },
+
+  async getPipelineTeamFlaggedRisks(ctx: DataContext): Promise<AdmissionsOperatorFlaggedRiskData[]> {
+    await delay(100);
+    
+    // Normalize mode for backwards compatibility (accept 'operator' or 'team')
+    const normalizedMode = ctx.mode === 'operator' || ctx.mode === 'team' ? 'team' : ctx.mode;
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || normalizedMode !== 'team') {
+      return [];
+    }
+
+    return [
+      {
+        id: 'stalled-opportunities',
+        title: 'Stalled late-stage opportunities increased 12% this week',
+        severity: 'high',
+      },
+      {
+        id: 'missing-next-steps',
+        title: '7 top prospects have no next step scheduled',
+        severity: 'medium',
+      },
+      {
+        id: 'stewardship-lag',
+        title: 'Stewardship lag: 14 gifts missing thank-you within 48 hours',
+        severity: 'medium',
+      },
+    ];
+  },
+
+  async getPipelineTeamGoalTracker(ctx: DataContext): Promise<AdmissionsOperatorGoalTrackerData | null> {
+    await delay(100);
+    
+    // Normalize mode for backwards compatibility (accept 'operator' or 'team')
+    const normalizedMode = ctx.mode === 'operator' || ctx.mode === 'team' ? 'team' : ctx.mode;
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || normalizedMode !== 'team') {
+      return null;
+    }
+
+    return {
+      title: 'Goal Tracker',
+      timeframeLabel: 'This fiscal year',
+      subtitle: 'Track your donor pipeline and recovery progress.',
+      metrics: [
+        {
+          id: 'quarterly-giving-goal',
+          label: 'Quarterly Giving Goal',
+          current: 1.2,
+          target: 2.0,
+          unit: '$M',
+          trend: 'up',
+          status: 'on-track',
+        },
+        {
+          id: 'lybunt-recovery',
+          label: 'LYBUNT Recovery',
+          current: 89,
+          target: 150,
+          unit: 'donors',
+          trend: 'up',
+          status: 'slightly-behind',
+        },
+        {
+          id: 'key-proposals-advanced',
+          label: 'Key Proposals Advanced',
+          current: 18,
+          target: 25,
+          unit: 'proposals',
+          trend: 'up',
+          status: 'on-track',
+        },
+        {
+          id: 'strategic-donor-meetings',
+          label: 'Strategic Donor Meetings',
+          current: 6,
+          target: 15,
+          unit: 'meetings',
+          trend: 'up',
+          status: 'at-risk',
+        },
+      ],
+    };
+  },
+
+  async getPipelineTeamAssistants(ctx: DataContext): Promise<AdmissionsOperatorAssistantData[]> {
+    await delay(100);
+    
+    // Normalize mode for backwards compatibility (accept 'operator' or 'team')
+    const normalizedMode = ctx.mode === 'operator' || ctx.mode === 'team' ? 'team' : ctx.mode;
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || normalizedMode !== 'team') {
+      return [];
+    }
+
+    return [
+      {
+        id: 'next-step-assistant',
+        name: 'Next Step Assistant',
+        status: 'active',
+        description: 'Flags missing next steps and recommends actions.',
+      },
+      {
+        id: 'meeting-brief-assistant',
+        name: 'Meeting Brief Assistant',
+        status: 'draft',
+        description: 'Preps briefs and talking points for meetings.',
+      },
+      {
+        id: 'stewardship-assistant',
+        name: 'Stewardship Assistant',
+        status: 'paused',
+        description: 'Drafts thank-you notes and schedules follow-ups.',
+      },
+    ];
+  },
+
+  async getPipelineTeamRecentWins(ctx: DataContext): Promise<AdmissionsOperatorRecentWinData[]> {
+    await delay(100);
+    
+    // Normalize mode for backwards compatibility (accept 'operator' or 'team')
+    const normalizedMode = ctx.mode === 'operator' || ctx.mode === 'team' ? 'team' : ctx.mode;
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || normalizedMode !== 'team') {
+      return [];
+    }
+
+    return [
+      {
+        id: 'win-1',
+        text: '38% fewer stalled opportunities',
+        detail: 'Next Step Assistant surfaced dormant opportunities and suggested actions.',
+        assistantName: 'Next Step Assistant',
+      },
+      {
+        id: 'win-2',
+        text: '3 proposals advanced to review',
+        detail: 'Moves Management Assistant converted notes into structured updates.',
+        assistantName: 'Moves Management Assistant',
+      },
+      {
+        id: 'win-3',
+        text: 'Stewardship completed for 9 donors',
+        detail: 'Stewardship Assistant drafted thank-you notes and queued follow-ups.',
+        assistantName: 'Stewardship Assistant',
+      },
+    ];
+  },
+
+  async getPipelineTeamRecentActivity(ctx: DataContext): Promise<AdmissionsOperatorRecentActivityData[]> {
+    await delay(100);
+    
+    // Normalize mode for backwards compatibility (accept 'operator' or 'team')
+    const normalizedMode = ctx.mode === 'operator' || ctx.mode === 'team' ? 'team' : ctx.mode;
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || normalizedMode !== 'team') {
+      return [];
+    }
+
+    return [
+      {
+        id: 'activity-1',
+        timestamp: '10:42 AM',
+        text: 'Next Step Assistant flagged 6 opportunities missing next steps',
+      },
+      {
+        id: 'activity-2',
+        timestamp: '9:15 AM',
+        text: 'Meeting Brief Assistant prepared 2 donor briefs',
+      },
+      {
+        id: 'activity-3',
+        timestamp: '8:02 AM',
+        text: 'Stewardship Assistant queued 5 thank-you drafts',
+      },
+      {
+        id: 'activity-4',
+        timestamp: 'Yesterday 4:21 PM',
+        text: 'Moves Management Assistant updated 3 stages from your notes',
+      },
+    ];
+  },
+
   // Admissions Team Game Plan (for Queue integration)
   async getAdmissionsTeamGamePlan(ctx: DataContext): Promise<AdmissionsTeamGamePlanData | null> {
     await delay(100);

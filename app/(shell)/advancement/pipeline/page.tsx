@@ -19,6 +19,9 @@ export default function PipelinePage() {
     mode: 'workspace' as const,
     activeSegmentId: segmentId,
     activeSegment,
+    defaults: {
+      recommendedAgents: ['agent-high-intent-signal', 'agent-proposal-builder'],
+    },
   };
 
   return (

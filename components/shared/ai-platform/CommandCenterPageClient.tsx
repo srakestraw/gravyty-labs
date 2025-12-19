@@ -1317,6 +1317,8 @@ export function CommandCenterPageClient({ context }: { context?: AiPlatformPageC
     { id: 'agent-high-intent-prospect', name: 'High-Intent Prospect Agent', purpose: 'Surfaces high-intent prospects for outreach.' },
     { id: 'agent-donor-warmup', name: 'Donor Warm-Up Agent', purpose: 'Sends warm-up emails and scores replies.' },
     { id: 'agent-international-visa', name: 'International Visa Docs Agent', purpose: 'Identifies missing I-20 / visa documents.' },
+    { id: 'agent-high-intent-signal', name: 'High-Intent Signal Agent', purpose: 'Surfaces donors showing renewed interest.' },
+    { id: 'agent-proposal-builder', name: 'Proposal Builder Agent', purpose: 'Drafts proposal language and ask framing.' },
   ];
   
   const recommendedAgents = recommendedAgentIds
@@ -1495,14 +1497,12 @@ export function CommandCenterPageClient({ context }: { context?: AiPlatformPageC
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <div className="flex items-center gap-3 mb-1">
-                  <span className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                    Advancement Workspace
-                  </span>
-                  <h2 className="text-xl font-bold text-gray-900">
-                    {getGreeting()}, {userName}.
-                  </h2>
-                </div>
+                <span className="text-xs font-medium uppercase tracking-wide text-gray-500 block mb-1">
+                  Advancement Workspace
+                </span>
+                <h2 className="text-xl font-bold text-gray-900 mb-2">
+                  {getGreeting()}, {userName}.
+                </h2>
                 <p className="text-sm text-gray-600">{personaConfigs['advancement'].description}</p>
               </div>
             </div>
