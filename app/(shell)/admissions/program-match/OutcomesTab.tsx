@@ -58,7 +58,7 @@ export function OutcomesTab({ outcomes: initialOutcomes, draftConfig }: Outcomes
   // Get unique categories from outcomes of current type
   const availableCategories = useMemo(() => {
     if (!outcomesByType || outcomesByType.length === 0) return [];
-    const cats = new Set(outcomesByType.map(o => o.category).filter(Boolean));
+    const cats = new Set(outcomesByType.map(o => o.category).filter((cat): cat is string => Boolean(cat)));
     return Array.from(cats).sort();
   }, [outcomesByType]);
 
