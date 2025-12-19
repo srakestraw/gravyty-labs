@@ -24,7 +24,6 @@ import { getAppNav as getStudentLifecycleNav } from '../student-lifecycle/_nav';
 import { getAppNav as getAdmissionsNav } from '../admissions/_nav';
 import { isValidWorkspace, getWorkspaceConfig, type WorkingMode } from '@/lib/student-lifecycle/workspaces';
 import { useWorkspaceMode } from '@/lib/hooks/useWorkspaceMode';
-import type { NavItem } from '@/lib/apps/types';
 
 // Sidebar navigation - persona-aware function
 // Higher Ed persona keeps all existing labels exactly as they were
