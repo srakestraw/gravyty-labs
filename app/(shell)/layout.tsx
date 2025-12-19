@@ -35,7 +35,9 @@ function ShellContent({ children }: { children: React.ReactNode }) {
           // Only add padding when chrome is visible (to avoid double padding in focus mode)
           chromeVisibility.header !== false || chromeVisibility.sidebar !== false ? 'p-4 sm:p-6' : ''
         )}>
-          {children}
+          <Suspense fallback={<div>Loading...</div>}>
+            {children}
+          </Suspense>
         </div>
       </main>
     </div>
