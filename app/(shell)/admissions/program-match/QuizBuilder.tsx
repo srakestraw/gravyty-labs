@@ -435,19 +435,19 @@ export function QuizBuilder({
           onOpenMappingDrawer={handleOpenMappingDrawer}
           onCloseMappingDrawer={handleCloseMappingDrawer}
           onSaveMapping={handleSaveMapping}
-          onTraitToggle={(id) => {
+          onTraitToggle={(id: string) => {
             const newSet = new Set(selectedTraitIds);
             if (newSet.has(id)) newSet.delete(id);
             else newSet.add(id);
             setSelectedTraitIds(newSet);
           }}
-          onSkillToggle={(id) => {
+          onSkillToggle={(id: string) => {
             const newSet = new Set(selectedSkillIds);
             if (newSet.has(id)) newSet.delete(id);
             else newSet.add(id);
             setSelectedSkillIds(newSet);
           }}
-          onOutcomeToggle={(id) => {
+          onOutcomeToggle={(id: string) => {
             const newSet = new Set(selectedOutcomeIds);
             if (newSet.has(id)) newSet.delete(id);
             else newSet.add(id);
