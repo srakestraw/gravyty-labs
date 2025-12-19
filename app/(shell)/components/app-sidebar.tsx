@@ -13,7 +13,7 @@ import { useQueueAttentionCount } from '@/lib/agent-ops/useQueueAttentionCount';
 import { usePersona, type Persona } from '../contexts/persona-context';
 import { getAppRegistry } from '@/lib/apps/registry';
 import { getActiveAppId } from '@/lib/apps/active';
-import type { NavSection } from '@/lib/apps/types';
+import type { NavSection, NavItem } from '@/lib/apps/types';
 import { getAppNav as getAiAssistantsNav } from '../ai-assistants/_nav';
 import { getAppNav as getAdminNav } from '../admin/_nav';
 import { getAppNav as getAdvancementNav } from '../advancement/_nav';
@@ -24,7 +24,7 @@ import { getAppNav as getStudentLifecycleNav } from '../student-lifecycle/_nav';
 import { getAppNav as getAdmissionsNav } from '../admissions/_nav';
 import { isValidWorkspace, getWorkspaceConfig, type WorkingMode } from '@/lib/student-lifecycle/workspaces';
 import { useWorkspaceMode } from '@/lib/hooks/useWorkspaceMode';
-type NavItem = { name: string; href: string; icon: string; id?: string; external?: boolean };
+import type { NavItem } from '@/lib/apps/types';
 
 // Sidebar navigation - persona-aware function
 // Higher Ed persona keeps all existing labels exactly as they were
@@ -189,8 +189,6 @@ export function AppSidebar() {
     }),
     []
   );
-
-type NavItem = { name: string; href: string; icon: string; id?: string; external?: boolean };
 
 // Reusable Data and audiences navigation group
 // Used in Student Lifecycle AI and Advancement & Philanthropy workspaces
