@@ -140,20 +140,23 @@ export function AppSidebar() {
   );
 
   // Sync URL mode with localStorage mode
+  // Only apply redirect logic to the exact /advancement/pipeline route, not sub-routes
+  const isPipelineCommandCenter = pathname === '/advancement/pipeline';
   useEffect(() => {
     if (!isInPipeline) return;
     
-    // If URL has mode param, sync it to localStorage
+    // If URL has mode param, sync it to localStorage (works for all pipeline routes)
     if (pipelineModeFromUrl && pipelineWorkingMode !== pipelineModeFromUrl) {
       setPipelineWorkingMode(pipelineModeFromUrl);
     }
     // If URL doesn't have mode param but localStorage does, update URL
-    else if (!pipelineModeFromUrl && pipelineWorkingMode) {
+    // Only redirect if we're on the exact command center route (not sub-routes like /queue)
+    else if (!pipelineModeFromUrl && pipelineWorkingMode && isPipelineCommandCenter) {
       const params = new URLSearchParams(searchParams?.toString() || '');
       params.set('mode', pipelineWorkingMode);
       router.replace(`/advancement/pipeline?${params.toString()}`, { scroll: false });
     }
-  }, [isInPipeline, pipelineModeFromUrl, pipelineWorkingMode, searchParams, router, setPipelineWorkingMode]);
+  }, [isInPipeline, isPipelineCommandCenter, pipelineModeFromUrl, pipelineWorkingMode, searchParams, router, setPipelineWorkingMode]);
 
   const appRegistry = useMemo(() => getAppRegistry({ persona }), [persona]);
   const activeRegistryAppId = useMemo(
