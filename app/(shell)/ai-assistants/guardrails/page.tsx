@@ -1,7 +1,12 @@
 "use client";
 
+import { Suspense } from "react";
 import { GuardrailsShell } from "@/components/shared/guardrails/GuardrailsShell";
 
 export default function GuardrailsPage() {
-  return <GuardrailsShell context="assistants" />;
+  return (
+    <Suspense fallback={<div className="p-6">Loading...</div>}>
+      <GuardrailsShell context="assistants" />
+    </Suspense>
+  );
 }

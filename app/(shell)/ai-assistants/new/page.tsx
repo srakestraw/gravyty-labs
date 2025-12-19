@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-static';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { canManageAssistants } from '@/lib/roles';
@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { mockTemplates, mockGlobalGuardrails } from '../lib/data';
 
-export default function EnableNewAssistantPage() {
+function EnableNewAssistantContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
@@ -231,6 +231,14 @@ export default function EnableNewAssistantPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function EnableNewAssistantPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <EnableNewAssistantContent />
+    </Suspense>
   );
 }
 

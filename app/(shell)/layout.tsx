@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { AppHeader } from './components/app-header';
 import { AppSidebar } from './components/app-sidebar';
 import { usePlatformStore } from '@/lib/store';
@@ -15,7 +15,11 @@ function ShellContent({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden">
       {chromeVisibility.header !== false && <AppHeader />}
-      {chromeVisibility.sidebar !== false && <AppSidebar />}
+      {chromeVisibility.sidebar !== false && (
+        <Suspense fallback={<div className="w-16 md:w-64" />}>
+          <AppSidebar />
+        </Suspense>
+      )}
       <main 
         className={cn(
           'flex-1 overflow-hidden transition-all duration-300',

@@ -1,17 +1,24 @@
 'use client';
 
+import { Suspense } from 'react';
 import { CommandCenterPageClient } from '@/components/shared/ai-platform/CommandCenterPageClient';
 
-export default function CommunityPage() {
+function CommunityContent() {
   const context = {
     appId: 'alumni-engagement',
     workspaceId: 'alumni-engagement',
     mode: 'workspace' as const,
   };
 
+  return <CommandCenterPageClient context={context} />;
+}
+
+export default function CommunityPage() {
   return (
     <main className="space-y-6 p-6">
-      <CommandCenterPageClient context={context} />
+      <Suspense fallback={<div>Loading...</div>}>
+        <CommunityContent />
+      </Suspense>
     </main>
   );
 }

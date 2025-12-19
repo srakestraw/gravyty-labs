@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { AssistantPageClient } from '@/components/shared/ai-platform/AssistantPageClient';
 import { getWorkspaceDefaults, WORKSPACES } from '@/lib/student-lifecycle/workspaces';
 
@@ -33,7 +34,9 @@ export default function StudentLifecycleAssistantPage({ params }: PageProps) {
 
   return (
     <main className="space-y-6 p-6">
-      <AssistantPageClient context={context} />
+      <Suspense fallback={<div>Loading...</div>}>
+        <AssistantPageClient context={context} />
+      </Suspense>
     </main>
   );
 }

@@ -1,17 +1,24 @@
 'use client';
 
+import { Suspense } from 'react';
 import { CommandCenterPageClient } from '@/components/shared/ai-platform/CommandCenterPageClient';
 
-export default function AdvancementCommandCenterPage() {
+function AdvancementAIContent() {
   const context = {
     appId: 'advancement',
     workspaceId: 'advancement',
     mode: 'workspace' as const,
   };
 
+  return <CommandCenterPageClient context={context} />;
+}
+
+export default function AdvancementCommandCenterPage() {
   return (
     <main className="space-y-6 p-6">
-      <CommandCenterPageClient context={context} />
+      <Suspense fallback={<div>Loading...</div>}>
+        <AdvancementAIContent />
+      </Suspense>
     </main>
   );
 }
