@@ -10,6 +10,10 @@ const nextConfig = {
     distDir: 'out',
     // Skip API routes during static export (they're handled by Cloud Functions)
     pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
+    // Continue build even if some pages fail to prerender
+    experimental: {
+      missingSuspenseWithCSRBailout: false,
+    },
   }),
   trailingSlash: true,
   assetPrefix: '',

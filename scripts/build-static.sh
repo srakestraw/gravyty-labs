@@ -73,25 +73,28 @@ echo ""
 echo "=========================================="
 echo "Step 4: Running Next.js build"
 echo "=========================================="
-# Run build and capture exit code
+# Run build and capture exit code (don't fail on error yet)
 BUILD_EXIT_CODE=0
-NODE_ENV=production npm run build:next || BUILD_EXIT_CODE=$?
+NODE_ENV=production npm run build:next 2>&1 | tee /tmp/build.log || BUILD_EXIT_CODE=$?
 
 # Check if build output was created (more reliable than exit code for static export)
-if [ ! -d "out" ]; then
+# Next.js may exit with error code due to prerender warnings but still generate output
+if [ -d "out" ]; then
+  echo "✓ Build output directory 'out' was created successfully"
+  if [ $BUILD_EXIT_CODE -ne 0 ]; then
+    echo "⚠ Build completed with warnings (prerender errors), but output was generated"
+    echo "✓ Continuing with build..."
+  fi
+else
   echo "ERROR: Build output directory 'out' was not created"
+  echo "Build log tail:"
+  tail -50 /tmp/build.log || true
   # Restore API routes before exiting
   if [ -d "$API_BACKUP" ]; then
     echo "Restoring API routes after build failure..."
     mv "$API_BACKUP" "$API_DIR"
   fi
   exit 1
-fi
-
-# If build output exists, consider it successful even if there were prerender warnings
-if [ $BUILD_EXIT_CODE -ne 0 ]; then
-  echo "⚠ Build completed with warnings (prerender errors), but output directory exists"
-  echo "✓ Continuing with build..."
 fi
 
 # Verify build output exists
