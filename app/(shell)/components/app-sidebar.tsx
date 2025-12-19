@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { usePlatformStore } from '@/lib/store';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { canAccessAIAssistants } from '@/lib/roles';
@@ -67,6 +67,8 @@ function getSidebarNav(persona: Persona): NavItem[] {
 export function AppSidebar() {
   const { sidebarOpen, activeApp } = usePlatformStore();
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
   const aiAssistantsEnabled = useFeatureFlag('ai_assistants');
   const { persona } = usePersona();
@@ -129,10 +131,29 @@ export function AppSidebar() {
   );
 
   // Working mode hook for Pipeline workspace
+  // Read mode from URL params (URL wins), fallback to localStorage, then default to 'team'
+  const urlMode = searchParams?.get('mode');
+  const pipelineModeFromUrl = urlMode === 'team' || urlMode === 'leadership' ? urlMode : undefined;
   const { mode: pipelineWorkingMode, setMode: setPipelineWorkingMode } = useWorkspaceMode(
     isInPipeline ? 'pipeline' : undefined,
-    'team'
+    pipelineModeFromUrl || 'team'
   );
+
+  // Sync URL mode with localStorage mode
+  useEffect(() => {
+    if (!isInPipeline) return;
+    
+    // If URL has mode param, sync it to localStorage
+    if (pipelineModeFromUrl && pipelineWorkingMode !== pipelineModeFromUrl) {
+      setPipelineWorkingMode(pipelineModeFromUrl);
+    }
+    // If URL doesn't have mode param but localStorage does, update URL
+    else if (!pipelineModeFromUrl && pipelineWorkingMode) {
+      const params = new URLSearchParams(searchParams?.toString() || '');
+      params.set('mode', pipelineWorkingMode);
+      router.replace(`/advancement/pipeline?${params.toString()}`, { scroll: false });
+    }
+  }, [isInPipeline, pipelineModeFromUrl, pipelineWorkingMode, searchParams, router, setPipelineWorkingMode]);
 
   const appRegistry = useMemo(() => getAppRegistry({ persona }), [persona]);
   const activeRegistryAppId = useMemo(
@@ -631,7 +652,11 @@ type Navigation =
                 </div>
                 <div className="flex gap-1 px-3">
                   <button
-                    onClick={() => setPipelineWorkingMode('team')}
+                    onClick={() => {
+                      const params = new URLSearchParams(searchParams?.toString() || '');
+                      params.set('mode', 'team');
+                      router.push(`/advancement/pipeline?${params.toString()}`);
+                    }}
                     className={cn(
                       'flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors',
                       pipelineWorkingMode === 'team'
@@ -642,7 +667,11 @@ type Navigation =
                     Team
                   </button>
                   <button
-                    onClick={() => setPipelineWorkingMode('leadership')}
+                    onClick={() => {
+                      const params = new URLSearchParams(searchParams?.toString() || '');
+                      params.set('mode', 'leadership');
+                      router.push(`/advancement/pipeline?${params.toString()}`);
+                    }}
                     className={cn(
                       'flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors',
                       pipelineWorkingMode === 'leadership'

@@ -6,6 +6,7 @@ import { canManageAssistants } from '@/lib/roles';
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { PersonaGoalTracker } from '@/components/shared/persona-goal-tracker';
 import { personaGoalConfigs, PersonaKey } from '@/components/shared/ai-platform/persona-goal-config';
@@ -1190,6 +1191,7 @@ const personaLabels: Record<Persona, string> = {
 export function CommandCenterPageClient({ context }: { context?: AiPlatformPageContext }) {
   const { user } = useAuth();
   const canManage = canManageAssistants(user?.email || user?.uid);
+  const searchParams = useSearchParams();
   const [selectedPersona, setSelectedPersona] = useState<Persona>('admissions');
   const [showWins, setShowWins] = useState(true);
   const [showAssistants, setShowAssistants] = useState(true);
@@ -1257,9 +1259,14 @@ export function CommandCenterPageClient({ context }: { context?: AiPlatformPageC
   const workingModeWorkspaceId = isPipelineWorkspace ? 'pipeline' : 
     (workspaceConfig?.enableWorkingModeSelector ? context?.workspaceId : undefined);
 
+  // Read mode from URL params (URL wins), fallback to localStorage/default
+  const urlMode = searchParams?.get('mode');
+  const urlModeValid = urlMode === 'team' || urlMode === 'leadership' ? urlMode : undefined;
+  const defaultMode = urlModeValid || workspaceConfig?.workingModeDefault || 'team';
+
   const { mode: workingMode } = useWorkspaceMode(
     workingModeWorkspaceId,
-    workspaceConfig?.workingModeDefault || 'team'
+    defaultMode
   );
 
   // Resolve the Command Center instance key (only for workspace mode)
@@ -1464,33 +1471,11 @@ export function CommandCenterPageClient({ context }: { context?: AiPlatformPageC
           />
         </>
       ) : isAdvancementLeadership ? (
-        <>
-          {/* Hero / Greeting - Same header as operator mode */}
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500">
-                  Advancement Workspace
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  {getGreeting()}, {userName}.
-                </h2>
-                <p className="text-gray-600 mb-3">
-                  You're viewing the Advancement workspace in the AI Command Center.
-                </p>
-                <div className="space-y-1">
-                  <p className="text-sm text-gray-700 font-medium">{personaConfigs['advancement'].description}</p>
-                  <ul className="list-disc list-inside space-y-1 text-sm text-gray-600 ml-2">
-                    {personaConfigs['advancement'].descriptionBullets.map((bullet, index) => (
-                      <li key={index}>{bullet}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-          <AdvancementLeadershipCommandCenter />
-        </>
+        <AdvancementLeadershipCommandCenter 
+          context={context}
+          recommendedAgents={recommendedAgents}
+          basePath={basePath}
+        />
       ) : isAdvancementTeam ? (
         <>
           {/* Compact header - reduced height for better focus */}

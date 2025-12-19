@@ -64,12 +64,28 @@ export interface DataProvider {
   getPipelineTeamTodaysFocus(ctx: DataContext): Promise<AdmissionsOperatorTodaysFocusData | null>;
   getPipelineTeamGamePlan(ctx: DataContext): Promise<AdmissionsOperatorGamePlanData | null>;
   getPipelineTeamMomentum(ctx: DataContext): Promise<AdmissionsOperatorMomentumData | null>;
+  getPipelineTeamPortfolioHealth(ctx: DataContext): Promise<PipelineLeadershipPortfolioHealthData | null>;
   getPipelineTeamFlaggedRisks(ctx: DataContext): Promise<AdmissionsOperatorFlaggedRiskData[]>;
   getPipelineTeamGoalTracker(ctx: DataContext, timeframe?: 'week' | 'month' | 'quarter' | 'fiscalYear'): Promise<AdmissionsOperatorGoalTrackerData | null>;
   getPipelineTeamForecast(ctx: DataContext): Promise<PipelineTeamForecastData | null>;
   getPipelineTeamAssistants(ctx: DataContext): Promise<AdmissionsOperatorAssistantData[]>;
   getPipelineTeamRecentWins(ctx: DataContext): Promise<AdmissionsOperatorRecentWinData[]>;
   getPipelineTeamRecentActivity(ctx: DataContext): Promise<AdmissionsOperatorRecentActivityData[]>;
+
+  // Pipeline Leadership Command Center
+  getPipelineLeadershipStatusSummary(ctx: DataContext): Promise<PipelineLeadershipStatusSummaryData | null>;
+  getPipelineLeadershipKeyRisksAndOpportunities(ctx: DataContext): Promise<PipelineLeadershipKeyRiskOrOpportunity[]>;
+  getPipelineLeadershipWhatChanged(ctx: DataContext): Promise<string[]>;
+  getPipelineLeadershipRecommendedInterventions(ctx: DataContext): Promise<PipelineLeadershipIntervention[]>;
+  getPipelineLeadershipWhatToWatchNext(ctx: DataContext): Promise<string[]>;
+  getPipelineLeadershipInsightsAndTracking(ctx: DataContext): Promise<PipelineLeadershipInsightsData | null>;
+  getPipelineLeadershipPortfolioHealth(ctx: DataContext): Promise<PipelineLeadershipPortfolioHealthData | null>;
+  getPipelineLeadershipForecast(ctx: DataContext): Promise<PipelineLeadershipForecastData | null>;
+  getPipelineLeadershipTeamForecastSnapshot(ctx: DataContext): Promise<PipelineLeadershipTeamForecastSnapshotData | null>;
+  getPipelineLeadershipFlaggedRisks(ctx: DataContext): Promise<AdmissionsOperatorFlaggedRiskData[]>;
+  getPipelineLeadershipRecentWins(ctx: DataContext): Promise<AdmissionsOperatorRecentWinData[]>;
+  getPipelineLeadershipAssistants(ctx: DataContext): Promise<AdmissionsOperatorAssistantData[]>;
+  getPipelineLeadershipRecentActivity(ctx: DataContext): Promise<AdmissionsOperatorRecentActivityData[]>;
 
   // Admissions Team Game Plan (for Queue integration)
   getAdmissionsTeamGamePlan(ctx: DataContext): Promise<AdmissionsTeamGamePlanData | null>;
@@ -351,6 +367,90 @@ export interface PipelineTeamForecastData {
   primaryRiskDriver: string;
   timeContextLabel: string;
   timeContextDateISO: string;
+}
+
+// Pipeline Leadership Forecast Data
+export interface PipelineLeadershipForecastData {
+  quarterGoal: number;
+  forecastTotal: number; // committed + most likely
+  gap: number; // forecastTotal - quarterGoal (can be negative)
+  confidence: 'high' | 'medium' | 'low';
+  committedAmount: number;
+  mostLikelyAmount: number;
+  atRiskAmount: number;
+  currency: 'USD';
+  primaryRiskDriver: string;
+  timeContextLabel: string;
+  timeContextDateISO: string;
+}
+
+// Pipeline Leadership Portfolio Health Data
+export interface PipelineLeadershipPortfolioHealthData {
+  title: string;
+  subtitle?: string;
+  metrics: Array<{
+    id: string;
+    label: string;
+    value: string | number;
+    status: 'on-track' | 'slightly-behind' | 'at-risk';
+  }>;
+}
+
+// Pipeline Leadership Team Forecast Snapshot Data
+export type ForecastStatus = 'on-track' | 'slightly-behind' | 'at-risk';
+
+export interface PipelineLeadershipTeamForecastSnapshotRow {
+  id: string;
+  name: string;
+  status: ForecastStatus;
+  committedAmount: number;
+  mostLikelyAmount: number;
+  atRiskAmount: number;
+  primaryRiskDriver: string; // short phrase, not a paragraph
+  nextCloseDateISO: string; // for TimePill "Due in Xd"
+}
+
+export interface PipelineLeadershipTeamForecastSnapshotData {
+  title: string;
+  subtitle: string;
+  timeframeLabel: 'This quarter';
+  rows: PipelineLeadershipTeamForecastSnapshotRow[];
+}
+
+// Pipeline Leadership Intelligence Data
+export interface PipelineLeadershipStatusSummaryData {
+  statusSummary: string;
+}
+
+export interface PipelineLeadershipKeyRiskOrOpportunity {
+  id: string;
+  title: string;
+  description: string;
+  severity: 'high' | 'medium' | 'low';
+  forecastImpactLabel: string;
+  type: 'risk' | 'opportunity';
+}
+
+export interface PipelineLeadershipIntervention {
+  id: string;
+  title: string;
+  rationale: string;
+  estimatedImpact: string;
+  primaryOwner?: string;
+  ctas: Array<{ label: string; actionKey: string }>;
+}
+
+export interface PipelineLeadershipInsightMetric {
+  id: string;
+  label: string;
+  value: string;
+  subtext?: string;
+}
+
+export interface PipelineLeadershipInsightsData {
+  outcomeCoverage: PipelineLeadershipInsightMetric[];
+  flowHealth: PipelineLeadershipInsightMetric[];
+  interventionImpact: PipelineLeadershipInsightMetric[];
 }
 
 // Admissions Team Game Plan (for Queue integration)

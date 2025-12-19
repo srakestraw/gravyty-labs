@@ -16,6 +16,13 @@ import type {
   AdmissionsOperatorRecentActivityData,
   AdmissionsTeamGamePlanData,
   PipelineTeamForecastData,
+  PipelineLeadershipForecastData,
+  PipelineLeadershipPortfolioHealthData,
+  PipelineLeadershipTeamForecastSnapshotData,
+  PipelineLeadershipStatusSummaryData,
+  PipelineLeadershipKeyRiskOrOpportunity,
+  PipelineLeadershipIntervention,
+  PipelineLeadershipInsightsData,
   ProgramMatchHubSummary,
   ProgramMatchChecklistItem,
   ProgramMatchLibrariesSummary,
@@ -1591,6 +1598,581 @@ export const mockProvider: DataProvider = {
         text: 'Moves Management Assistant updated 3 stages from your notes',
       },
     ];
+  },
+
+  async getPipelineTeamPortfolioHealth(ctx: DataContext): Promise<PipelineLeadershipPortfolioHealthData | null> {
+    await delay(100);
+    
+    // Normalize mode for backwards compatibility (accept 'operator' or 'team')
+    const normalizedMode = ctx.mode === 'operator' || ctx.mode === 'team' ? 'team' : ctx.mode;
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || normalizedMode !== 'team') {
+      return null;
+    }
+
+    return {
+      title: 'Portfolio Health',
+      subtitle: 'Quick signals to keep relationships moving',
+      metrics: [
+        {
+          id: 'next-step-coverage',
+          label: 'Next-step coverage',
+          value: '78%',
+          status: 'slightly-behind',
+        },
+        {
+          id: 'late-stage-stalled',
+          label: 'Late-stage stalled > 21d',
+          value: '12',
+          status: 'at-risk',
+        },
+        {
+          id: 'no-touch-30d',
+          label: 'No touch in 30d',
+          value: '9',
+          status: 'slightly-behind',
+        },
+        {
+          id: 'stewardship-on-time',
+          label: 'Stewardship on-time',
+          value: '86%',
+          status: 'on-track',
+        },
+      ],
+    };
+  },
+
+  // Pipeline Leadership Command Center
+  async getPipelineLeadershipTodaysFocus(ctx: DataContext): Promise<AdmissionsOperatorTodaysFocusData | null> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || ctx.mode !== 'leadership') {
+      return null;
+    }
+
+    return {
+      text: "Protect quarter-end forecast, tighten next steps for top prospects, and remove late-stage blockers.",
+    };
+  },
+
+  async getPipelineLeadershipGamePlan(ctx: DataContext): Promise<AdmissionsOperatorGamePlanData | null> {
+    await delay(150);
+    
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || ctx.mode !== 'leadership') {
+      return null;
+    }
+
+    return {
+      total: 3,
+      completed: 0,
+      coachMessage: "Your best leverage today is improving coverage and removing blockers on late-stage proposals.",
+      items: [
+        {
+          id: 'review-late-stage-opportunities',
+          title: 'Review 10 late-stage opportunities at risk',
+          description: 'Focus on proposals over $50K without next steps in the last 21 days.',
+          impactHint: 'Addressing these could recover $350K in forecast variance.',
+          status: 'open',
+          ctas: [
+            { label: 'Open', href: '/advancement/pipeline/agent-ops/queue?filter=late-stage-at-risk' },
+            { label: 'Let AI suggest next step', href: '/advancement/pipeline/assistant' },
+          ],
+        },
+        {
+          id: 'fix-next-step-coverage',
+          title: 'Fix next-step coverage for top 50 prospects',
+          description: 'Ensure every top prospect has a clear next step scheduled within 14 days.',
+          impactHint: 'Improving coverage reduces forecast risk by 18%.',
+          status: 'open',
+          ctas: [
+            { label: 'Open', href: '/advancement/pipeline/agent-ops/queue?filter=missing-next-steps' },
+            { label: 'Let AI suggest next step', href: '/advancement/pipeline/assistant' },
+          ],
+        },
+        {
+          id: 'clear-proposal-blockers',
+          title: 'Clear proposal blockers for 3 high-value asks',
+          description: 'Remove blockers preventing advancement on proposals over $100K.',
+          impactHint: 'Unblocking these could add $300K to committed forecast.',
+          status: 'open',
+          ctas: [
+            { label: 'Open', href: '/advancement/pipeline/agent-ops/queue?filter=blocked-proposals' },
+            { label: 'Let AI suggest next step', href: '/advancement/pipeline/assistant' },
+          ],
+        },
+      ],
+    };
+  },
+
+  async getPipelineLeadershipPortfolioHealth(ctx: DataContext): Promise<PipelineLeadershipPortfolioHealthData | null> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || ctx.mode !== 'leadership') {
+      return null;
+    }
+
+    return {
+      title: 'Portfolio Health',
+      subtitle: 'Key performance indicators for your team',
+      metrics: [
+        {
+          id: 'next-step-coverage',
+          label: 'Next-step coverage',
+          value: '78%',
+          status: 'slightly-behind',
+        },
+        {
+          id: 'late-stage-stalled',
+          label: 'Late-stage stalled > 21d',
+          value: '12',
+          status: 'at-risk',
+        },
+        {
+          id: 'stewardship-sla',
+          label: 'Stewardship SLA on-time',
+          value: '86%',
+          status: 'on-track',
+        },
+        {
+          id: 'lybunt-recovery-pace',
+          label: 'LYBUNT recovery pace',
+          value: '54%',
+          status: 'slightly-behind',
+        },
+      ],
+    };
+  },
+
+  async getPipelineLeadershipForecast(ctx: DataContext): Promise<PipelineLeadershipForecastData | null> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || ctx.mode !== 'leadership') {
+      return null;
+    }
+
+    const quarterGoal = 2000000; // $2.0M
+    const committedAmount = 720000; // $720K
+    const mostLikelyAmount = 930000; // $930K
+    const atRiskAmount = 610000; // $610K
+    const forecastTotal = committedAmount + mostLikelyAmount; // $1.65M
+    const gap = forecastTotal - quarterGoal; // -$350K
+
+    // Calculate quarter end date (end of current quarter)
+    const now = new Date();
+    const quarter = Math.floor(now.getMonth() / 3);
+    const quarterEnd = new Date(now.getFullYear(), (quarter + 1) * 3, 0);
+    quarterEnd.setHours(23, 59, 59, 999);
+
+    return {
+      quarterGoal,
+      forecastTotal,
+      gap,
+      confidence: 'medium',
+      committedAmount,
+      mostLikelyAmount,
+      atRiskAmount,
+      currency: 'USD',
+      primaryRiskDriver: 'Most variance is concentrated in 6 late-stage proposals without next steps.',
+      timeContextLabel: 'Quarter ends',
+      timeContextDateISO: quarterEnd.toISOString(),
+    };
+  },
+
+  async getPipelineLeadershipFlaggedRisks(ctx: DataContext): Promise<AdmissionsOperatorFlaggedRiskData[]> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || ctx.mode !== 'leadership') {
+      return [];
+    }
+
+    return [
+      {
+        id: 'risk-1',
+        title: '6 late-stage proposals without next steps',
+        description: 'These proposals represent $610K in at-risk forecast. Without intervention, they may slip to next quarter.',
+        severity: 'high',
+      },
+      {
+        id: 'risk-2',
+        title: 'Next-step coverage below target',
+        description: 'Team-wide next-step coverage is 78%, below the 85% target. This increases forecast risk.',
+        severity: 'medium',
+      },
+      {
+        id: 'risk-3',
+        title: 'LYBUNT recovery pace slowing',
+        description: 'Recovery pace is 54%, down from 62% last quarter. This may impact annual goals.',
+        severity: 'medium',
+      },
+    ];
+  },
+
+  async getPipelineLeadershipRecentWins(ctx: DataContext): Promise<AdmissionsOperatorRecentWinData[]> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || ctx.mode !== 'leadership') {
+      return [];
+    }
+
+    return [
+      {
+        id: 'win-1',
+        text: 'Team closed $180K in committed forecast this week',
+        detail: '3 proposals moved to committed status',
+        assistantName: 'Forecast Quality Agent',
+      },
+      {
+        id: 'win-2',
+        text: 'Next-step coverage improved 8% week-over-week',
+        detail: 'From 70% to 78%',
+        assistantName: 'Portfolio Coverage Agent',
+      },
+      {
+        id: 'win-3',
+        text: 'Cleared blockers on 2 high-value proposals',
+        detail: '$150K total ask value',
+        assistantName: 'Proposal Risk Agent',
+      },
+    ];
+  },
+
+  async getPipelineLeadershipAssistants(ctx: DataContext): Promise<AdmissionsOperatorAssistantData[]> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || ctx.mode !== 'leadership') {
+      return [];
+    }
+
+    return [
+      {
+        id: 'portfolio-coverage-agent',
+        name: 'Portfolio Coverage Agent',
+        status: 'active',
+        description: 'Monitors next-step coverage across the team and flags gaps.',
+        impact: 'Improved coverage by 8% this week',
+      },
+      {
+        id: 'forecast-quality-agent',
+        name: 'Forecast Quality Agent',
+        status: 'draft',
+        description: 'Analyzes forecast variance and identifies risk drivers.',
+        impact: 'Identified 6 proposals at risk',
+      },
+      {
+        id: 'proposal-risk-agent',
+        name: 'Proposal Risk Agent',
+        status: 'paused',
+        description: 'Surfaces stalled proposals and suggests interventions.',
+        impact: 'Cleared blockers on 2 proposals',
+      },
+    ];
+  },
+
+  async getPipelineLeadershipRecentActivity(ctx: DataContext): Promise<AdmissionsOperatorRecentActivityData[]> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || ctx.mode !== 'leadership') {
+      return [];
+    }
+
+    return [
+      {
+        id: 'activity-1',
+        timestamp: '11:15 AM',
+        text: 'Forecast Quality Agent identified 6 late-stage proposals at risk',
+      },
+      {
+        id: 'activity-2',
+        timestamp: '9:42 AM',
+        text: 'Portfolio Coverage Agent flagged 12 opportunities missing next steps',
+      },
+      {
+        id: 'activity-3',
+        timestamp: '8:30 AM',
+        text: 'Proposal Risk Agent surfaced 3 blocked proposals requiring intervention',
+      },
+      {
+        id: 'activity-4',
+        timestamp: 'Yesterday 5:00 PM',
+        text: 'Team closed $180K in committed forecast',
+      },
+    ];
+  },
+
+  async getPipelineLeadershipTeamForecastSnapshot(ctx: DataContext): Promise<PipelineLeadershipTeamForecastSnapshotData | null> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || ctx.mode !== 'leadership') {
+      return null;
+    }
+
+    // Calculate dates relative to now
+    const now = new Date();
+    const date10Days = new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000);
+    const date7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const date15Days = new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000);
+    const date18Days = new Date(now.getTime() + 18 * 24 * 60 * 60 * 1000);
+    const date22Days = new Date(now.getTime() + 22 * 24 * 60 * 60 * 1000);
+    const date25Days = new Date(now.getTime() + 25 * 24 * 60 * 60 * 1000);
+
+    const rows = [
+      {
+        id: 'ava-martinez',
+        name: 'Ava Martinez',
+        status: 'at-risk' as const,
+        committedAmount: 90000,
+        mostLikelyAmount: 110000,
+        atRiskAmount: 220000,
+        primaryRiskDriver: 'Late-stage proposals missing next steps',
+        nextCloseDateISO: date10Days.toISOString(),
+      },
+      {
+        id: 'jordan-lee',
+        name: 'Jordan Lee',
+        status: 'slightly-behind' as const,
+        committedAmount: 140000,
+        mostLikelyAmount: 210000,
+        atRiskAmount: 160000,
+        primaryRiskDriver: 'Proposal approvals stalled',
+        nextCloseDateISO: date18Days.toISOString(),
+      },
+      {
+        id: 'sam-patel',
+        name: 'Sam Patel',
+        status: 'on-track' as const,
+        committedAmount: 210000,
+        mostLikelyAmount: 240000,
+        atRiskAmount: 90000,
+        primaryRiskDriver: 'Meeting pacing slightly behind',
+        nextCloseDateISO: date25Days.toISOString(),
+      },
+      {
+        id: 'morgan-chen',
+        name: 'Morgan Chen',
+        status: 'at-risk' as const,
+        committedAmount: 60000,
+        mostLikelyAmount: 95000,
+        atRiskAmount: 180000,
+        primaryRiskDriver: 'Portfolio coverage gaps in top prospects',
+        nextCloseDateISO: date7Days.toISOString(),
+      },
+      {
+        id: 'riley-johnson',
+        name: 'Riley Johnson',
+        status: 'on-track' as const,
+        committedAmount: 175000,
+        mostLikelyAmount: 195000,
+        atRiskAmount: 80000,
+        primaryRiskDriver: 'Stewardship SLA backlog emerging',
+        nextCloseDateISO: date22Days.toISOString(),
+      },
+      {
+        id: 'taylor-brooks',
+        name: 'Taylor Brooks',
+        status: 'slightly-behind' as const,
+        committedAmount: 120000,
+        mostLikelyAmount: 160000,
+        atRiskAmount: 140000,
+        primaryRiskDriver: 'LYBUNT recovery pacing behind',
+        nextCloseDateISO: date15Days.toISOString(),
+      },
+    ];
+
+    // Sort: at-risk first, then slightly-behind, then on-track
+    // Within status, sort by largest at-risk amount, then by name
+    const statusOrder: Record<'at-risk' | 'slightly-behind' | 'on-track', number> = {
+      'at-risk': 0,
+      'slightly-behind': 1,
+      'on-track': 2,
+    };
+
+    const sortedRows = [...rows].sort((a, b) => {
+      const statusDiff = statusOrder[a.status] - statusOrder[b.status];
+      if (statusDiff !== 0) return statusDiff;
+      // Within same status, sort by at-risk amount (descending), then by name
+      const atRiskDiff = b.atRiskAmount - a.atRiskAmount;
+      if (atRiskDiff !== 0) return atRiskDiff;
+      return a.name.localeCompare(b.name);
+    });
+
+    return {
+      title: 'Team Forecast Snapshot',
+      subtitle: 'Where support is needed this quarter',
+      timeframeLabel: 'This quarter',
+      rows: sortedRows,
+    };
+  },
+
+  // Pipeline Leadership Intelligence Methods
+  async getPipelineLeadershipStatusSummary(ctx: DataContext): Promise<PipelineLeadershipStatusSummaryData | null> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || ctx.mode !== 'leadership') {
+      return null;
+    }
+
+    return {
+      statusSummary: "Based on current portfolio coverage and late-stage progression, the team is forecasted to land ~$350K below quarter goal unless next-step gaps and proposal blockers are addressed. The primary controllable risk is missing next steps on 6 late-stage proposals and coverage below target for top prospects.",
+    };
+  },
+
+  async getPipelineLeadershipKeyRisksAndOpportunities(ctx: DataContext): Promise<PipelineLeadershipKeyRiskOrOpportunity[]> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || ctx.mode !== 'leadership') {
+      return [];
+    }
+
+    return [
+      {
+        id: 'risk-1',
+        title: 'Late-stage proposals without next steps',
+        description: '6 proposals over $50K have been in late-stage for more than 21 days without scheduled next steps, representing $610K in at-risk forecast.',
+        severity: 'high',
+        forecastImpactLabel: '-$610K at risk',
+        type: 'risk',
+      },
+      {
+        id: 'risk-2',
+        title: 'Coverage below target in top prospects',
+        description: 'Next-step coverage for top 50 prospects is 78%, below the 85% target. This increases forecast variance risk.',
+        severity: 'medium',
+        forecastImpactLabel: '-$180K forecast risk',
+        type: 'risk',
+      },
+      {
+        id: 'opportunity-1',
+        title: 'Stewardship SLA improvements sustaining repeat giving',
+        description: 'Stewardship on-time rate improved to 86% this week. Maintaining this pace could improve LYBUNT recovery by 8-12%.',
+        severity: 'medium',
+        forecastImpactLabel: '+$120K potential recovery',
+        type: 'opportunity',
+      },
+    ];
+  },
+
+  async getPipelineLeadershipWhatChanged(ctx: DataContext): Promise<string[]> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || ctx.mode !== 'leadership') {
+      return [];
+    }
+
+    return [
+      'Next-step coverage improved from 70% to 78% week-over-week',
+      'At-risk amount increased by $90K due to 2 slipped close dates',
+      'Committed increased by $180K from 3 proposals moving to committed status',
+      'Stewardship on-time improved to 86% (up from 82%)',
+      'LYBUNT recovery pace declined from 58% to 54%',
+      'Late-stage stalled count increased from 8 to 12 opportunities',
+    ];
+  },
+
+  async getPipelineLeadershipRecommendedInterventions(ctx: DataContext): Promise<PipelineLeadershipIntervention[]> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || ctx.mode !== 'leadership') {
+      return [];
+    }
+
+    return [
+      {
+        id: 'intervention-1',
+        title: 'Review late-stage risks',
+        rationale: 'Addressing 6 late-stage proposals without next steps could recover $350K in forecast variance.',
+        estimatedImpact: 'Recover $350K',
+        primaryOwner: 'Team Leads',
+        ctas: [
+          { label: 'Review late-stage risks', actionKey: 'review-late-stage' },
+        ],
+      },
+      {
+        id: 'intervention-2',
+        title: 'Fix coverage gaps',
+        rationale: 'Improving next-step coverage for top 50 prospects from 78% to 85% reduces forecast risk by 18%.',
+        estimatedImpact: 'Reduce risk by $180K',
+        primaryOwner: 'Portfolio Managers',
+        ctas: [
+          { label: 'Fix coverage gaps', actionKey: 'fix-coverage' },
+        ],
+      },
+      {
+        id: 'intervention-3',
+        title: 'Clear proposal blockers',
+        rationale: 'Removing blockers on 3 high-value proposals over $100K could add $300K to committed forecast.',
+        estimatedImpact: 'Add $300K to committed',
+        primaryOwner: 'Proposal Team',
+        ctas: [
+          { label: 'Clear proposal blockers', actionKey: 'clear-blockers' },
+        ],
+      },
+      {
+        id: 'intervention-4',
+        title: 'Launch stewardship rescue',
+        rationale: 'Accelerating stewardship touches for LYBUNT prospects could improve recovery pace by 8-12%.',
+        estimatedImpact: 'Improve recovery by $120K',
+        primaryOwner: 'Stewardship Team',
+        ctas: [
+          { label: 'Launch stewardship rescue', actionKey: 'stewardship-rescue' },
+        ],
+      },
+    ];
+  },
+
+  async getPipelineLeadershipWhatToWatchNext(ctx: DataContext): Promise<string[]> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || ctx.mode !== 'leadership') {
+      return [];
+    }
+
+    return [
+      'Next-step creation rate for top prospects over next 48 hours',
+      'Late-stage stage-aging trend after intervention',
+      'Stewardship SLA backlog trend',
+      'LYBUNT recovery touches pacing',
+      'Proposal blocker resolution rate',
+    ];
+  },
+
+  async getPipelineLeadershipInsightsAndTracking(ctx: DataContext): Promise<PipelineLeadershipInsightsData | null> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || ctx.mode !== 'leadership') {
+      return null;
+    }
+
+    return {
+      outcomeCoverage: [
+        {
+          id: 'top-prospects-next-steps',
+          label: 'Top prospects with next steps',
+          value: '78%',
+          subtext: 'Target: 85%',
+        },
+      ],
+      flowHealth: [
+        {
+          id: 'avg-late-stage-age',
+          label: 'Avg late-stage age',
+          value: '19.4d',
+          subtext: 'Target: 14d (+5.4d)',
+        },
+      ],
+      interventionImpact: [
+        {
+          id: 'committed-moved',
+          label: 'Moved to committed this week',
+          value: '$180K',
+          subtext: '3 proposals',
+        },
+        {
+          id: 'at-risk-reduced',
+          label: 'At-risk variance reduced',
+          value: '-$90K',
+          subtext: 'From intervention',
+        },
+      ],
+    };
   },
 
   // Admissions Team Game Plan (for Queue integration)

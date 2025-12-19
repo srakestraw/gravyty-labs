@@ -12,6 +12,7 @@ import type {
   AdmissionsOperatorRecentWinData,
   AdmissionsOperatorRecentActivityData,
   PipelineTeamForecastData,
+  PipelineLeadershipPortfolioHealthData,
 } from '@/lib/data/provider';
 import {
   TodaysFocusCard,
@@ -20,6 +21,7 @@ import {
   FlaggedRisksCard,
   GoalTrackerCard,
   PipelineTeamForecastCard,
+  PortfolioHealthCard,
   AssistantsWorkingCard,
   RecentWinsCard,
   RecentActivityCard,
@@ -44,6 +46,7 @@ export function AdvancementOperatorCommandCenter({
   const [todaysFocus, setTodaysFocus] = useState<AdmissionsOperatorTodaysFocusData | null>(null);
   const [gamePlan, setGamePlan] = useState<AdmissionsOperatorGamePlanData | null>(null);
   const [momentum, setMomentum] = useState<AdmissionsOperatorMomentumData | null>(null);
+  const [portfolioHealth, setPortfolioHealth] = useState<PipelineLeadershipPortfolioHealthData | null>(null);
   const [flaggedRisks, setFlaggedRisks] = useState<AdmissionsOperatorFlaggedRiskData[]>([]);
   const [goalTracker, setGoalTracker] = useState<AdmissionsOperatorGoalTrackerData | null>(null);
   const [forecast, setForecast] = useState<PipelineTeamForecastData | null>(null);
@@ -73,6 +76,7 @@ export function AdvancementOperatorCommandCenter({
           focusData,
           gamePlanData,
           momentumData,
+          portfolioHealthData,
           risksData,
           goalData,
           forecastData,
@@ -83,6 +87,7 @@ export function AdvancementOperatorCommandCenter({
           dataClient.getPipelineTeamTodaysFocus(ctx),
           dataClient.getPipelineTeamGamePlan(ctx),
           dataClient.getPipelineTeamMomentum(ctx),
+          dataClient.getPipelineTeamPortfolioHealth(ctx),
           dataClient.getPipelineTeamFlaggedRisks(ctx),
           dataClient.getPipelineTeamGoalTracker(ctx, defaultTimeframe),
           dataClient.getPipelineTeamForecast(ctx),
@@ -94,12 +99,18 @@ export function AdvancementOperatorCommandCenter({
         setTodaysFocus(focusData);
         setGamePlan(gamePlanData);
         setMomentum(momentumData);
+        setPortfolioHealth(portfolioHealthData);
         setFlaggedRisks(risksData);
         setGoalTracker(goalData);
         setForecast(forecastData);
         setAssistants(assistantsData);
         setRecentWins(winsData);
         setRecentActivity(activityData);
+
+        // Dev-only debug guard
+        if (process.env.NODE_ENV === 'development' && !portfolioHealthData) {
+          console.warn('[pipeline-team] portfolio health missing');
+        }
       } catch (error) {
         console.error('Failed to load Pipeline Team data:', error);
       } finally {
@@ -139,6 +150,8 @@ export function AdvancementOperatorCommandCenter({
         <TodaysFocusCard data={todaysFocus} />
         {/* Today's Game Plan immediately follows with minimal gap */}
         <TodaysGamePlanCard data={gamePlan} basePath={effectiveBasePath} />
+        {/* Portfolio Health - below Game Plan, above Goal Tracker */}
+        <PortfolioHealthCard data={portfolioHealth} />
         {/* Goal Tracker in left column only */}
         <GoalTrackerCard 
           data={goalTracker} 
