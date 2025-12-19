@@ -92,6 +92,11 @@ export interface DataProvider {
   getAdmissionsQueueGamePlanCounts(ctx: DataContext): Promise<Record<string, number>>;
   getAdmissionsQueueItemsByObjective(ctx: DataContext, objectiveId: string, limit?: number): Promise<QueueItem[]>;
 
+  // Pipeline Team Game Plan (for Queue integration)
+  getPipelineTeamGamePlanForQueue(ctx: DataContext): Promise<AdmissionsTeamGamePlanData | null>;
+  getPipelineQueueGamePlanCounts(ctx: DataContext): Promise<Record<string, number>>;
+  getPipelineQueueItemsByObjective(ctx: DataContext, objectiveId: string, limit?: number): Promise<QueueItem[]>;
+
   // Program Match
   getProgramMatchHubSummary(ctx: DataContext): Promise<ProgramMatchHubSummary | null>;
   getProgramMatchChecklist(ctx: DataContext): Promise<ProgramMatchChecklistItem[]>;

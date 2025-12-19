@@ -327,3 +327,4 @@ export function TemplateGallery({ onClose }: TemplateGalleryProps) {
 }
 
 
+

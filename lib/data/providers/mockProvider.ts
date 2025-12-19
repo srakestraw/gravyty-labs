@@ -2192,6 +2192,79 @@ export const mockProvider: DataProvider = {
     return matchingItems;
   },
 
+  // Pipeline Team Game Plan (for Queue integration)
+  async getPipelineTeamGamePlanForQueue(ctx: DataContext): Promise<AdmissionsTeamGamePlanData | null> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement') {
+      return null;
+    }
+
+    // Get the full game plan
+    const gamePlan = await this.getPipelineTeamGamePlan(ctx);
+    if (!gamePlan) {
+      return null;
+    }
+
+    // Transform to queue format (same structure as admissions)
+    return {
+      completedCount: gamePlan.completed,
+      totalCount: gamePlan.total,
+      objectives: gamePlan.items.map((item) => ({
+        id: item.id,
+        title: item.title,
+        shortTitle: item.title.split(' ').slice(0, 3).join(' '), // First 3 words
+        description: item.description,
+        impactText: item.impactHint,
+      })),
+    };
+  },
+
+  async getPipelineQueueGamePlanCounts(ctx: DataContext): Promise<Record<string, number>> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement') {
+      return {};
+    }
+
+    // Get all queue items for the context
+    const items = await this.listQueueItems(ctx);
+    
+    // Map items to objectives based on tags and content
+    // Pipeline objectives: re-engage-stalled, prep-briefs, advance-proposals, stewardship-followups
+    const objectiveIds = ['re-engage-stalled', 'prep-briefs', 'advance-proposals', 'stewardship-followups'];
+    const counts: Record<string, number> = {};
+    
+    for (const objectiveId of objectiveIds) {
+      counts[objectiveId] = items.filter((item) => 
+        itemMatchesPipelineObjective(item, objectiveId)
+      ).length;
+    }
+
+    return counts;
+  },
+
+  async getPipelineQueueItemsByObjective(ctx: DataContext, objectiveId: string, limit?: number): Promise<QueueItem[]> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement') {
+      return [];
+    }
+
+    // Get all queue items for the context
+    const items = await this.listQueueItems(ctx);
+    
+    // Filter items that match the objective
+    let matchingItems = items.filter((item) => itemMatchesPipelineObjective(item, objectiveId));
+    
+    // Apply limit if provided
+    if (limit !== undefined && limit > 0) {
+      matchingItems = matchingItems.slice(0, limit);
+    }
+
+    return matchingItems;
+  },
+
   // Program Match
   async getProgramMatchDraftConfig(ctx: DataContext): Promise<ProgramMatchDraftConfig | null> {
     await delay(100);
@@ -4383,6 +4456,66 @@ export const mockProvider: DataProvider = {
 };
 
 // Helper function to map queue items to objectives based on tags
+// Helper function to match pipeline objectives (for advancement workspace)
+function itemMatchesPipelineObjective(item: QueueItem, objectiveId: string): boolean {
+  const tags = item.tags || [];
+  const titleLower = item.title.toLowerCase();
+  const summaryLower = item.summary.toLowerCase();
+  
+  switch (objectiveId) {
+    case 're-engage-stalled':
+      return (
+        tags.some(tag => 
+          ['stalled', 'inactive', 'no-activity', 'overdue', 'stale'].includes(tag.toLowerCase())
+        ) ||
+        titleLower.includes('stalled') ||
+        titleLower.includes('overdue') ||
+        titleLower.includes('inactive') ||
+        summaryLower.includes('stalled') ||
+        summaryLower.includes('no activity') ||
+        summaryLower.includes('overdue')
+      );
+    
+    case 'prep-briefs':
+      return (
+        tags.some(tag => 
+          ['meeting', 'brief', 'prep', 'upcoming-meeting'].includes(tag.toLowerCase())
+        ) ||
+        titleLower.includes('meeting') ||
+        titleLower.includes('brief') ||
+        titleLower.includes('prep') ||
+        summaryLower.includes('meeting') ||
+        summaryLower.includes('brief')
+      );
+    
+    case 'advance-proposals':
+      return (
+        tags.some(tag => 
+          ['proposal', 'review', 'stuck', 'late-stage'].includes(tag.toLowerCase())
+        ) ||
+        titleLower.includes('proposal') ||
+        titleLower.includes('review') ||
+        summaryLower.includes('proposal') ||
+        summaryLower.includes('stuck')
+      );
+    
+    case 'stewardship-followups':
+      return (
+        tags.some(tag => 
+          ['stewardship', 'thank-you', 'follow-up', 'gift', 'gratitude'].includes(tag.toLowerCase())
+        ) ||
+        titleLower.includes('stewardship') ||
+        titleLower.includes('thank') ||
+        titleLower.includes('follow-up') ||
+        summaryLower.includes('stewardship') ||
+        summaryLower.includes('thank')
+      );
+    
+    default:
+      return false;
+  }
+}
+
 function itemMatchesObjective(item: QueueItem, objectiveId: string): boolean {
   const tags = item.tags || [];
   const titleLower = item.title.toLowerCase();

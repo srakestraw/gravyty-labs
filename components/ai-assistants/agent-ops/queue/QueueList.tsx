@@ -84,7 +84,7 @@ function formatDate(dateString: string) {
   }
 }
 
-export type QueueAction = 'resolve' | 'snooze' | 'assign' | 'hold' | 'unsnooze' | 'extendSnooze' | 'reopen';
+export type QueueAction = 'resolve' | 'snooze' | 'assign' | 'hold' | 'unsnooze' | 'extendSnooze' | 'reopen' | 'send-email' | 'send-gratavid' | 'call' | 'sms' | 'skip';
 
 interface QueueListProps {
   items: AgentOpsItem[];

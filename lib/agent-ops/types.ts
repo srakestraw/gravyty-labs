@@ -54,6 +54,10 @@ export interface AgentOpsItem {
 
   evalId?: string;
   guardrailId?: string;
+
+  // Optional fields for custom detail views (Advancement Pipeline only)
+  detailView?: 'default' | 'first-draft';
+  payload?: Record<string, any>;
 }
 
 export interface AgentOpsFilters {
