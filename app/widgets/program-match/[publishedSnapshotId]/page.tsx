@@ -1,7 +1,11 @@
 import { dataClient } from '@/lib/data';
 import { ProgramMatchWidgetClient } from './ProgramMatchWidgetClient';
 
-export const dynamic = 'force-dynamic';
+// Required for static export with dynamic routes
+// Return empty array - widget will handle dynamic behavior client-side
+export async function generateStaticParams(): Promise<Array<{ publishedSnapshotId: string }>> {
+  return [];
+}
 
 interface PageProps {
   params: { publishedSnapshotId: string };

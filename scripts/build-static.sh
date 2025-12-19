@@ -19,6 +19,8 @@ echo "=========================================="
 
 API_DIR="app/api"
 API_BACKUP="app/.api-backup"
+WIDGETS_DIR="app/widgets"
+WIDGETS_BACKUP=".widgets-backup"
 
 # Ensure workspace packages have dependencies installed and built
 echo ""
@@ -47,18 +49,10 @@ else
   echo "⚠ packages/db directory not found, skipping..."
 fi
 
-# Clean any previous build artifacts
+# Move API routes and widgets out of the way BEFORE cleaning (prevents Next.js from scanning them)
 echo ""
 echo "=========================================="
-echo "Step 2: Cleaning build artifacts"
-echo "=========================================="
-rm -rf .next out
-echo "✓ Build artifacts cleaned"
-
-# Move API routes out of the way BEFORE any Next.js operations
-echo ""
-echo "=========================================="
-echo "Step 3: Preparing API routes for static export"
+echo "Step 2: Preparing routes for static export"
 echo "=========================================="
 if [ -d "$API_DIR" ]; then
   echo "Temporarily moving API routes for static export..."
@@ -67,6 +61,22 @@ if [ -d "$API_DIR" ]; then
 else
   echo "⚠ API directory not found, skipping..."
 fi
+
+if [ -d "$WIDGETS_DIR" ]; then
+  echo "Temporarily moving widgets for static export..."
+  mv "$WIDGETS_DIR" "$WIDGETS_BACKUP"
+  echo "✓ Widgets moved to backup (widgets are embedded, not part of static export)"
+else
+  echo "⚠ Widgets directory not found, skipping..."
+fi
+
+# Clean any previous build artifacts (after moving routes)
+echo ""
+echo "=========================================="
+echo "Step 3: Cleaning build artifacts"
+echo "=========================================="
+rm -rf .next out
+echo "✓ Build artifacts cleaned"
 
 # Run the build with clean cache
 echo ""
@@ -89,10 +99,14 @@ else
   echo "ERROR: Build output directory 'out' was not created"
   echo "Build log tail:"
   tail -50 /tmp/build.log || true
-  # Restore API routes before exiting
+  # Restore API routes and widgets before exiting
   if [ -d "$API_BACKUP" ]; then
     echo "Restoring API routes after build failure..."
     mv "$API_BACKUP" "$API_DIR"
+  fi
+  if [ -d "$WIDGETS_BACKUP" ]; then
+    echo "Restoring widgets after build failure..."
+    mv "$WIDGETS_BACKUP" "$WIDGETS_DIR"
   fi
   exit 1
 fi
@@ -100,19 +114,23 @@ fi
 # Verify build output exists
 if [ ! -d "out" ]; then
   echo "ERROR: Build output directory 'out' was not created"
-  # Restore API routes before exiting
+  # Restore API routes and widgets before exiting
   if [ -d "$API_BACKUP" ]; then
     echo "Restoring API routes after build failure..."
     mv "$API_BACKUP" "$API_DIR"
+  fi
+  if [ -d "$WIDGETS_BACKUP" ]; then
+    echo "Restoring widgets after build failure..."
+    mv "$WIDGETS_BACKUP" "$WIDGETS_DIR"
   fi
   exit 1
 fi
 echo "✓ Next.js build completed successfully"
 
-# Restore API routes immediately after build
+# Restore API routes and widgets immediately after build
 echo ""
 echo "=========================================="
-echo "Step 5: Restoring API routes"
+echo "Step 5: Restoring routes"
 echo "=========================================="
 if [ -d "$API_BACKUP" ]; then
   echo "Restoring API routes..."
@@ -120,6 +138,14 @@ if [ -d "$API_BACKUP" ]; then
   echo "✓ API routes restored"
 else
   echo "⚠ No API backup found to restore"
+fi
+
+if [ -d "$WIDGETS_BACKUP" ]; then
+  echo "Restoring widgets..."
+  mv "$WIDGETS_BACKUP" "$WIDGETS_DIR"
+  echo "✓ Widgets restored"
+else
+  echo "⚠ No widgets backup found to restore"
 fi
 
 # Ensure _redirects file is copied to out directory for Netlify
