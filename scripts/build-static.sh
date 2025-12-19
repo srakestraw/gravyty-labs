@@ -22,6 +22,13 @@ API_BACKUP="app/.api-backup"
 WIDGETS_DIR="app/widgets"
 WIDGETS_BACKUP=".widgets-backup"
 
+# Move widgets FIRST (before anything else) to prevent Next.js from scanning them during build
+if [ -d "$WIDGETS_DIR" ]; then
+  echo "Moving widgets before build (widgets are embedded, not part of static export)..."
+  mv "$WIDGETS_DIR" "$WIDGETS_BACKUP"
+  echo "✓ Widgets moved to backup"
+fi
+
 # Ensure workspace packages have dependencies installed and built
 echo ""
 echo "=========================================="
@@ -62,12 +69,9 @@ else
   echo "⚠ API directory not found, skipping..."
 fi
 
+# Widgets already moved at the start of script
 if [ -d "$WIDGETS_DIR" ]; then
-  echo "Temporarily moving widgets for static export..."
-  mv "$WIDGETS_DIR" "$WIDGETS_BACKUP"
-  echo "✓ Widgets moved to backup (widgets are embedded, not part of static export)"
-else
-  echo "⚠ Widgets directory not found, skipping..."
+  echo "⚠ Widgets directory still exists (should have been moved earlier)"
 fi
 
 # Clean any previous build artifacts (after moving routes)

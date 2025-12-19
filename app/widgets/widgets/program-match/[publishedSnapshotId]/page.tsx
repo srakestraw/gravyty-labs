@@ -3,8 +3,8 @@ import { ProgramMatchWidgetClient } from './ProgramMatchWidgetClient';
 
 // Required for static export with dynamic routes
 // Return empty array - widget will handle dynamic behavior client-side
-export function generateStaticParams() {
-  return Promise.resolve([]);
+export async function generateStaticParams() {
+  return [];
 }
 
 interface PageProps {
