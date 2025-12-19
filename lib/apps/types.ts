@@ -4,6 +4,7 @@ export type AppPill = {
   id: string;
   label: string;
   href: string;
+  icon?: string;
 };
 
 export type AppGroup = 'main' | 'sim';

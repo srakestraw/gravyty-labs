@@ -39,6 +39,22 @@ const workspaceCards: WorkspaceCard[] = [
     color: '#7C3AED',
   },
   {
+    id: 'housing',
+    name: 'Housing Assistant',
+    description: 'AI assistants for housing assignments, room management, and residential life workflows.',
+    href: '/student-lifecycle/housing',
+    icon: 'fa-solid fa-home',
+    color: '#F59E0B',
+  },
+  {
+    id: 'bursar',
+    name: 'Bursar Assistant',
+    description: 'AI assistants for billing, payment processing, and account management.',
+    href: '/student-lifecycle/bursar',
+    icon: 'fa-solid fa-file-invoice-dollar',
+    color: '#DC2626',
+  },
+  {
     id: 'student-success',
     name: 'Student Success Assistant',
     description: 'AI assistants for student support, retention, and success workflows.',
@@ -72,7 +88,7 @@ export default function StudentLifecycleLanding() {
       <header className="space-y-1">
         <h1 className="text-xl font-semibold text-gray-900">Student Lifecycle AI</h1>
         <p className="text-sm text-gray-600">
-          Choose a workspace to manage AI assistants for admissions, financial aid, registrar, or student success.
+          Choose a workspace to manage AI assistants for admissions, financial aid, registrar, bursar, student success, or housing.
         </p>
       </header>
 

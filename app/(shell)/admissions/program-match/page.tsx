@@ -16,6 +16,13 @@ export default async function ProgramMatchPage() {
     analyticsSummary,
     draftConfig,
     voiceToneProfiles,
+    traits,
+    skills,
+    programs,
+    outcomes,
+    quizzes,
+    publishedSnapshots,
+    previewLinks,
   ] = await Promise.all([
     dataClient.getProgramMatchHubSummary(ctx),
     dataClient.getProgramMatchChecklist(ctx),
@@ -25,7 +32,20 @@ export default async function ProgramMatchPage() {
     dataClient.getProgramMatchAnalyticsSummary(ctx),
     dataClient.getProgramMatchDraftConfig(ctx),
     dataClient.listVoiceToneProfiles(ctx),
+    dataClient.listProgramMatchTraits(ctx),
+    dataClient.listProgramMatchSkills(ctx),
+    dataClient.listProgramMatchPrograms(ctx),
+    dataClient.listProgramMatchOutcomes(ctx),
+    dataClient.listProgramMatchQuizzes(ctx),
+    dataClient.listProgramMatchPublishedSnapshots(ctx),
+    dataClient.listProgramMatchPreviewLinks(ctx),
   ]);
+
+  // Get the first quiz's draft (temporary until Quiz Library UI is implemented)
+  const firstQuiz = quizzes.length > 0 ? quizzes[0] : null;
+  const quizDraft = firstQuiz
+    ? await dataClient.getProgramMatchQuizDraftByQuizId(ctx, firstQuiz.id)
+    : null;
 
   return (
     <ProgramMatchHubClient
@@ -37,6 +57,14 @@ export default async function ProgramMatchPage() {
       analyticsSummary={analyticsSummary}
       draftConfig={draftConfig}
       voiceToneProfiles={voiceToneProfiles}
+      traits={traits}
+      skills={skills}
+      programs={programs}
+      outcomes={outcomes}
+      quizDraft={quizDraft}
+      quizzes={quizzes}
+      publishedSnapshots={publishedSnapshots}
+      previewLinks={previewLinks}
     />
   );
 }

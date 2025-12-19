@@ -14,14 +14,24 @@ export function getAppNav(params: { pathname: string }): { sections: NavSection[
   const basePath = `/student-lifecycle/${workspace}`;
   const workspaceConfig = getWorkspaceConfig(workspace);
 
+  const aiPlatformSection = buildAiPlatformNav({
+    basePath,
+    peopleLabel: workspaceConfig.peopleLabel,
+    includeSegments: true,
+  });
+
+  // Add Program Match for admissions workspace
+  if (workspace === 'admissions') {
+    aiPlatformSection.items.push({
+      name: 'Program Match',
+      href: `${basePath}/program-match`,
+      icon: 'fa-solid fa-link',
+      id: 'program-match',
+    });
+  }
+
   return {
-    sections: [
-      buildAiPlatformNav({
-        basePath,
-        peopleLabel: workspaceConfig.peopleLabel,
-        includeSegments: true,
-      }),
-    ],
+    sections: [aiPlatformSection],
   };
 }
 

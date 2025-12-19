@@ -4,6 +4,7 @@ export type WorkspaceId =
   | 'admissions'
   | 'financial-aid'
   | 'registrar'
+  | 'bursar'
   | 'student-success'
   | 'housing';
 
@@ -96,6 +97,22 @@ export const WORKSPACES: WorkspaceConfig[] = [
     // defaultPersona: 'frontline',
   },
   {
+    id: 'bursar',
+    label: 'Bursar',
+    peopleLabel: 'Students',
+    defaultPeopleFilters: {
+      role: 'Bursar',
+      status: 'Open',
+    },
+    defaultQueueView: {
+      role: 'Bursar',
+      status: 'Open',
+    },
+    recommendedAgents: [],
+    // Future: persona support
+    // defaultPersona: 'frontline',
+  },
+  {
     id: 'student-success',
     label: 'Student Success',
     peopleLabel: 'Students',
@@ -157,6 +174,8 @@ export function getWorkspaceDefaults(id: string): WorkspaceDefaults {
     // supportedPersonas: config.supportedPersonas,
   };
 }
+
+
 
 
 

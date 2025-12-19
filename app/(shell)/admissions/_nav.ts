@@ -12,6 +12,7 @@ export function getAppNav(_params: { pathname: string }): { sections: NavSection
           { name: 'Queue', href: '/admissions/agent-ops/queue', icon: 'fa-solid fa-list', id: 'queue' },
           { name: 'Segments', href: '/admissions/segments', icon: 'fa-solid fa-filter', id: 'segments' },
           { name: 'Agents', href: '/admissions/agents', icon: 'fa-solid fa-bolt', id: 'agents' },
+          { name: 'Program Match', href: '/admissions/program-match', icon: 'fa-solid fa-link', id: 'program-match' },
         ],
       },
       {

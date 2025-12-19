@@ -100,6 +100,9 @@ export function AppSidebar() {
   // Check if we're in the Community/Engagement Hub app
   const isInCommunity = pathname?.startsWith('/community');
 
+  // Check if we're in the Pipeline workspace
+  const isInPipeline = pathname?.startsWith('/advancement/pipeline');
+
   // Extract workspace ID from pathname for Student Lifecycle
   const workspaceId = useMemo(() => {
     if (!isInStudentLifecycle || !pathname) return undefined;
@@ -119,10 +122,16 @@ export function AppSidebar() {
     }
   }, [workspaceId]);
 
-  // Working mode hook - only used if selector is enabled
+  // Working mode hook for Student Lifecycle workspaces - only used if selector is enabled
   const { mode: workingMode, setMode: setWorkingMode } = useWorkspaceMode(
     workspaceConfig?.enableWorkingModeSelector ? workspaceId : undefined,
     workspaceConfig?.workingModeDefault || 'team'
+  );
+
+  // Working mode hook for Pipeline workspace
+  const { mode: pipelineWorkingMode, setMode: setPipelineWorkingMode } = useWorkspaceMode(
+    isInPipeline ? 'pipeline' : undefined,
+    'team'
   );
 
   const appRegistry = useMemo(() => getAppRegistry({ persona }), [persona]);
@@ -189,16 +198,9 @@ type Navigation =
       const dataAndAudiences = getItems('dataAndAudiences');
       const adminTools = getItems('adminTools');
 
-      // Flatten all sections - include items from sections with titles as regular items
-      const allItems: NavItem[] = [];
-      contractSections.forEach((section) => {
-        if (section.items && section.items.length > 0) {
-          allItems.push(...section.items);
-        }
-      });
-
+      // Use topLevel items directly, or fall back to aiPlatform if topLevel is empty
       return {
-        topLevel: allItems.length > 0 ? allItems : [...aiPlatform, ...topLevel],
+        topLevel: topLevel.length > 0 ? topLevel : (aiPlatform.length > 0 ? aiPlatform : []),
         dataAndAudiences: dataAndAudiences.length > 0 ? dataAndAudiences : undefined,
         adminTools,
       };
@@ -295,7 +297,8 @@ type Navigation =
           sidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64 md:w-16'
         )}
       >
-        <nav className="flex flex-col gap-1 p-2 h-full">
+        <nav className="flex flex-col gap-1 p-2 h-full overflow-hidden">
+          <div className="flex-1 min-h-0 overflow-y-auto">
           {(isInAIAssistants || isInAdmin || isInAdvancement || isInAdmissions || isInStudentLifecycle || isInCommunity) && !Array.isArray(navigation) ? (
             <>
               {/* Top-level navigation items */}
@@ -578,8 +581,9 @@ type Navigation =
               );
             })
           )}
+          </div>
 
-          {/* Working Mode Selector - shown only for workspaces that enable it */}
+          {/* Working Mode Selector - shown for Student Lifecycle workspaces that enable it */}
           {workspaceConfig?.enableWorkingModeSelector && (sidebarOpen || isMobile) && (
             <>
               <div className="mt-auto pt-4 border-t border-gray-200">
@@ -605,6 +609,43 @@ type Navigation =
                     className={cn(
                       'flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors',
                       workingMode === 'leadership'
+                        ? 'bg-purple-600 text-white shadow-sm'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    )}
+                  >
+                    Leadership
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Working Mode Selector - shown for Pipeline workspace */}
+          {isInPipeline && (sidebarOpen || isMobile) && (
+            <>
+              <div className="mt-auto pt-4 border-t border-gray-200">
+                <div className="px-3 mb-2">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                    Working mode
+                  </label>
+                </div>
+                <div className="flex gap-1 px-3">
+                  <button
+                    onClick={() => setPipelineWorkingMode('team')}
+                    className={cn(
+                      'flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                      pipelineWorkingMode === 'team'
+                        ? 'bg-purple-600 text-white shadow-sm'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    )}
+                  >
+                    Team
+                  </button>
+                  <button
+                    onClick={() => setPipelineWorkingMode('leadership')}
+                    className={cn(
+                      'flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                      pipelineWorkingMode === 'leadership'
                         ? 'bg-purple-600 text-white shadow-sm'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     )}

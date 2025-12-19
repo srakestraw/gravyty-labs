@@ -41,6 +41,7 @@ export function resolveCommandCenterInstance(
 export function isExistingInstance(key: CommandCenterInstanceKey): boolean {
   const existingInstances: CommandCenterInstanceKey[] = [
     'student-lifecycle:admissions:team',
+    'student-lifecycle:admissions:leadership',
     'student-lifecycle:registrar:team',
     'student-lifecycle:student-success:team',
     'student-lifecycle:financial-aid:team',
@@ -48,6 +49,7 @@ export function isExistingInstance(key: CommandCenterInstanceKey): boolean {
     'career-services:career-services:team',
     'alumni-engagement:alumni-engagement:team',
     'advancement:advancement:team',
+    'advancement:advancement:leadership',
     // Legacy support: also accept 'operator' keys for backwards compatibility
     'student-lifecycle:admissions:operator',
     'student-lifecycle:registrar:operator',

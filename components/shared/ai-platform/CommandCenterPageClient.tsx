@@ -20,6 +20,8 @@ import { normalizeWorkingMode } from '@/lib/command-center/workingModeUtils';
 import { CommandCenterPlaceholder } from './CommandCenterPlaceholder';
 import { AdmissionsLeadershipCommandCenter } from './AdmissionsLeadershipCommandCenter';
 import { AdmissionsOperatorCommandCenter } from './AdmissionsOperatorCommandCenter';
+import { AdvancementLeadershipCommandCenter } from './AdvancementLeadershipCommandCenter';
+import { AdvancementOperatorCommandCenter } from './AdvancementOperatorCommandCenter';
 
 type Persona =
   | 'admissions'
@@ -1247,8 +1249,16 @@ export function CommandCenterPageClient({ context }: { context?: AiPlatformPageC
     return undefined;
   }, [context?.mode, context?.workspaceId]);
 
+  // For Pipeline workspace, use 'pipeline' as the workspace ID for working mode
+  // Pipeline is accessed via /advancement/pipeline but uses 'pipeline' workspace ID for mode storage
+  const isPipelineWorkspace = context?.mode === 'workspace' && 
+    context?.appId === 'advancement' && 
+    context?.workspaceId === 'advancement';
+  const workingModeWorkspaceId = isPipelineWorkspace ? 'pipeline' : 
+    (workspaceConfig?.enableWorkingModeSelector ? context?.workspaceId : undefined);
+
   const { mode: workingMode } = useWorkspaceMode(
-    workspaceConfig?.enableWorkingModeSelector ? context?.workspaceId : undefined,
+    workingModeWorkspaceId,
     workspaceConfig?.workingModeDefault || 'team'
   );
 
@@ -1269,6 +1279,7 @@ export function CommandCenterPageClient({ context }: { context?: AiPlatformPageC
   // Map instance keys to personas for existing content
   const instanceKeyToPersona: Record<string, Persona> = {
     'student-lifecycle:admissions:team': 'admissions',
+    'student-lifecycle:admissions:leadership': 'admissions',
     'student-lifecycle:registrar:team': 'registrar',
     'student-lifecycle:student-success:team': 'student-success',
     'student-lifecycle:financial-aid:team': 'financial-aid',
@@ -1276,6 +1287,7 @@ export function CommandCenterPageClient({ context }: { context?: AiPlatformPageC
     'career-services:career-services:team': 'career-services',
     'alumni-engagement:alumni-engagement:team': 'alumni-engagement',
     'advancement:advancement:team': 'advancement',
+    'advancement:advancement:leadership': 'advancement',
     // Legacy support: also accept 'operator' keys for backwards compatibility
     'student-lifecycle:admissions:operator': 'admissions',
     'student-lifecycle:registrar:operator': 'registrar',
@@ -1330,6 +1342,20 @@ export function CommandCenterPageClient({ context }: { context?: AiPlatformPageC
   const isAdmissionsTeam = 
     context?.mode === 'workspace' &&
     context?.workspaceId === 'admissions' &&
+    workingMode === 'team';
+
+  // Check if we should show Advancement Leadership view
+  const isAdvancementLeadership = 
+    context?.mode === 'workspace' &&
+    context?.appId === 'advancement' &&
+    context?.workspaceId === 'advancement' &&
+    workingMode === 'leadership';
+
+  // Check if we should show Advancement Team view (two-column layout)
+  const isAdvancementTeam = 
+    context?.mode === 'workspace' &&
+    context?.appId === 'advancement' &&
+    context?.workspaceId === 'advancement' &&
     workingMode === 'team';
 
   // For admissions leadership, use admissions persona for header
@@ -1430,6 +1456,98 @@ export function CommandCenterPageClient({ context }: { context?: AiPlatformPageC
             </div>
           )}
           <AdmissionsOperatorCommandCenter 
+            context={context} 
+            recommendedAgents={recommendedAgents}
+            basePath={basePath}
+          />
+        </>
+      ) : isAdvancementLeadership ? (
+        <>
+          {/* Hero / Greeting - Same header as operator mode */}
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500">
+                  Advancement Workspace
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  {getGreeting()}, {userName}.
+                </h2>
+                <p className="text-gray-600 mb-3">
+                  You're viewing the Advancement workspace in the AI Command Center.
+                </p>
+                <div className="space-y-1">
+                  <p className="text-sm text-gray-700 font-medium">{personaConfigs['advancement'].description}</p>
+                  <ul className="list-disc list-inside space-y-1 text-sm text-gray-600 ml-2">
+                    {personaConfigs['advancement'].descriptionBullets.map((bullet, index) => (
+                      <li key={index}>{bullet}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <AdvancementLeadershipCommandCenter />
+        </>
+      ) : isAdvancementTeam ? (
+        <>
+          {/* Compact header - reduced height for better focus */}
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-1">
+                  <span className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                    Advancement Workspace
+                  </span>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    {getGreeting()}, {userName}.
+                  </h2>
+                </div>
+                <p className="text-sm text-gray-600">{personaConfigs['advancement'].description}</p>
+              </div>
+            </div>
+          </div>
+          {/* Active Segment if present */}
+          {activeSegment && (
+            <div key="activeSegment" className="bg-white border border-blue-200 rounded-lg p-4 shadow-sm">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FontAwesomeIcon icon="fa-solid fa-filter" className="h-4 w-4 text-blue-600" />
+                    <h3 className="text-sm font-semibold text-gray-900">Active Segment</h3>
+                  </div>
+                  <h4 className="text-base font-semibold text-gray-900 mb-1">{activeSegment.title}</h4>
+                  {activeSegment.description && (
+                    <p className="text-sm text-gray-600 mb-3">{activeSegment.description}</p>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    <Link
+                      href={`${basePath}/segments/${activeSegment.id}`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+                    >
+                      View Segment
+                      <FontAwesomeIcon icon="fa-solid fa-arrow-right" className="h-3 w-3" />
+                    </Link>
+                    <Link
+                      href={`${basePath}/agent-ops/queue?segment=${activeSegment.id}`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+                    >
+                      Open in Queue
+                      <FontAwesomeIcon icon="fa-solid fa-arrow-right" className="h-3 w-3" />
+                    </Link>
+                    <Link
+                      href={`${basePath}/assistant?segment=${activeSegment.id}`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+                    >
+                      Open in Assistant
+                      <FontAwesomeIcon icon="fa-solid fa-arrow-right" className="h-3 w-3" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          <AdvancementOperatorCommandCenter 
             context={context} 
             recommendedAgents={recommendedAgents}
             basePath={basePath}

@@ -19,6 +19,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { App } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { isValidWorkspace, getWorkspaceConfig, WORKSPACES } from '@/lib/student-lifecycle/workspaces';
+import { isValidAdvancementWorkspace, getAdvancementWorkspaceConfig, ADVANCEMENT_WORKSPACES } from '@/lib/advancement/workspaces';
 import { WorkspaceSwitcher } from './workspace-switcher';
 
 const apps: App[] = [
@@ -61,6 +62,14 @@ const apps: App[] = [
     icon: 'fa-solid fa-user-robot',
     color: '#8B5CF6',
     path: '/ai-assistants',
+  },
+  {
+    id: 'advancement',
+    name: 'Advancement & Philanthropy',
+    shortName: 'Advancement',
+    icon: 'fa-solid fa-gift',
+    color: '#8B5CF6',
+    path: '/advancement',
   },
   {
     id: 'admin',
@@ -114,18 +123,36 @@ export function AppHeader() {
   // Extract workspace from pathname if in Student Lifecycle workspace route
   const getWorkspaceFromPathname = (pathname: string | null) => {
     if (!pathname) return null;
-    const match = pathname.match(/^\/student-lifecycle\/([^/]+)/);
-    const candidate = match?.[1];
-    if (candidate && isValidWorkspace(candidate)) {
-      return getWorkspaceConfig(candidate);
+    
+    // Check for Student Lifecycle workspaces
+    const studentLifecycleMatch = pathname.match(/^\/student-lifecycle\/([^/]+)/);
+    if (studentLifecycleMatch) {
+      const candidate = studentLifecycleMatch[1];
+      if (candidate && isValidWorkspace(candidate)) {
+        return getWorkspaceConfig(candidate);
+      }
     }
+    
+    // Check for Advancement workspaces
+    const advancementMatch = pathname.match(/^\/advancement\/([^/]+)/);
+    if (advancementMatch) {
+      const candidate = advancementMatch[1];
+      if (candidate && isValidAdvancementWorkspace(candidate)) {
+        return getAdvancementWorkspaceConfig(candidate);
+      }
+    }
+    
     return null;
   };
 
   const workspaceConfig = getWorkspaceFromPathname(pathname);
   
-  // Get available workspaces for Student Lifecycle
-  const availableWorkspaces = pathname?.startsWith('/student-lifecycle') ? WORKSPACES : [];
+  // Get available workspaces based on current route
+  const availableWorkspaces = pathname?.startsWith('/student-lifecycle') 
+    ? WORKSPACES 
+    : pathname?.startsWith('/advancement')
+    ? ADVANCEMENT_WORKSPACES
+    : [];
 
   return (
     <header className="fixed top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

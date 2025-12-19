@@ -1,17 +1,13 @@
 import { AgentNewPageClient } from '@/components/shared/ai-platform/AgentNewPageClient';
-import { getWorkspaceConfig } from '@/lib/student-lifecycle/workspaces';
+import { getWorkspaceConfig, WORKSPACES } from '@/lib/student-lifecycle/workspaces';
 
 export const dynamic = 'force-static';
 
 // Required for static export with dynamic routes
 export async function generateStaticParams() {
-  return [
-    { workspace: 'admissions' },
-    { workspace: 'financial-aid' },
-    { workspace: 'registrar' },
-    { workspace: 'student-success' },
-    { workspace: 'housing' },
-  ];
+  return WORKSPACES.map((w) => ({
+    workspace: w.id,
+  }));
 }
 
 interface PageProps {

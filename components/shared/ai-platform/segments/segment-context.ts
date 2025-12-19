@@ -22,3 +22,5 @@ export function getSegmentFromSearchParams(searchParams: SearchParams): SegmentD
 
 
 
+
+

@@ -22,12 +22,36 @@ import type {
   ProgramMatchCandidatesSummary,
   ProgramMatchAnalyticsSummary,
   ProgramMatchDraftConfig,
+  ProgramMatchGateConfig,
   VoiceToneProfile,
   ProgramMatchTrait,
   ProgramMatchSkill,
   ProgramMatchProgram,
   ProgramMatchICPBuckets,
   ProgramMatchProgramICP,
+  ProgramMatchTemplateSummary,
+  ProgramMatchTemplatePackage,
+  ProgramMatchTemplateApplyPlan,
+  ProgramMatchTemplateApplyResult,
+  ProgramMatchAnswerPayload,
+  ProgramMatchScoreResult,
+  ProgramMatchExplanation,
+  ProgramMatchExplanationsResult,
+  ProgramMatchPublishSnapshot,
+  ProgramMatchPreviewLink,
+  ProgramMatchDeployConfig,
+  ProgramMatchRFI,
+  ProgramMatchOutcome,
+  ProgramMatchProgramOutcomes,
+  ProgramMatchQuizQuestion,
+  ProgramMatchQuizOption,
+  ProgramMatchQuizDraft,
+  ProgramMatchQuiz,
+  ProgramMatchQuizPublishedVersion,
+  ProgramMatchQuizAIDraftRequest,
+  ProgramMatchWidgetConfig,
+  ProgramMatchCandidatesListResponse,
+  ProgramMatchAnalytics,
 } from "@/lib/data/provider";
 import { loadCommunicationConfig } from "@/lib/communication/store";
 
@@ -46,6 +70,24 @@ let programMatchDraftConfig: ProgramMatchDraftConfig = {
   id: 'pm_draft_1',
   status: 'draft',
   voiceToneProfileId: null,
+  outcomesEnabled: false,
+  gate: {
+    enabled: true,
+    requiredFields: {
+      email: true,
+      firstName: true,
+      lastName: true,
+      phone: false,
+    },
+    consent: {
+      emailOptIn: false,
+      smsOptIn: false,
+    },
+    copy: {
+      headline: 'Before we start',
+      helperText: 'Share a few details so we can send program information if you\'d like.',
+    },
+  },
   updatedAt: new Date().toISOString(),
 };
 
@@ -54,9 +96,373 @@ const programMatchTraits: ProgramMatchTrait[] = [];
 const programMatchSkills: ProgramMatchSkill[] = [];
 const programMatchPrograms: ProgramMatchProgram[] = [];
 const programMatchICPByProgramId = new Map<string, ProgramMatchProgramICP>();
+const programMatchOutcomes: ProgramMatchOutcome[] = [];
+const programMatchProgramOutcomesById = new Map<string, ProgramMatchProgramOutcomes>();
+const programMatchRFIs: ProgramMatchRFI[] = [];
+
+// Quiz Library storage
+const programMatchQuizzes: ProgramMatchQuiz[] = [];
+const programMatchQuizDraftByQuizId = new Map<string, ProgramMatchQuizDraft>();
+const programMatchQuizPublishedByQuizId = new Map<string, ProgramMatchQuizPublishedVersion[]>();
+
+// Seed data flag
+let programMatchSeeded = false;
+
+// Seed data constants
+const SEED_TRAITS: ProgramMatchTrait[] = [
+  { id: "trait_curiosity", name: "Curiosity", category: "Mindset", description: "Enjoys exploring new ideas and asking questions.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "trait_grit", name: "Grit", category: "Mindset", description: "Sticks with challenges and follows through.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "trait_growth_mindset", name: "Growth mindset", category: "Mindset", description: "Believes skills can be developed with effort and feedback.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "trait_structure", name: "Preference for structure", category: "Learning style", description: "Likes clear expectations, steps, and milestones.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "trait_flexibility", name: "Flexibility", category: "Learning style", description: "Comfortable adapting plans and exploring options.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "trait_collaboration", name: "Collaboration", category: "Working style", description: "Enjoys teamwork and learning with others.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "trait_independence", name: "Independence", category: "Working style", description: "Prefers owning work and moving at a self-directed pace.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "trait_leadership", name: "Leadership", category: "Working style", description: "Enjoys guiding others and taking responsibility.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "trait_empathy", name: "Empathy", category: "Working style", description: "Values understanding others' needs and perspectives.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "trait_detail_oriented", name: "Detail-oriented", category: "Working style", description: "Cares about accuracy and noticing edge cases.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "trait_big_picture", name: "Big-picture thinking", category: "Working style", description: "Likes connecting dots and seeing the larger system.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "trait_practical", name: "Practical problem solving", category: "Approach", description: "Prefers applied learning and real-world examples.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "trait_analytical", name: "Analytical thinking", category: "Approach", description: "Enjoys patterns, logic, and structured reasoning.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "trait_creative", name: "Creative thinking", category: "Approach", description: "Enjoys ideation and generating new possibilities.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "trait_impact", name: "Impact-driven", category: "Motivation", description: "Motivated by meaningful outcomes and helping others.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "trait_advancement", name: "Career advancement", category: "Motivation", description: "Motivated by growth, promotions, and momentum.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "trait_stability", name: "Stability-focused", category: "Motivation", description: "Values predictability and long-term security.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "trait_time_sensitive", name: "Time-sensitive", category: "Constraints", description: "Needs an efficient path that fits a busy schedule.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+];
+
+const SEED_SKILLS: ProgramMatchSkill[] = [
+  { id: "skill_writing", name: "Writing and communication", category: "Communication", description: "Comfortable expressing ideas clearly in writing.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "skill_presenting", name: "Presenting", category: "Communication", description: "Comfortable sharing ideas with others.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "skill_quant", name: "Quantitative reasoning", category: "Analytical", description: "Comfortable with numbers and basic analysis.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "skill_research", name: "Research", category: "Analytical", description: "Able to find, evaluate, and synthesize information.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "skill_data_literacy", name: "Data literacy", category: "Analytical", description: "Comfortable reading charts, dashboards, and metrics.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "skill_programming", name: "Programming basics", category: "Technical", description: "Some exposure to coding or scripting concepts.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "skill_project_mgmt", name: "Project management", category: "Leadership", description: "Planning, organizing, and delivering work.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "skill_stakeholders", name: "Stakeholder management", category: "Leadership", description: "Aligning with others and navigating tradeoffs.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "skill_teamwork", name: "Teamwork", category: "Collaboration", description: "Working effectively with others.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "skill_time_mgmt", name: "Time management", category: "Self-management", description: "Managing schedule and priorities effectively.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "skill_self_direction", name: "Self-direction", category: "Self-management", description: "Making progress independently with minimal oversight.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: "skill_feedback", name: "Feedback and iteration", category: "Self-management", description: "Using feedback to improve over time.", isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+];
+
+const SEED_PROGRAMS: ProgramMatchProgram[] = [
+  { id: "prog_mba", name: "MBA - Business Administration", status: "active", updatedAt: new Date().toISOString() },
+  { id: "prog_msds", name: "MS - Data Science", status: "active", updatedAt: new Date().toISOString() },
+  { id: "prog_med", name: "MEd - Education Leadership", status: "active", updatedAt: new Date().toISOString() },
+];
+
+const SEED_ICP_BY_PROGRAM = new Map<string, ProgramMatchProgramICP>([
+  ["prog_mba", {
+    programId: "prog_mba",
+    buckets: {
+      critical: {
+        traitIds: ["trait_leadership","trait_big_picture","trait_advancement","trait_collaboration","trait_practical"],
+        skillIds: ["skill_stakeholders","skill_project_mgmt","skill_presenting"]
+      },
+      veryImportant: {
+        traitIds: ["trait_structure","trait_detail_oriented","trait_grit"],
+        skillIds: ["skill_writing","skill_time_mgmt"]
+      },
+      important: {
+        traitIds: ["trait_flexibility","trait_creative"],
+        skillIds: ["skill_teamwork"]
+      },
+      niceToHave: {
+        traitIds: ["trait_curiosity"],
+        skillIds: []
+      }
+    },
+    updatedAt: new Date().toISOString(),
+  }],
+  ["prog_msds", {
+    programId: "prog_msds",
+    buckets: {
+      critical: {
+        traitIds: ["trait_analytical","trait_detail_oriented","trait_grit","trait_curiosity","trait_structure"],
+        skillIds: ["skill_quant","skill_data_literacy","skill_research","skill_programming"]
+      },
+      veryImportant: {
+        traitIds: ["trait_big_picture","trait_practical"],
+        skillIds: ["skill_writing","skill_feedback"]
+      },
+      important: {
+        traitIds: ["trait_independence","trait_growth_mindset"],
+        skillIds: ["skill_self_direction","skill_time_mgmt"]
+      },
+      niceToHave: {
+        traitIds: ["trait_flexibility"],
+        skillIds: []
+      }
+    },
+    updatedAt: new Date().toISOString(),
+  }],
+  ["prog_med", {
+    programId: "prog_med",
+    buckets: {
+      critical: {
+        traitIds: ["trait_impact","trait_empathy","trait_leadership","trait_collaboration","trait_structure"],
+        skillIds: ["skill_writing","skill_stakeholders","skill_project_mgmt"]
+      },
+      veryImportant: {
+        traitIds: ["trait_grit","trait_big_picture"],
+        skillIds: ["skill_presenting","skill_teamwork"]
+      },
+      important: {
+        traitIds: ["trait_growth_mindset","trait_practical"],
+        skillIds: ["skill_feedback"]
+      },
+      niceToHave: {
+        traitIds: ["trait_flexibility"],
+        skillIds: []
+      }
+    },
+    updatedAt: new Date().toISOString(),
+  }],
+]);
+
+// Seed Quiz Library
+const SEED_QUIZES: ProgramMatchQuiz[] = [
+  {
+    id: "quiz_general_1",
+    name: "General Graduate Program Quiz",
+    status: "draft",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    lastPublishedAt: null,
+    activePublishedVersionId: null,
+  },
+  {
+    id: "quiz_business_1",
+    name: "Business School Quiz",
+    status: "draft",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    lastPublishedAt: null,
+    activePublishedVersionId: null,
+  },
+];
+
+const SEED_QUIZ_DRAFT_GENERAL: ProgramMatchQuizDraft = {
+  id: "pm_quiz_draft_general_1",
+  quizId: "quiz_general_1",
+  title: "Find your best-fit graduate program",
+  description: "A quick, lightweight quiz to point you toward programs that match your goals and style.",
+  targetLength: 8,
+  updatedAt: new Date().toISOString(),
+  questions: [
+    {
+      id: "q1",
+      type: "single_select",
+      section: "fit",
+      prompt: "When you picture a great learning experience, what feels most you?",
+      helperText: null,
+      isOptional: false,
+      options: [
+        { id: "q1o1", label: "Clear steps and milestones", traitIds: ["trait_structure"], skillIds: ["skill_time_mgmt"] },
+        { id: "q1o2", label: "Hands-on, practical projects", traitIds: ["trait_practical"], skillIds: ["skill_project_mgmt"] },
+        { id: "q1o3", label: "Deep thinking and analysis", traitIds: ["trait_analytical"], skillIds: ["skill_quant","skill_data_literacy"] },
+        { id: "q1o4", label: "People-focused and collaborative", traitIds: ["trait_empathy","trait_collaboration"], skillIds: ["skill_teamwork"] },
+      ],
+    },
+    {
+      id: "q2",
+      type: "single_select",
+      section: "fit",
+      prompt: "What's motivating you most right now?",
+      helperText: null,
+      isOptional: false,
+      options: [
+        { id: "q2o1", label: "Career momentum and advancement", traitIds: ["trait_advancement"], skillIds: [] },
+        { id: "q2o2", label: "Doing meaningful work and impact", traitIds: ["trait_impact"], skillIds: [] },
+        { id: "q2o3", label: "More stability and predictability", traitIds: ["trait_stability"], skillIds: [] },
+        { id: "q2o4", label: "Exploring what I might love next", traitIds: ["trait_curiosity","trait_flexibility"], skillIds: [] },
+      ],
+    },
+    {
+      id: "q3",
+      type: "single_select",
+      section: "fit",
+      prompt: "Pick a vibe: how do you like to work?",
+      helperText: null,
+      isOptional: false,
+      options: [
+        { id: "q3o1", label: "I like owning my work end-to-end", traitIds: ["trait_independence"], skillIds: ["skill_self_direction"] },
+        { id: "q3o2", label: "I like leading and coordinating", traitIds: ["trait_leadership"], skillIds: ["skill_stakeholders","skill_project_mgmt"] },
+        { id: "q3o3", label: "I like collaborating and brainstorming", traitIds: ["trait_collaboration","trait_creative"], skillIds: ["skill_teamwork"] },
+        { id: "q3o4", label: "I like precision and getting details right", traitIds: ["trait_detail_oriented"], skillIds: ["skill_research"] },
+      ],
+    },
+    {
+      id: "q4",
+      type: "single_select",
+      section: "readiness",
+      prompt: "Which feels most comfortable today?",
+      helperText: "No wrong answers - this just helps us tailor recommendations.",
+      isOptional: true,
+      options: [
+        { id: "q4o1", label: "Writing and explaining my thinking", traitIds: [], skillIds: ["skill_writing"] },
+        { id: "q4o2", label: "Presenting or facilitating discussions", traitIds: [], skillIds: ["skill_presenting"] },
+        { id: "q4o3", label: "Working with numbers or analysis", traitIds: [], skillIds: ["skill_quant","skill_data_literacy"] },
+        { id: "q4o4", label: "Planning and coordinating a project", traitIds: [], skillIds: ["skill_project_mgmt"] },
+      ],
+    },
+    {
+      id: "q5",
+      type: "single_select",
+      section: "fit",
+      prompt: "What's your schedule reality?",
+      helperText: null,
+      isOptional: false,
+      options: [
+        { id: "q5o1", label: "I'm time-limited and need efficiency", traitIds: ["trait_time_sensitive"], skillIds: ["skill_time_mgmt"] },
+        { id: "q5o2", label: "I can make time if it's structured", traitIds: ["trait_structure"], skillIds: [] },
+        { id: "q5o3", label: "I can flex my schedule", traitIds: ["trait_flexibility"], skillIds: [] },
+        { id: "q5o4", label: "I thrive when I self-direct", traitIds: ["trait_independence"], skillIds: ["skill_self_direction"] },
+      ],
+    },
+    {
+      id: "q6",
+      type: "single_select",
+      section: "fit",
+      prompt: "Pick the kind of challenge you enjoy most.",
+      helperText: null,
+      isOptional: false,
+      options: [
+        { id: "q6o1", label: "Solving real-world problems", traitIds: ["trait_practical"], skillIds: ["skill_project_mgmt"] },
+        { id: "q6o2", label: "Finding patterns in complex info", traitIds: ["trait_analytical"], skillIds: ["skill_research","skill_data_literacy"] },
+        { id: "q6o3", label: "Helping people grow and succeed", traitIds: ["trait_empathy","trait_impact"], skillIds: ["skill_stakeholders"] },
+        { id: "q6o4", label: "Leading a team through change", traitIds: ["trait_leadership","trait_grit"], skillIds: ["skill_stakeholders","skill_feedback"] },
+      ],
+    },
+    {
+      id: "q7",
+      type: "single_select",
+      section: "readiness",
+      prompt: "When you get feedback, you tend to…",
+      helperText: null,
+      isOptional: true,
+      options: [
+        { id: "q7o1", label: "Iterate quickly and improve", traitIds: ["trait_growth_mindset"], skillIds: ["skill_feedback"] },
+        { id: "q7o2", label: "Ask questions to understand it", traitIds: ["trait_curiosity"], skillIds: [] },
+        { id: "q7o3", label: "Prefer clear, specific notes", traitIds: ["trait_structure","trait_detail_oriented"], skillIds: [] },
+        { id: "q7o4", label: "Take time, then come back strong", traitIds: ["trait_grit"], skillIds: [] },
+      ],
+    },
+    {
+      id: "q8",
+      type: "single_select",
+      section: "fit",
+      prompt: "Which statement feels closest?",
+      helperText: null,
+      isOptional: false,
+      options: [
+        { id: "q8o1", label: "I like thinking big-picture and strategy", traitIds: ["trait_big_picture"], skillIds: ["skill_stakeholders"] },
+        { id: "q8o2", label: "I like building skills I can use immediately", traitIds: ["trait_practical"], skillIds: ["skill_project_mgmt"] },
+        { id: "q8o3", label: "I like digging into data and evidence", traitIds: ["trait_analytical"], skillIds: ["skill_data_literacy","skill_research"] },
+        { id: "q8o4", label: "I like leading and helping others succeed", traitIds: ["trait_leadership","trait_empathy"], skillIds: ["skill_presenting"] },
+      ],
+    },
+  ],
+};
+
+const SEED_QUIZ_DRAFT_BUSINESS: ProgramMatchQuizDraft = {
+  id: "pm_quiz_draft_business_1",
+  quizId: "quiz_business_1",
+  title: "Find your best-fit business program",
+  description: "A focused quiz for business-minded professionals exploring MBA and related programs.",
+  targetLength: 8,
+  updatedAt: new Date().toISOString(),
+  questions: [
+    {
+      id: "bq1",
+      type: "single_select",
+      section: "fit",
+      prompt: "What drives your interest in business education?",
+      helperText: null,
+      isOptional: false,
+      options: [
+        { id: "bq1o1", label: "Career advancement and leadership roles", traitIds: ["trait_advancement", "trait_leadership"], skillIds: ["skill_stakeholders"] },
+        { id: "bq1o2", label: "Building strategic thinking skills", traitIds: ["trait_big_picture"], skillIds: ["skill_project_mgmt"] },
+        { id: "bq1o3", label: "Networking and collaboration", traitIds: ["trait_collaboration"], skillIds: ["skill_teamwork"] },
+        { id: "bq1o4", label: "Practical, real-world application", traitIds: ["trait_practical"], skillIds: ["skill_project_mgmt"] },
+      ],
+    },
+    {
+      id: "bq2",
+      type: "single_select",
+      section: "fit",
+      prompt: "How do you prefer to learn business concepts?",
+      helperText: null,
+      isOptional: false,
+      options: [
+        { id: "bq2o1", label: "Case studies and real scenarios", traitIds: ["trait_practical"], skillIds: ["skill_research"] },
+        { id: "bq2o2", label: "Data-driven analysis", traitIds: ["trait_analytical"], skillIds: ["skill_quant", "skill_data_literacy"] },
+        { id: "bq2o3", label: "Group discussions and debates", traitIds: ["trait_collaboration"], skillIds: ["skill_presenting"] },
+        { id: "bq2o4", label: "Structured frameworks and models", traitIds: ["trait_structure"], skillIds: [] },
+      ],
+    },
+    ...SEED_QUIZ_DRAFT_GENERAL.questions.slice(2), // Reuse remaining questions
+  ],
+};
+
+// Seeding helper function
+function seedProgramMatchIfNeeded() {
+  if (programMatchSeeded) return;
+  
+  // Seed traits
+  SEED_TRAITS.forEach(trait => {
+    if (!programMatchTraits.find(t => t.id === trait.id)) {
+      programMatchTraits.push(trait);
+    }
+  });
+
+  // Seed skills
+  SEED_SKILLS.forEach(skill => {
+    if (!programMatchSkills.find(s => s.id === skill.id)) {
+      programMatchSkills.push(skill);
+    }
+  });
+
+  // Seed programs
+  SEED_PROGRAMS.forEach(program => {
+    if (!programMatchPrograms.find(p => p.id === program.id)) {
+      programMatchPrograms.push(program);
+    }
+  });
+
+  // Seed ICPs
+  SEED_ICP_BY_PROGRAM.forEach((icp, programId) => {
+    if (!programMatchICPByProgramId.has(programId)) {
+      programMatchICPByProgramId.set(programId, icp);
+    }
+  });
+
+  // Seed quizzes
+  SEED_QUIZES.forEach(quiz => {
+    if (!programMatchQuizzes.find(q => q.id === quiz.id)) {
+      programMatchQuizzes.push(quiz);
+    }
+  });
+
+  // Seed quiz drafts
+  if (!programMatchQuizDraftByQuizId.has("quiz_general_1")) {
+    programMatchQuizDraftByQuizId.set("quiz_general_1", SEED_QUIZ_DRAFT_GENERAL);
+  }
+  if (!programMatchQuizDraftByQuizId.has("quiz_business_1")) {
+    programMatchQuizDraftByQuizId.set("quiz_business_1", SEED_QUIZ_DRAFT_BUSINESS);
+  }
+
+  // Try to set voice tone profile if available
+  // Note: This would need to check if listVoiceToneProfiles exists and has profiles
+  // For now, we'll leave it null as the seed data doesn't depend on it
+
+  programMatchSeeded = true;
+}
 
 export const mockProvider: DataProvider = {
   async listQueueItems(ctx: DataContext) {
+    seedProgramMatchIfNeeded();
+    seedProgramMatchIfNeeded();
     await delay(150);
     let items: QueueItem[];
 
@@ -716,16 +1122,49 @@ export const mockProvider: DataProvider = {
     return { ...programMatchDraftConfig };
   },
 
-  async updateProgramMatchDraftConfig(ctx: DataContext, input: { voiceToneProfileId?: string | null }): Promise<ProgramMatchDraftConfig | null> {
+  async updateProgramMatchDraftConfig(ctx: DataContext, input: { voiceToneProfileId?: string | null; outcomesEnabled?: boolean; gate?: Partial<ProgramMatchGateConfig> }): Promise<ProgramMatchDraftConfig | null> {
     await delay(100);
     
     if (ctx.workspace !== 'admissions') {
       return null;
     }
 
+    // Handle voiceToneProfileId update (including null)
+    const updates: Partial<ProgramMatchDraftConfig> = {};
+    if (input.voiceToneProfileId !== undefined) {
+      updates.voiceToneProfileId = input.voiceToneProfileId;
+    }
+    if (input.outcomesEnabled !== undefined) {
+      updates.outcomesEnabled = input.outcomesEnabled;
+    }
+
     programMatchDraftConfig = {
       ...programMatchDraftConfig,
-      ...input,
+      ...updates,
+      ...(input.gate && {
+        gate: {
+          ...programMatchDraftConfig.gate,
+          ...input.gate,
+          ...(input.gate.requiredFields && {
+            requiredFields: {
+              ...programMatchDraftConfig.gate.requiredFields,
+              ...input.gate.requiredFields,
+            },
+          }),
+          ...(input.gate.consent && {
+            consent: {
+              ...programMatchDraftConfig.gate.consent,
+              ...input.gate.consent,
+            },
+          }),
+          ...(input.gate.copy && {
+            copy: {
+              ...programMatchDraftConfig.gate.copy,
+              ...input.gate.copy,
+            },
+          }),
+        },
+      }),
       updatedAt: new Date().toISOString(),
     };
 
@@ -749,6 +1188,7 @@ export const mockProvider: DataProvider = {
   },
 
   async getProgramMatchChecklist(ctx: DataContext): Promise<ProgramMatchChecklistItem[]> {
+    seedProgramMatchIfNeeded();
     await delay(100);
     
     if (ctx.workspace !== 'admissions') {
@@ -757,6 +1197,33 @@ export const mockProvider: DataProvider = {
 
     // Compute checklist state from provider state
     const voiceToneComplete = programMatchDraftConfig.voiceToneProfileId != null;
+    const gateComplete = programMatchDraftConfig.gate.enabled &&
+      programMatchDraftConfig.gate.requiredFields.email === true &&
+      programMatchDraftConfig.gate.copy.headline.trim().length > 0 &&
+      programMatchDraftConfig.gate.copy.helperText.trim().length > 0;
+
+    // Get libraries summary to check Traits/Skills completion
+    // Use the same source of truth as the summary method
+    const activeTraits = programMatchTraits.filter(t => t.isActive);
+    const activeSkills = programMatchSkills.filter(s => s.isActive);
+    const traitsCount = activeTraits.length;
+    const skillsCount = activeSkills.length;
+    
+    // Thresholds: Traits >= 10, Skills >= 8
+    const traitsComplete = traitsCount >= 10;
+    const skillsComplete = skillsCount >= 8;
+
+    // Sanity check: log counts in dev (lightweight)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[ProgramMatch] Checklist computation:', {
+        traitsCount,
+        skillsCount,
+        traitsComplete,
+        skillsComplete,
+        seededTraits: programMatchTraits.length,
+        seededSkills: programMatchSkills.length,
+      });
+    }
 
     return [
       {
@@ -768,19 +1235,19 @@ export const mockProvider: DataProvider = {
       {
         id: 'checklist-2',
         label: 'Lead capture gate configured',
-        state: 'not_started',
+        state: gateComplete ? 'complete' : 'not_started',
         sectionId: 'lead-capture',
       },
       {
         id: 'checklist-3',
         label: 'Traits library set up',
-        state: 'not_started',
+        state: traitsComplete ? 'complete' : 'not_started',
         sectionId: 'libraries',
       },
       {
         id: 'checklist-4',
         label: 'Skills library set up',
-        state: 'not_started',
+        state: skillsComplete ? 'complete' : 'not_started',
         sectionId: 'libraries',
       },
       {
@@ -823,6 +1290,7 @@ export const mockProvider: DataProvider = {
   },
 
   async getProgramMatchHubSummary(ctx: DataContext): Promise<ProgramMatchHubSummary | null> {
+    seedProgramMatchIfNeeded();
     await delay(100);
     
     // Only return data for admissions workspace
@@ -934,6 +1402,7 @@ export const mockProvider: DataProvider = {
 
   // Program Match Traits
   async listProgramMatchTraits(ctx: DataContext): Promise<ProgramMatchTrait[]> {
+    seedProgramMatchIfNeeded();
     await delay(100);
     
     if (ctx.workspace !== 'admissions') {
@@ -989,6 +1458,7 @@ export const mockProvider: DataProvider = {
 
   // Program Match Skills
   async listProgramMatchSkills(ctx: DataContext): Promise<ProgramMatchSkill[]> {
+    seedProgramMatchIfNeeded();
     await delay(100);
     
     if (ctx.workspace !== 'admissions') {
@@ -1044,6 +1514,7 @@ export const mockProvider: DataProvider = {
 
   // Program Match Programs
   async listProgramMatchPrograms(ctx: DataContext): Promise<ProgramMatchProgram[]> {
+    seedProgramMatchIfNeeded();
     await delay(100);
     
     if (ctx.workspace !== 'admissions') {
@@ -1139,6 +1610,1693 @@ export const mockProvider: DataProvider = {
 
     programMatchICPByProgramId.set(programId, updated);
     return { ...updated };
+  },
+
+  // Program Match Outcomes
+  async listProgramMatchOutcomes(ctx: DataContext, input?: { type?: 'priority' | 'field' | 'role' }): Promise<ProgramMatchOutcome[]> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return [];
+    }
+
+    let outcomes = [...programMatchOutcomes];
+
+    if (input?.type) {
+      outcomes = outcomes.filter((o: ProgramMatchOutcome) => o.type === input.type);
+    }
+
+    return outcomes;
+  },
+
+  async createProgramMatchOutcome(ctx: DataContext, input: { type: 'priority' | 'field' | 'role'; name: string; category?: string | null; description: string }): Promise<ProgramMatchOutcome> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    const now = new Date().toISOString();
+    const outcome: ProgramMatchOutcome = {
+      id: `outcome_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      type: input.type,
+      name: input.name,
+      category: input.category || null,
+      description: input.description,
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    programMatchOutcomes.push(outcome);
+    return { ...outcome };
+  },
+
+  async updateProgramMatchOutcome(ctx: DataContext, id: string, input: Partial<{ name: string; category: string | null; description: string; isActive: boolean }>): Promise<ProgramMatchOutcome> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    const outcome = programMatchOutcomes.find((o: ProgramMatchOutcome) => o.id === id);
+    if (!outcome) {
+      throw new Error(`Outcome with id ${id} not found`);
+    }
+
+    Object.assign(outcome, input, { updatedAt: new Date().toISOString() });
+    return { ...outcome };
+  },
+
+  async getProgramMatchProgramOutcomes(ctx: DataContext, programId: string): Promise<ProgramMatchProgramOutcomes | null> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return null;
+    }
+
+    const existing = programMatchProgramOutcomesById.get(programId);
+    if (existing) {
+      return { ...existing };
+    }
+
+    // Initialize empty if none exists
+    const now = new Date().toISOString();
+    const empty: ProgramMatchProgramOutcomes = {
+      programId,
+      priorities: { strong: [], moderate: [] },
+      fields: { strong: [], moderate: [] },
+      roles: { strong: [], moderate: [] },
+      updatedAt: now,
+    };
+
+    programMatchProgramOutcomesById.set(programId, empty);
+    return { ...empty };
+  },
+
+  async updateProgramMatchProgramOutcomes(ctx: DataContext, programId: string, payload: Omit<ProgramMatchProgramOutcomes, 'programId' | 'updatedAt'>): Promise<ProgramMatchProgramOutcomes> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    const updated: ProgramMatchProgramOutcomes = {
+      programId,
+      ...payload,
+      updatedAt: new Date().toISOString(),
+    };
+
+    programMatchProgramOutcomesById.set(programId, updated);
+    return { ...updated };
+  },
+
+  // Program Match Quiz Library
+  async listProgramMatchQuizzes(ctx: DataContext): Promise<ProgramMatchQuiz[]> {
+    seedProgramMatchIfNeeded();
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return [];
+    }
+
+    return [...programMatchQuizzes];
+  },
+
+  async createProgramMatchQuiz(ctx: DataContext, input: { name: string }): Promise<ProgramMatchQuiz> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    const now = new Date().toISOString();
+    const quiz: ProgramMatchQuiz = {
+      id: `quiz_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      name: input.name,
+      status: 'draft',
+      createdAt: now,
+      updatedAt: now,
+      lastPublishedAt: null,
+      activePublishedVersionId: null,
+    };
+
+    programMatchQuizzes.push(quiz);
+
+    // Create empty draft
+    const draft: ProgramMatchQuizDraft = {
+      id: `quiz_draft_${quiz.id}`,
+      quizId: quiz.id,
+      title: input.name,
+      description: '',
+      targetLength: 8,
+      updatedAt: now,
+      questions: [],
+    };
+    programMatchQuizDraftByQuizId.set(quiz.id, draft);
+
+    return { ...quiz };
+  },
+
+  async updateProgramMatchQuiz(ctx: DataContext, input: { id: string; name?: string; status?: 'archived' }): Promise<ProgramMatchQuiz> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    const quiz = programMatchQuizzes.find((q: ProgramMatchQuiz) => q.id === input.id);
+    if (!quiz) {
+      throw new Error(`Quiz with id ${input.id} not found`);
+    }
+
+    if (input.name !== undefined) {
+      quiz.name = input.name;
+    }
+    if (input.status !== undefined) {
+      quiz.status = input.status;
+    }
+    quiz.updatedAt = new Date().toISOString();
+
+    return { ...quiz };
+  },
+
+  async getProgramMatchQuizDraftByQuizId(ctx: DataContext, quizId: string): Promise<ProgramMatchQuizDraft | null> {
+    seedProgramMatchIfNeeded();
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return null;
+    }
+
+    const draft = programMatchQuizDraftByQuizId.get(quizId);
+    if (!draft) {
+      // Initialize empty draft if none exists
+      const now = new Date().toISOString();
+      const emptyDraft: ProgramMatchQuizDraft = {
+        id: `quiz_draft_${quizId}`,
+        quizId,
+        title: '',
+        description: '',
+        targetLength: 8,
+        updatedAt: now,
+        questions: [],
+      };
+      programMatchQuizDraftByQuizId.set(quizId, emptyDraft);
+      return { ...emptyDraft };
+    }
+
+    return { ...draft };
+  },
+
+  async updateProgramMatchQuizDraftByQuizId(ctx: DataContext, quizId: string, input: Partial<Omit<ProgramMatchQuizDraft, 'id' | 'quizId' | 'updatedAt'>> & { questions?: ProgramMatchQuizQuestion[] }): Promise<ProgramMatchQuizDraft> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    const draft = programMatchQuizDraftByQuizId.get(quizId);
+    if (!draft) {
+      throw new Error(`Quiz draft for quizId ${quizId} not found`);
+    }
+
+    Object.assign(draft, input, { updatedAt: new Date().toISOString() });
+    return { ...draft };
+  },
+
+  async listProgramMatchQuizPublishedVersions(ctx: DataContext, quizId: string): Promise<ProgramMatchQuizPublishedVersion[]> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return [];
+    }
+
+    const versions = programMatchQuizPublishedByQuizId.get(quizId) || [];
+    return [...versions].sort((a, b) => b.version - a.version);
+  },
+
+  async publishProgramMatchQuizDraft(ctx: DataContext, quizId: string): Promise<ProgramMatchQuizPublishedVersion> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    const draft = programMatchQuizDraftByQuizId.get(quizId);
+    if (!draft) {
+      throw new Error(`Quiz draft for quizId ${quizId} not found`);
+    }
+
+    if (draft.questions.length < 8) {
+      throw new Error('Quiz must have at least 8 questions before publishing');
+    }
+
+    const existingVersions = programMatchQuizPublishedByQuizId.get(quizId) || [];
+    const nextVersion = existingVersions.length > 0 ? Math.max(...existingVersions.map(v => v.version)) + 1 : 1;
+
+    const now = new Date().toISOString();
+    const publishedVersion: ProgramMatchQuizPublishedVersion = {
+      id: `quiz_version_${quizId}_v${nextVersion}`,
+      quizId,
+      version: nextVersion,
+      publishedAt: now,
+      publishedBy: null,
+      title: draft.title,
+      description: draft.description,
+      targetLength: draft.targetLength,
+      questions: draft.questions.map(q => ({ ...q })), // Deep copy
+    };
+
+    existingVersions.push(publishedVersion);
+    programMatchQuizPublishedByQuizId.set(quizId, existingVersions);
+
+    // Update quiz status
+    const quiz = programMatchQuizzes.find((q: ProgramMatchQuiz) => q.id === quizId);
+    if (quiz) {
+      quiz.status = 'published';
+      quiz.lastPublishedAt = now;
+      quiz.activePublishedVersionId = publishedVersion.id;
+      quiz.updatedAt = now;
+    }
+
+    return { ...publishedVersion };
+  },
+
+  async getProgramMatchQuizPublishedVersion(ctx: DataContext, id: string): Promise<ProgramMatchQuizPublishedVersion | null> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return null;
+    }
+
+    for (const versions of programMatchQuizPublishedByQuizId.values()) {
+      const version = versions.find((v: ProgramMatchQuizPublishedVersion) => v.id === id);
+      if (version) {
+        return { ...version };
+      }
+    }
+
+    return null;
+  },
+
+  async generateProgramMatchQuizDraftWithAI(ctx: DataContext, req: ProgramMatchQuizAIDraftRequest & { quizId: string }): Promise<ProgramMatchQuizDraft> {
+    await delay(300);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    // Get current draft
+    const currentDraft = await this.getProgramMatchQuizDraftByQuizId(ctx, req.quizId);
+    
+    // Generate deterministic sample quiz (in real implementation, this would call OpenAI)
+    const sampleQuestions: ProgramMatchQuizQuestion[] = [
+      {
+        id: `ai_q1_${Date.now()}`,
+        type: 'single_select',
+        section: 'fit',
+        prompt: 'What matters most to you in a graduate program?',
+        helperText: null,
+        isOptional: false,
+        options: [
+          { id: `ai_q1o1_${Date.now()}`, label: 'Career advancement', traitIds: ['trait_advancement'], skillIds: [] },
+          { id: `ai_q1o2_${Date.now()}`, label: 'Personal growth', traitIds: ['trait_growth_mindset'], skillIds: [] },
+          { id: `ai_q1o3_${Date.now()}`, label: 'Making an impact', traitIds: ['trait_impact'], skillIds: [] },
+          { id: `ai_q1o4_${Date.now()}`, label: 'Building expertise', traitIds: ['trait_curiosity'], skillIds: [] },
+        ],
+      },
+      // Add more sample questions to reach targetLength
+      ...Array.from({ length: Math.min(req.targetLength - 1, 7) }, (_, i) => ({
+        id: `ai_q${i + 2}_${Date.now()}`,
+        type: 'single_select' as const,
+        section: (i % 2 === 0 ? 'fit' : 'readiness') as 'fit' | 'readiness',
+        prompt: `Sample question ${i + 2}`,
+        helperText: null,
+        isOptional: i >= 6,
+        options: [
+          { id: `ai_q${i + 2}o1_${Date.now()}`, label: 'Option A', traitIds: [], skillIds: [] },
+          { id: `ai_q${i + 2}o2_${Date.now()}`, label: 'Option B', traitIds: [], skillIds: [] },
+          { id: `ai_q${i + 2}o3_${Date.now()}`, label: 'Option C', traitIds: [], skillIds: [] },
+        ],
+      })),
+    ];
+
+    const updatedDraft: ProgramMatchQuizDraft = {
+      ...currentDraft!,
+      title: currentDraft?.title || 'AI-Generated Quiz',
+      description: currentDraft?.description || 'A quiz generated with AI assistance',
+      targetLength: req.targetLength,
+      questions: sampleQuestions,
+      updatedAt: new Date().toISOString(),
+    };
+
+    programMatchQuizDraftByQuizId.set(req.quizId, updatedDraft);
+    return { ...updatedDraft };
+  },
+
+  // Program Match Publish & Versioning
+  async listProgramMatchPublishedSnapshots(ctx: DataContext): Promise<ProgramMatchPublishSnapshot[]> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return [];
+    }
+
+    // Return empty for now - snapshots would be stored in a separate array
+    return [];
+  },
+
+  async publishProgramMatchDraft(ctx: DataContext): Promise<ProgramMatchPublishSnapshot> {
+    await delay(200);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    // Validate prerequisites
+    const activeTraits = programMatchTraits.filter(t => t.isActive);
+    const activeSkills = programMatchSkills.filter(s => s.isActive);
+    const activePrograms = programMatchPrograms.filter(p => p.status === 'active');
+
+    if (!programMatchDraftConfig.voiceToneProfileId) {
+      throw new Error('Voice and Tone profile must be selected');
+    }
+    if (activeTraits.length < 15) {
+      throw new Error('At least 15 active traits required');
+    }
+    if (activeSkills.length < 10) {
+      throw new Error('At least 10 active skills required');
+    }
+    if (activePrograms.length < 3) {
+      throw new Error('At least 3 active programs required');
+    }
+
+    // Create snapshot (without quiz - quizzes are separate now)
+    const now = new Date().toISOString();
+    const snapshot: ProgramMatchPublishSnapshot = {
+      id: `snapshot_${Date.now()}`,
+      version: 1,
+      status: 'published',
+      publishedAt: now,
+      publishedBy: null,
+      draftConfig: { ...programMatchDraftConfig },
+      traits: [...activeTraits],
+      skills: [...activeSkills],
+      outcomes: programMatchOutcomes.filter(o => o.isActive),
+      programs: [...programMatchPrograms],
+      programICPs: Array.from(programMatchICPByProgramId.values()),
+      programOutcomes: Array.from(programMatchProgramOutcomesById.values()),
+    };
+
+    // Store snapshot (in a real implementation, this would be persisted)
+    return { ...snapshot };
+  },
+
+  async getProgramMatchPublishedSnapshot(ctx: DataContext, id: string): Promise<ProgramMatchPublishSnapshot | null> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return null;
+    }
+
+    // Return null for now - would look up from storage
+    return null;
+  },
+
+  // Program Match Preview Links
+  async createProgramMatchPreviewLink(ctx: DataContext, input: { mode: 'draft' | 'published'; targetId: string; expiresInDays: number }): Promise<ProgramMatchPreviewLink> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + input.expiresInDays * 24 * 60 * 60 * 1000);
+
+    const link: ProgramMatchPreviewLink = {
+      id: `preview_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      mode: input.mode,
+      targetId: input.targetId,
+      urlPath: `/admissions/program-match/preview/`,
+      expiresAt: expiresAt.toISOString(),
+      isActive: true,
+      createdAt: now.toISOString(),
+    };
+
+    return { ...link };
+  },
+
+  async revokeProgramMatchPreviewLink(ctx: DataContext, id: string): Promise<void> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    // In real implementation, would mark link as inactive
+  },
+
+  async listProgramMatchPreviewLinks(ctx: DataContext, input?: { mode?: 'draft' | 'published' }): Promise<ProgramMatchPreviewLink[]> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return [];
+    }
+
+    // Return empty for now
+    return [];
+  },
+
+  // Program Match Deploy
+  async getProgramMatchDeployConfig(ctx: DataContext, publishedSnapshotId: string, embedType: 'js' | 'iframe', quizVersionId: string): Promise<ProgramMatchDeployConfig> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    // Generate snippet with quizVersionId
+    let snippet = '';
+    if (embedType === 'js') {
+      snippet = `<div id="program-match-widget-${publishedSnapshotId}"></div>
+<script>
+  (function() {
+    const container = document.getElementById('program-match-widget-${publishedSnapshotId}');
+    if (!container) return;
+    const iframe = document.createElement('iframe');
+    iframe.src = window.location.origin + '/widgets/program-match/${publishedSnapshotId}?quizVersionId=${quizVersionId}';
+    iframe.width = '100%';
+    iframe.height = '600';
+    iframe.frameBorder = '0';
+    iframe.style.border = 'none';
+    container.appendChild(iframe);
+  })();
+</script>`;
+    } else {
+      snippet = `<iframe src="/widgets/program-match/${publishedSnapshotId}?quizVersionId=${quizVersionId}" width="100%" height="600" frameborder="0" style="border: none;"></iframe>`;
+    }
+
+    return {
+      id: `deploy_${Date.now()}`,
+      publishedSnapshotId,
+      quizVersionId,
+      embedType,
+      snippet,
+      verifiedAt: null,
+    };
+  },
+
+  async markProgramMatchDeployVerified(ctx: DataContext, publishedSnapshotId: string): Promise<ProgramMatchDeployConfig> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    // Return a config with verifiedAt set
+    return {
+      id: `deploy_${publishedSnapshotId}`,
+      publishedSnapshotId,
+      quizVersionId: '', // Would be set from stored config
+      embedType: 'js',
+      snippet: '',
+      verifiedAt: new Date().toISOString(),
+    };
+  },
+
+  // Program Match Templates
+  async listProgramMatchTemplates(ctx: DataContext): Promise<ProgramMatchTemplateSummary[]> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return [];
+    }
+
+    // Return template summaries (for now, just one template)
+    return [
+      {
+        id: 'template_graduate_starter',
+        name: 'Graduate Starter Pack',
+        description: 'A comprehensive starter pack for graduate programs with essential traits, skills, and sample programs.',
+        tags: ['graduate', 'general', 'starter'],
+        audience: 'graduate',
+        includes: {
+          traits: 20,
+          skills: 10,
+          outcomes: 12,
+          programs: 3,
+          icps: 3,
+          quiz: true,
+        },
+        updatedAt: new Date().toISOString(),
+      },
+    ];
+  },
+
+  async getProgramMatchTemplatePackage(ctx: DataContext, id: string): Promise<ProgramMatchTemplatePackage | null> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return null;
+    }
+
+    // For MVP, return a single template package inline
+    // In production, this would load from a template catalog
+    if (id === 'template_graduate_starter') {
+      return {
+        id: 'template_graduate_starter',
+        name: 'Graduate Starter Pack',
+        version: '1.0.0',
+        traits: [
+          { name: 'Analytical Thinking', category: 'Cognitive', description: 'Ability to break down complex problems and analyze data' },
+          { name: 'Research Orientation', category: 'Academic', description: 'Interest in conducting original research' },
+          { name: 'Time Management', category: 'Professional', description: 'Ability to prioritize and manage multiple deadlines' },
+          { name: 'Written Communication', category: 'Communication', description: 'Strong writing skills for academic and professional contexts' },
+          { name: 'Critical Analysis', category: 'Cognitive', description: 'Ability to evaluate arguments and evidence critically' },
+          { name: 'Independent Learning', category: 'Academic', description: 'Self-directed learning and study habits' },
+          { name: 'Collaboration', category: 'Interpersonal', description: 'Works effectively in team settings' },
+          { name: 'Adaptability', category: 'Professional', description: 'Flexible and responsive to changing circumstances' },
+          { name: 'Intellectual Curiosity', category: 'Academic', description: 'Genuine interest in learning and exploring new ideas' },
+          { name: 'Problem Solving', category: 'Cognitive', description: 'Systematic approach to identifying and solving problems' },
+          { name: 'Presentation Skills', category: 'Communication', description: 'Clear and effective verbal communication' },
+          { name: 'Ethical Reasoning', category: 'Values', description: 'Strong ethical framework and moral reasoning' },
+          { name: 'Cultural Awareness', category: 'Interpersonal', description: 'Understanding and appreciation of diverse perspectives' },
+          { name: 'Leadership Potential', category: 'Professional', description: 'Demonstrates initiative and ability to lead' },
+          { name: 'Resilience', category: 'Personal', description: 'Ability to bounce back from setbacks' },
+          { name: 'Goal Orientation', category: 'Professional', description: 'Clear sense of direction and purpose' },
+          { name: 'Quantitative Skills', category: 'Academic', description: 'Comfort with numbers and statistical analysis' },
+          { name: 'Qualitative Analysis', category: 'Academic', description: 'Ability to interpret non-numeric data and themes' },
+          { name: 'Professional Network', category: 'Professional', description: 'Established connections in relevant field' },
+          { name: 'Work Experience', category: 'Professional', description: 'Relevant professional experience' },
+        ],
+        skills: [
+          { name: 'Data Analysis', category: 'Technical', description: 'Proficiency with data analysis tools and methods' },
+          { name: 'Research Methods', category: 'Academic', description: 'Familiarity with research design and methodology' },
+          { name: 'Statistical Software', category: 'Technical', description: 'Experience with SPSS, R, or similar tools' },
+          { name: 'Literature Review', category: 'Academic', description: 'Ability to synthesize existing research' },
+          { name: 'Grant Writing', category: 'Professional', description: 'Experience writing funding proposals' },
+          { name: 'Project Management', category: 'Professional', description: 'Ability to plan and execute complex projects' },
+          { name: 'Public Speaking', category: 'Communication', description: 'Comfort presenting to groups' },
+          { name: 'Academic Writing', category: 'Academic', description: 'Experience with scholarly writing conventions' },
+          { name: 'Qualitative Coding', category: 'Technical', description: 'Experience coding qualitative data' },
+          { name: 'Survey Design', category: 'Research', description: 'Ability to design effective surveys' },
+        ],
+        outcomes: [
+          { type: 'priority', name: 'Career Advancement', category: 'Career', description: 'Seeking to advance in current career path' },
+          { type: 'priority', name: 'Career Change', category: 'Career', description: 'Transitioning to a new field or industry' },
+          { type: 'priority', name: 'Research Career', category: 'Career', description: 'Pursuing a career in research or academia' },
+          { type: 'priority', name: 'Leadership Role', category: 'Career', description: 'Aspiring to leadership positions' },
+          { type: 'field', name: 'Business & Management', category: 'Field', description: 'Interest in business and management fields' },
+          { type: 'field', name: 'Education', category: 'Field', description: 'Focus on education and teaching' },
+          { type: 'field', name: 'Healthcare', category: 'Field', description: 'Interest in healthcare professions' },
+          { type: 'field', name: 'Technology', category: 'Field', description: 'Focus on technology and innovation' },
+          { type: 'field', name: 'Social Sciences', category: 'Field', description: 'Interest in social science research' },
+          { type: 'role', name: 'Researcher', category: 'Role', description: 'Research-focused career path' },
+          { type: 'role', name: 'Practitioner', category: 'Role', description: 'Applied, practice-oriented career' },
+          { type: 'role', name: 'Educator', category: 'Role', description: 'Teaching and education career' },
+        ],
+        programs: [
+          {
+            name: 'Master of Arts in Research',
+            status: 'active',
+            icp: {
+              traits: {
+                critical: ['Analytical Thinking', 'Research Orientation', 'Intellectual Curiosity'],
+                veryImportant: ['Written Communication', 'Independent Learning', 'Critical Analysis'],
+                important: ['Time Management', 'Problem Solving', 'Presentation Skills'],
+                niceToHave: ['Collaboration', 'Cultural Awareness'],
+              },
+              skills: {
+                critical: ['Research Methods', 'Literature Review'],
+                veryImportant: ['Academic Writing', 'Data Analysis'],
+                important: ['Statistical Software', 'Qualitative Coding'],
+                niceToHave: ['Grant Writing', 'Survey Design'],
+              },
+            },
+            outcomes: {
+              priorities: { strong: ['Research Career'], moderate: ['Career Advancement'] },
+              fields: { strong: ['Social Sciences'], moderate: ['Education'] },
+              roles: { strong: ['Researcher'], moderate: ['Educator'] },
+            },
+          },
+          {
+            name: 'Master of Professional Studies',
+            status: 'active',
+            icp: {
+              traits: {
+                critical: ['Goal Orientation', 'Work Experience', 'Professional Network'],
+                veryImportant: ['Time Management', 'Adaptability', 'Leadership Potential'],
+                important: ['Collaboration', 'Written Communication', 'Problem Solving'],
+                niceToHave: ['Cultural Awareness', 'Resilience'],
+              },
+              skills: {
+                critical: ['Project Management'],
+                veryImportant: ['Public Speaking', 'Academic Writing'],
+                important: ['Data Analysis', 'Research Methods'],
+                niceToHave: ['Grant Writing'],
+              },
+            },
+            outcomes: {
+              priorities: { strong: ['Career Advancement'], moderate: ['Career Change'] },
+              fields: { strong: ['Business & Management'], moderate: ['Technology'] },
+              roles: { strong: ['Practitioner'], moderate: ['Leadership Role'] },
+            },
+          },
+          {
+            name: 'Master of Applied Studies',
+            status: 'draft',
+            icp: {
+              traits: {
+                critical: ['Problem Solving', 'Adaptability'],
+                veryImportant: ['Collaboration', 'Time Management'],
+                important: ['Written Communication', 'Presentation Skills'],
+                niceToHave: ['Cultural Awareness'],
+              },
+              skills: {
+                critical: ['Project Management'],
+                veryImportant: ['Public Speaking'],
+                important: ['Data Analysis'],
+                niceToHave: ['Grant Writing'],
+              },
+            },
+          },
+        ],
+        quizDraft: {
+          title: 'Graduate Program Match',
+          description: 'Find the graduate program that aligns with your goals and interests',
+          targetLength: 8,
+          questions: [
+            {
+              section: 'fit',
+              type: 'single_select',
+              prompt: 'What is your primary motivation for pursuing graduate studies?',
+              helperText: 'Select the option that best describes your main goal',
+              isOptional: false,
+              options: [
+                { label: 'Advance in my current career', traits: ['Goal Orientation', 'Work Experience'] },
+                { label: 'Change careers to a new field', traits: ['Adaptability'], outcomes: ['Career Change'] },
+                { label: 'Pursue research and academic work', traits: ['Research Orientation', 'Intellectual Curiosity'], outcomes: ['Research Career'] },
+                { label: 'Develop new skills and knowledge', traits: ['Independent Learning', 'Intellectual Curiosity'] },
+              ],
+            },
+            {
+              section: 'readiness',
+              type: 'single_select',
+              prompt: 'How would you describe your research experience?',
+              isOptional: false,
+              options: [
+                { label: 'Extensive research background', traits: ['Research Orientation'], skills: ['Research Methods', 'Literature Review'] },
+                { label: 'Some research experience', traits: ['Analytical Thinking'], skills: ['Data Analysis'] },
+                { label: 'Limited research experience', traits: ['Intellectual Curiosity'] },
+                { label: 'No research experience', traits: ['Independent Learning'] },
+              ],
+            },
+            {
+              section: 'readiness',
+              type: 'multi_select',
+              prompt: 'Which skills do you already have?',
+              helperText: 'Select all that apply',
+              isOptional: false,
+              options: [
+                { label: 'Data analysis', skills: ['Data Analysis', 'Statistical Software'] },
+                { label: 'Research methods', skills: ['Research Methods', 'Qualitative Coding'] },
+                { label: 'Academic writing', skills: ['Academic Writing', 'Literature Review'] },
+                { label: 'Project management', skills: ['Project Management'] },
+              ],
+            },
+            {
+              section: 'fit',
+              type: 'single_select',
+              prompt: 'What is your preferred learning style?',
+              isOptional: false,
+              options: [
+                { label: 'Independent, self-directed learning', traits: ['Independent Learning', 'Time Management'] },
+                { label: 'Collaborative group work', traits: ['Collaboration'] },
+                { label: 'Structured, guided instruction', traits: ['Adaptability'] },
+                { label: 'Mix of independent and collaborative', traits: ['Collaboration', 'Independent Learning'] },
+              ],
+            },
+            {
+              section: 'readiness',
+              type: 'single_select',
+              prompt: 'How do you handle multiple deadlines?',
+              isOptional: false,
+              options: [
+                { label: 'I excel at prioritizing and managing time', traits: ['Time Management', 'Goal Orientation'] },
+                { label: 'I manage well with some planning', traits: ['Time Management'] },
+                { label: 'I sometimes struggle but get it done', traits: ['Resilience'] },
+                { label: 'I need support with time management', traits: ['Adaptability'] },
+              ],
+            },
+            {
+              section: 'fit',
+              type: 'single_select',
+              prompt: 'What type of career are you targeting?',
+              isOptional: false,
+              options: [
+                { label: 'Research or academic career', outcomes: ['Research Career', 'Researcher'] },
+                { label: 'Applied practice in my field', outcomes: ['Practitioner', 'Career Advancement'] },
+                { label: 'Leadership or management role', outcomes: ['Leadership Role'], traits: ['Leadership Potential'] },
+                { label: 'Teaching or education', outcomes: ['Educator', 'Education'] },
+              ],
+            },
+            {
+              section: 'readiness',
+              type: 'multi_select',
+              prompt: 'Which areas would you like to strengthen?',
+              helperText: 'Select all that apply',
+              isOptional: false,
+              options: [
+                { label: 'Research skills', traits: ['Research Orientation'], skills: ['Research Methods'] },
+                { label: 'Writing skills', traits: ['Written Communication'], skills: ['Academic Writing'] },
+                { label: 'Analytical skills', traits: ['Analytical Thinking'], skills: ['Data Analysis'] },
+                { label: 'Presentation skills', traits: ['Presentation Skills'], skills: ['Public Speaking'] },
+              ],
+            },
+            {
+              section: 'fit',
+              type: 'single_select',
+              prompt: 'How important is collaboration in your ideal program?',
+              isOptional: false,
+              options: [
+                { label: 'Very important - I thrive in team settings', traits: ['Collaboration'] },
+                { label: 'Somewhat important', traits: ['Collaboration', 'Independent Learning'] },
+                { label: 'Not very important - I prefer independent work', traits: ['Independent Learning'] },
+                { label: 'Neutral', traits: ['Adaptability'] },
+              ],
+            },
+          ],
+        },
+      };
+    }
+
+    return null;
+  },
+
+  async planApplyProgramMatchTemplate(ctx: DataContext, input: { templateId: string }): Promise<ProgramMatchTemplateApplyPlan> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    const template = await this.getProgramMatchTemplatePackage(ctx, input.templateId);
+    if (!template) {
+      throw new Error(`Template with id ${input.templateId} not found`);
+    }
+
+    // Helper to normalize names
+    const normalizeName = (name: string): string => {
+      return name.toLowerCase().trim().replace(/\s+/g, ' ');
+    };
+
+    // Get current state
+    const currentTraits = await this.listProgramMatchTraits(ctx);
+    const currentSkills = await this.listProgramMatchSkills(ctx);
+    const currentOutcomes = await this.listProgramMatchOutcomes(ctx);
+    const currentPrograms = await this.listProgramMatchPrograms(ctx);
+    const draftConfig = await this.getProgramMatchDraftConfig(ctx);
+
+    // Normalize current names for matching
+    const currentTraitNames = new Set(currentTraits.map(t => normalizeName(t.name)));
+    const currentSkillNames = new Set(currentSkills.map(s => normalizeName(s.name)));
+    const currentOutcomeNames = new Set(currentOutcomes.map(o => normalizeName(o.name)));
+    const currentProgramNames = new Set(currentPrograms.map(p => normalizeName(p.name)));
+
+    // Count will create vs will skip
+    const willCreate = {
+      traits: template.traits.filter(t => !currentTraitNames.has(normalizeName(t.name))).length,
+      skills: template.skills.filter(s => !currentSkillNames.has(normalizeName(s.name))).length,
+      outcomes: template.outcomes ? template.outcomes.filter(o => !currentOutcomeNames.has(normalizeName(o.name))).length : 0,
+      programs: template.programs.filter(p => !currentProgramNames.has(normalizeName(p.name))).length,
+    };
+
+    const willSkip = {
+      traits: template.traits.filter(t => currentTraitNames.has(normalizeName(t.name))).length,
+      skills: template.skills.filter(s => currentSkillNames.has(normalizeName(s.name))).length,
+      outcomes: template.outcomes ? template.outcomes.filter(o => currentOutcomeNames.has(normalizeName(o.name))).length : 0,
+      programs: template.programs.filter(p => currentProgramNames.has(normalizeName(p.name))).length,
+    };
+
+    const warnings: string[] = [];
+
+    // Check outcomes feature
+    if (template.outcomes && template.outcomes.length > 0 && draftConfig && !draftConfig.outcomesEnabled) {
+      warnings.push('Template includes outcomes, but outcomes feature is disabled. Outcomes will be skipped.');
+    }
+
+    // Check quiz (templates can include quiz, but we'll apply to first available quiz)
+    if (template.quizDraft) {
+      const quizzes = await this.listProgramMatchQuizzes(ctx);
+      const firstQuiz = quizzes.find(q => q.status === 'draft');
+      if (firstQuiz) {
+        const quizDraft = await this.getProgramMatchQuizDraftByQuizId(ctx, firstQuiz.id);
+        if (quizDraft && quizDraft.questions.length > 0) {
+          warnings.push('A quiz already exists. Template quiz will be skipped.');
+        }
+      }
+    }
+
+    return {
+      templateId: input.templateId,
+      willCreate,
+      willSkip,
+      warnings,
+    };
+  },
+
+  async applyProgramMatchTemplate(ctx: DataContext, input: { templateId: string }): Promise<ProgramMatchTemplateApplyResult> {
+    await delay(200);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    const template = await this.getProgramMatchTemplatePackage(ctx, input.templateId);
+    if (!template) {
+      throw new Error(`Template with id ${input.templateId} not found`);
+    }
+
+    // Helper to normalize names
+    const normalizeName = (name: string): string => {
+      return name.toLowerCase().trim().replace(/\s+/g, ' ');
+    };
+
+    // Get current state
+    const currentTraits = await this.listProgramMatchTraits(ctx);
+    const currentSkills = await this.listProgramMatchSkills(ctx);
+    const currentOutcomes = await this.listProgramMatchOutcomes(ctx);
+    const currentPrograms = await this.listProgramMatchPrograms(ctx);
+    const draftConfig = await this.getProgramMatchDraftConfig(ctx);
+
+    // Normalize current names for matching
+    const currentTraitNames = new Set(currentTraits.map(t => normalizeName(t.name)));
+    const currentSkillNames = new Set(currentSkills.map(s => normalizeName(s.name)));
+    const currentOutcomeNames = new Set(currentOutcomes.map(o => normalizeName(o.name)));
+    const currentProgramNames = new Set(currentPrograms.map(p => normalizeName(p.name)));
+
+    // Create traits
+    let traitsCreated = 0;
+    const traitNameToId = new Map<string, string>();
+    for (const trait of currentTraits) {
+      traitNameToId.set(normalizeName(trait.name), trait.id);
+    }
+    for (const templateTrait of template.traits) {
+      const normalized = normalizeName(templateTrait.name);
+      if (!currentTraitNames.has(normalized)) {
+        const created = await this.createProgramMatchTrait(ctx, {
+          name: templateTrait.name,
+          category: templateTrait.category,
+          description: templateTrait.description,
+        });
+        traitNameToId.set(normalized, created.id);
+        traitsCreated++;
+      } else {
+        const existing = currentTraits.find(t => normalizeName(t.name) === normalized);
+        if (existing) {
+          traitNameToId.set(normalized, existing.id);
+        }
+      }
+    }
+
+    // Create skills
+    let skillsCreated = 0;
+    const skillNameToId = new Map<string, string>();
+    for (const skill of currentSkills) {
+      skillNameToId.set(normalizeName(skill.name), skill.id);
+    }
+    for (const templateSkill of template.skills) {
+      const normalized = normalizeName(templateSkill.name);
+      if (!currentSkillNames.has(normalized)) {
+        const created = await this.createProgramMatchSkill(ctx, {
+          name: templateSkill.name,
+          category: templateSkill.category,
+          description: templateSkill.description,
+        });
+        skillNameToId.set(normalized, created.id);
+        skillsCreated++;
+      } else {
+        const existing = currentSkills.find(s => normalizeName(s.name) === normalized);
+        if (existing) {
+          skillNameToId.set(normalized, existing.id);
+        }
+      }
+    }
+
+    // Create outcomes (if enabled)
+    let outcomesCreated = 0;
+    const outcomeNameToId = new Map<string, string>();
+    for (const outcome of currentOutcomes) {
+      outcomeNameToId.set(normalizeName(outcome.name), outcome.id);
+    }
+    if (template.outcomes && draftConfig?.outcomesEnabled) {
+      for (const templateOutcome of template.outcomes) {
+        const normalized = normalizeName(templateOutcome.name);
+        if (!currentOutcomeNames.has(normalized)) {
+          const created = await this.createProgramMatchOutcome(ctx, {
+            type: templateOutcome.type,
+            name: templateOutcome.name,
+            category: templateOutcome.category || null,
+            description: templateOutcome.description,
+          });
+          outcomeNameToId.set(normalized, created.id);
+          outcomesCreated++;
+        } else {
+          const existing = currentOutcomes.find(o => normalizeName(o.name) === normalized);
+          if (existing) {
+            outcomeNameToId.set(normalized, existing.id);
+          }
+        }
+      }
+    }
+
+    // Create programs and merge ICPs
+    let programsCreated = 0;
+    const programNameToId = new Map<string, string>();
+    for (const program of currentPrograms) {
+      programNameToId.set(normalizeName(program.name), program.id);
+    }
+    for (const templateProgram of template.programs) {
+      const normalized = normalizeName(templateProgram.name);
+      let programId: string;
+      
+      if (!currentProgramNames.has(normalized)) {
+        const created = await this.createProgramMatchProgram(ctx, {
+          name: templateProgram.name,
+        });
+        if (templateProgram.status === 'active') {
+          await this.updateProgramMatchProgram(ctx, created.id, { status: 'active' });
+        }
+        programId = created.id;
+        programNameToId.set(normalized, programId);
+        programsCreated++;
+      } else {
+        const existing = currentPrograms.find(p => normalizeName(p.name) === normalized);
+        programId = existing!.id;
+      }
+
+      // Get current ICP
+      const currentICP = await this.getProgramMatchProgramICP(ctx, programId);
+      if (!currentICP) {
+        throw new Error(`Failed to get ICP for program ${programId}`);
+      }
+      
+      // Merge template ICP traits
+      const mergedTraits = {
+        critical: [...(currentICP.buckets.critical.traitIds || []), ...templateProgram.icp.traits.critical.map(name => traitNameToId.get(normalizeName(name))).filter((id): id is string => !!id)],
+        veryImportant: [...(currentICP.buckets.veryImportant.traitIds || []), ...templateProgram.icp.traits.veryImportant.map(name => traitNameToId.get(normalizeName(name))).filter((id): id is string => !!id)],
+        important: [...(currentICP.buckets.important.traitIds || []), ...templateProgram.icp.traits.important.map(name => traitNameToId.get(normalizeName(name))).filter((id): id is string => !!id)],
+        niceToHave: [...(currentICP.buckets.niceToHave.traitIds || []), ...templateProgram.icp.traits.niceToHave.map(name => traitNameToId.get(normalizeName(name))).filter((id): id is string => !!id)],
+      };
+
+      // Merge template ICP skills
+      const mergedSkills = {
+        critical: [...(currentICP.buckets.critical.skillIds || []), ...templateProgram.icp.skills.critical.map(name => skillNameToId.get(normalizeName(name))).filter((id): id is string => !!id)],
+        veryImportant: [...(currentICP.buckets.veryImportant.skillIds || []), ...templateProgram.icp.skills.veryImportant.map(name => skillNameToId.get(normalizeName(name))).filter((id): id is string => !!id)],
+        important: [...(currentICP.buckets.important.skillIds || []), ...templateProgram.icp.skills.important.map(name => skillNameToId.get(normalizeName(name))).filter((id): id is string => !!id)],
+        niceToHave: [...(currentICP.buckets.niceToHave.skillIds || []), ...templateProgram.icp.skills.niceToHave.map(name => skillNameToId.get(normalizeName(name))).filter((id): id is string => !!id)],
+      };
+
+      // Remove duplicates
+      const dedupe = (arr: string[]) => Array.from(new Set(arr));
+      mergedTraits.critical = dedupe(mergedTraits.critical);
+      mergedTraits.veryImportant = dedupe(mergedTraits.veryImportant);
+      mergedTraits.important = dedupe(mergedTraits.important);
+      mergedTraits.niceToHave = dedupe(mergedTraits.niceToHave);
+      mergedSkills.critical = dedupe(mergedSkills.critical);
+      mergedSkills.veryImportant = dedupe(mergedSkills.veryImportant);
+      mergedSkills.important = dedupe(mergedSkills.important);
+      mergedSkills.niceToHave = dedupe(mergedSkills.niceToHave);
+
+      // Update ICP
+      await this.updateProgramMatchProgramICP(ctx, programId, {
+        critical: { traitIds: mergedTraits.critical, skillIds: mergedSkills.critical },
+        veryImportant: { traitIds: mergedTraits.veryImportant, skillIds: mergedSkills.veryImportant },
+        important: { traitIds: mergedTraits.important, skillIds: mergedSkills.important },
+        niceToHave: { traitIds: mergedTraits.niceToHave, skillIds: mergedSkills.niceToHave },
+      });
+
+      // Merge program outcomes (if enabled)
+      if (templateProgram.outcomes && draftConfig?.outcomesEnabled) {
+        const currentProgramOutcomes = await this.getProgramMatchProgramOutcomes(ctx, programId);
+        if (currentProgramOutcomes) {
+          const mergedOutcomes = {
+            priorities: {
+              strong: dedupe([...(currentProgramOutcomes.priorities.strong || []), ...(templateProgram.outcomes.priorities?.strong || []).map(name => outcomeNameToId.get(normalizeName(name))).filter((id): id is string => !!id)]),
+              moderate: dedupe([...(currentProgramOutcomes.priorities.moderate || []), ...(templateProgram.outcomes.priorities?.moderate || []).map(name => outcomeNameToId.get(normalizeName(name))).filter((id): id is string => !!id)]),
+            },
+            fields: {
+              strong: dedupe([...(currentProgramOutcomes.fields.strong || []), ...(templateProgram.outcomes.fields?.strong || []).map(name => outcomeNameToId.get(normalizeName(name))).filter((id): id is string => !!id)]),
+              moderate: dedupe([...(currentProgramOutcomes.fields.moderate || []), ...(templateProgram.outcomes.fields?.moderate || []).map(name => outcomeNameToId.get(normalizeName(name))).filter((id): id is string => !!id)]),
+            },
+            roles: {
+              strong: dedupe([...(currentProgramOutcomes.roles.strong || []), ...(templateProgram.outcomes.roles?.strong || []).map(name => outcomeNameToId.get(normalizeName(name))).filter((id): id is string => !!id)]),
+              moderate: dedupe([...(currentProgramOutcomes.roles.moderate || []), ...(templateProgram.outcomes.roles?.moderate || []).map(name => outcomeNameToId.get(normalizeName(name))).filter((id): id is string => !!id)]),
+            },
+          };
+          await this.updateProgramMatchProgramOutcomes(ctx, programId, mergedOutcomes);
+        }
+      }
+    }
+
+    // Apply quiz draft (only if quiz is empty)
+    const warnings: string[] = [];
+    if (template.quizDraft) {
+      const quizzes = await this.listProgramMatchQuizzes(ctx);
+      const targetQuiz = quizzes.find(q => q.status === 'draft') || quizzes[0];
+      if (targetQuiz) {
+        const quizDraft = await this.getProgramMatchQuizDraftByQuizId(ctx, targetQuiz.id);
+        if (quizDraft && quizDraft.questions.length === 0) {
+          // Map trait/skill/outcome names to IDs for quiz options
+          const mapNamesToIds = (names: string[] | undefined, nameToIdMap: Map<string, string>): string[] => {
+            if (!names) return [];
+            return names.map(name => nameToIdMap.get(normalizeName(name))).filter((id): id is string => !!id);
+          };
+
+          const questions = template.quizDraft.questions.map(q => ({
+            id: `q_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            type: q.type,
+            section: q.section,
+            prompt: q.prompt,
+            helperText: q.helperText || null,
+            isOptional: q.isOptional,
+            options: q.options.map(opt => ({
+              id: `opt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              label: opt.label,
+              traitIds: mapNamesToIds(opt.traits, traitNameToId),
+              skillIds: mapNamesToIds(opt.skills, skillNameToId),
+              outcomeIds: draftConfig && draftConfig.outcomesEnabled ? mapNamesToIds(opt.outcomes, outcomeNameToId) : [],
+            })),
+          }));
+
+          await this.updateProgramMatchQuizDraftByQuizId(ctx, targetQuiz.id, {
+            title: template.quizDraft.title,
+            description: template.quizDraft.description,
+            targetLength: template.quizDraft.targetLength,
+            questions,
+          });
+        } else {
+          warnings.push('Quiz already exists with questions. Template quiz was skipped.');
+        }
+      }
+    }
+
+    const skipped = {
+      traits: template.traits.length - traitsCreated,
+      skills: template.skills.length - skillsCreated,
+      outcomes: template.outcomes ? template.outcomes.length - outcomesCreated : 0,
+      programs: template.programs.length - programsCreated,
+    };
+
+    return {
+      appliedAt: new Date().toISOString(),
+      created: {
+        traits: traitsCreated,
+        skills: skillsCreated,
+        outcomes: outcomesCreated,
+        programs: programsCreated,
+      },
+      skipped,
+      warnings,
+    };
+  },
+
+  // Program Match Scoring v2 + AI Explanations
+  async scoreProgramMatchResponses(ctx: DataContext, input: { publishedSnapshotId: string; answers: ProgramMatchAnswerPayload[] }): Promise<ProgramMatchScoreResult> {
+    await delay(150);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    // Get published snapshots from the list
+    const snapshots = await this.listProgramMatchPublishedSnapshots(ctx);
+    const snapshot = snapshots.find((s: ProgramMatchPublishSnapshot) => s.id === input.publishedSnapshotId);
+    if (!snapshot) {
+      throw new Error(`Published snapshot ${input.publishedSnapshotId} not found`);
+    }
+
+    // Build maps for quick lookup
+    const traitNameToId = new Map<string, string>();
+    const skillNameToId = new Map<string, string>();
+    const outcomeNameToId = new Map<string, string>();
+    snapshot.traits.forEach((t: ProgramMatchTrait) => traitNameToId.set(t.name.toLowerCase().trim(), t.id));
+    snapshot.skills.forEach((s: ProgramMatchSkill) => skillNameToId.set(s.name.toLowerCase().trim(), s.id));
+    if (snapshot.outcomes) {
+      snapshot.outcomes.forEach((o: ProgramMatchOutcome) => outcomeNameToId.set(o.name.toLowerCase().trim(), o.id));
+    }
+
+    const programScores: Record<string, number> = {};
+    const programEvidence: Record<string, {
+      traitHits: Array<{ traitId: string; bucket: 'critical' | 'veryImportant' | 'important' | 'niceToHave'; points: number }>;
+      skillHits: Array<{ skillId: string; bucket: 'critical' | 'veryImportant' | 'important' | 'niceToHave'; points: number }>;
+      outcomeHits: Array<{ outcomeId: string; strength: 'strong' | 'moderate'; points: number }>;
+    }> = {};
+
+    // Initialize scores and evidence
+    snapshot.programs.forEach((p: ProgramMatchProgram) => {
+      programScores[p.id] = 0;
+      programEvidence[p.id] = { traitHits: [], skillHits: [], outcomeHits: [] };
+    });
+
+    // Score each answer
+    // Note: Scoring requires quiz questions from quizVersionId, but this method doesn't receive it yet
+    // TODO: Update scoring method signature to accept quizVersionId parameter
+    // For now, return empty scores - scoring will need to be updated to work with quiz library
+    input.answers.forEach((answer: ProgramMatchAnswerPayload) => {
+      if (answer.skipped) return;
+      // Scoring logic removed - needs quizVersionId to load questions from quiz version
+    });
+
+    // Sort programs by score with tie-breakers
+    const sortedPrograms = Object.entries(programScores)
+      .map(([programId, score]: [string, number]) => {
+        const evidence = programEvidence[programId];
+        const criticalTraitCount = evidence.traitHits.filter((h: { bucket: string }) => h.bucket === 'critical').length;
+        const totalTraitCount = evidence.traitHits.length;
+        const skillCount = evidence.skillHits.length;
+        const program = snapshot.programs.find((p: ProgramMatchProgram) => p.id === programId);
+        return {
+          programId,
+          score,
+          criticalTraitCount,
+          totalTraitCount,
+          skillCount,
+          programName: program?.name || '',
+        };
+      })
+      .sort((a, b) => {
+        // Primary: score descending
+        if (b.score !== a.score) return b.score - a.score;
+        // Tie-breaker 1: critical trait hits
+        if (b.criticalTraitCount !== a.criticalTraitCount) return b.criticalTraitCount - a.criticalTraitCount;
+        // Tie-breaker 2: total trait hits
+        if (b.totalTraitCount !== a.totalTraitCount) return b.totalTraitCount - a.totalTraitCount;
+        // Tie-breaker 3: skill hits
+        if (b.skillCount !== a.skillCount) return b.skillCount - a.skillCount;
+        // Tie-breaker 4: stable sort by name
+        return a.programName.localeCompare(b.programName);
+      });
+
+    const topProgramIds = sortedPrograms.slice(0, 2).map(p => p.programId);
+    const runnerUpProgramIds = sortedPrograms.slice(1, 3).map(p => p.programId);
+    const topScore = sortedPrograms[0]?.score || 0;
+    const runnerUpScore = sortedPrograms[1]?.score || 0;
+
+    // Determine confidence
+    let confidenceLabel: 'high' | 'medium' | 'low' = 'low';
+    if (topScore >= 18 && (topScore - runnerUpScore) >= 6) {
+      confidenceLabel = 'high';
+    } else if (topScore > 0) {
+      confidenceLabel = 'medium';
+    }
+
+    // Build evidence for top 2 programs
+    const evidence = topProgramIds.slice(0, 2).map(programId => {
+      const ev = programEvidence[programId];
+      // Sort by points descending and take top contributors
+      const topTraits = ev.traitHits
+        .sort((a, b) => b.points - a.points)
+        .slice(0, 3);
+      const topSkills = ev.skillHits
+        .sort((a, b) => b.points - a.points)
+        .slice(0, 2);
+      const outcomesHits = ev.outcomeHits.length > 0
+        ? ev.outcomeHits
+            .sort((a, b) => b.points - a.points)
+            .slice(0, 2)
+        : undefined;
+
+      return {
+        programId,
+        topTraits,
+        topSkills,
+        outcomesHits,
+      };
+    });
+
+    return {
+      publishedSnapshotId: input.publishedSnapshotId,
+      topProgramIds,
+      runnerUpProgramIds,
+      programScores: sortedPrograms.map(p => ({ programId: p.programId, score: p.score })),
+      confidenceLabel,
+      evidence,
+    };
+  },
+
+  async generateProgramMatchExplanations(ctx: DataContext, input: { publishedSnapshotId: string; toneProfileId: string; scoreResult: ProgramMatchScoreResult; includeOutcomes: boolean }): Promise<ProgramMatchExplanationsResult> {
+    await delay(300);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    // Get snapshot via existing method
+    const snapshot = await this.getProgramMatchPublishedSnapshot(ctx, input.publishedSnapshotId);
+    if (!snapshot) {
+      throw new Error(`Published snapshot ${input.publishedSnapshotId} not found`);
+    }
+
+    // Get trait/skill/outcome names for evidence
+    const traitIdToName = new Map<string, string>();
+    const skillIdToName = new Map<string, string>();
+    const outcomeIdToName = new Map<string, string>();
+    snapshot.traits.forEach((t: ProgramMatchTrait) => traitIdToName.set(t.id, t.name));
+    snapshot.skills.forEach((s: ProgramMatchSkill) => skillIdToName.set(s.id, s.name));
+    if (snapshot.outcomes) {
+      snapshot.outcomes.forEach((o: ProgramMatchOutcome) => outcomeIdToName.set(o.id, o.name));
+    }
+
+    // Generate deterministic explanations (fallback pattern)
+    // In a real provider, this would call OpenAI with the evidence
+    const explanations: ProgramMatchExplanation[] = input.scoreResult.topProgramIds.slice(0, 2).map((programId: string) => {
+      const program = snapshot.programs.find((p: ProgramMatchProgram) => p.id === programId);
+      const evidence = input.scoreResult.evidence.find(e => e.programId === programId);
+      
+      if (!program || !evidence) {
+        return {
+          programId,
+          headline: 'A strong fit based on your priorities',
+          bullets: [
+            'Your interests align well with this program\'s focus areas',
+            'Your learning style matches the program\'s approach',
+            'You\'re looking for the kind of experience this program offers',
+          ],
+          nextStepCtaLabel: 'Request information',
+        };
+      }
+
+      // Build bullets from evidence
+      const traitNames = evidence.topTraits
+        .slice(0, 2)
+        .map(h => traitIdToName.get(h.traitId))
+        .filter((name): name is string => !!name);
+      const skillNames = evidence.topSkills
+        .slice(0, 1)
+        .map(h => skillIdToName.get(h.skillId))
+        .filter((name): name is string => !!name);
+
+      const bullets: string[] = [];
+      if (traitNames.length > 0) {
+        bullets.push(`Your ${traitNames[0]?.toLowerCase()} aligns well with this program's focus`);
+      }
+      if (traitNames.length > 1) {
+        bullets.push(`Your ${traitNames[1]?.toLowerCase()} matches what this program values`);
+      }
+      if (skillNames.length > 0) {
+        bullets.push(`Your experience with ${skillNames[0]?.toLowerCase()} is a great fit`);
+      }
+      // Fill to 3 bullets
+      while (bullets.length < 3) {
+        bullets.push('This program could be a great match for your goals');
+      }
+
+      return {
+        programId,
+        headline: `A strong fit for ${program.name}`,
+        bullets: bullets.slice(0, 3),
+        nextStepCtaLabel: 'Request information',
+        nextStepCtaHelper: 'Learn more about this program',
+      };
+    });
+
+    return {
+      publishedSnapshotId: input.publishedSnapshotId,
+      toneProfileId: input.toneProfileId,
+      explanations,
+      generatedAt: new Date().toISOString(),
+    };
+  },
+
+  async attachProgramMatchExplanationsToRFI(ctx: DataContext, input: { rfiId: string; explanations: ProgramMatchExplanationsResult }): Promise<void> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    // Get RFI via list method (in a real implementation, we'd have a get method)
+    const candidates = await this.listProgramMatchCandidates(ctx, {});
+    const rfi = candidates.rows.find((r: ProgramMatchRFI) => r.id === input.rfiId);
+    if (!rfi) {
+      throw new Error(`RFI with id ${input.rfiId} not found`);
+    }
+
+    rfi.explanations = input.explanations;
+  },
+
+  // Program Match Widget (Phase 8)
+  async getProgramMatchWidgetConfig(ctx: DataContext, input: { publishedSnapshotId: string; quizVersionId: string }): Promise<ProgramMatchWidgetConfig | null> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return null;
+    }
+
+    const snapshots = await this.listProgramMatchPublishedSnapshots(ctx);
+    const snapshot = snapshots.find((s: ProgramMatchPublishSnapshot) => s.id === input.publishedSnapshotId);
+    if (!snapshot) {
+      return null;
+    }
+
+    // Get quiz version
+    const quizVersion = await this.getProgramMatchQuizPublishedVersion(ctx, input.quizVersionId);
+    if (!quizVersion) {
+      return null;
+    }
+
+    // Build widget config from snapshot
+    const programs = snapshot.programs.map((p: ProgramMatchProgram) => ({
+      id: p.id,
+      name: p.name,
+    }));
+
+    const icpByProgramId: Record<string, ProgramMatchICPBuckets> = {};
+    snapshot.programICPs.forEach((icp: ProgramMatchProgramICP) => {
+      icpByProgramId[icp.programId] = icp.buckets;
+    });
+
+    const programOutcomesByProgramId: Record<string, ProgramMatchProgramOutcomes> = {};
+    if (snapshot.programOutcomes) {
+      snapshot.programOutcomes.forEach((po: ProgramMatchProgramOutcomes) => {
+        programOutcomesByProgramId[po.programId] = po;
+      });
+    }
+
+    // Get voice/tone profile for gate copy
+    const voiceToneProfiles = await this.listVoiceToneProfiles(ctx);
+    const voiceToneProfile = voiceToneProfiles.find((p: VoiceToneProfile) => p.id === snapshot.draftConfig.voiceToneProfileId);
+
+    // Convert quiz version to draft format for widget
+    const quizDraft: ProgramMatchQuizDraft = {
+      id: quizVersion.id,
+      quizId: quizVersion.quizId,
+      title: quizVersion.title,
+      description: quizVersion.description,
+      targetLength: quizVersion.targetLength,
+      updatedAt: quizVersion.publishedAt,
+      questions: quizVersion.questions,
+    };
+
+    return {
+      publishedSnapshotId: snapshot.id,
+      voiceToneProfileId: snapshot.draftConfig.voiceToneProfileId || '',
+      gate: {
+        requiredFields: { email: true, firstName: true, lastName: true },
+        placement: 'before_quiz',
+        headline: voiceToneProfile?.name ? `Find your best-fit program with ${voiceToneProfile.name}` : 'Find your best-fit graduate program',
+        helperText: 'Answer a few quick questions to see which programs match your goals and style.',
+      },
+      quiz: quizDraft,
+      programs,
+      icpByProgramId,
+      outcomesEnabled: snapshot.draftConfig.outcomesEnabled || false,
+      programOutcomesByProgramId: snapshot.draftConfig.outcomesEnabled ? programOutcomesByProgramId : undefined,
+      updatedAt: snapshot.publishedAt,
+    };
+  },
+
+  // Program Match RFI (Phase 8)
+  async createProgramMatchRFI(ctx: DataContext, input: { publishedSnapshotId: string; quizId: string; quizVersionId: string; contact: { email: string; firstName?: string; lastName?: string; phone?: string }; deploymentId?: string; pageTag?: string }): Promise<ProgramMatchRFI> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    const now = new Date().toISOString();
+    const rfi: ProgramMatchRFI = {
+      id: `rfi_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      publishedSnapshotId: input.publishedSnapshotId,
+      quizId: input.quizId,
+      quizVersionId: input.quizVersionId,
+      deploymentId: input.deploymentId || null,
+      pageTag: input.pageTag || null,
+      createdAt: now,
+      contact: input.contact,
+      status: 'started',
+      progress: {
+        startedAt: now,
+        lastActivityAt: now,
+      },
+    };
+
+    programMatchRFIs.push(rfi);
+    return { ...rfi };
+  },
+
+  async updateProgramMatchRFIProgress(ctx: DataContext, input: { rfiId: string; lastQuestionIndex: number }): Promise<ProgramMatchRFI> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    const rfi = programMatchRFIs.find((r: ProgramMatchRFI) => r.id === input.rfiId);
+    if (!rfi) {
+      throw new Error(`RFI with id ${input.rfiId} not found`);
+    }
+
+    rfi.progress.lastQuestionIndex = input.lastQuestionIndex;
+    rfi.progress.lastActivityAt = new Date().toISOString();
+
+    return { ...rfi };
+  },
+
+  async completeProgramMatchRFI(ctx: DataContext, input: { rfiId: string; results: { topProgramIds: string[]; confidenceLabel: 'high' | 'medium' | 'low'; reasons: string[] } }): Promise<ProgramMatchRFI> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      throw new Error('Program Match is only available for admissions workspace');
+    }
+
+    const rfi = programMatchRFIs.find((r: ProgramMatchRFI) => r.id === input.rfiId);
+    if (!rfi) {
+      throw new Error(`RFI with id ${input.rfiId} not found`);
+    }
+
+    const now = new Date().toISOString();
+    rfi.status = 'completed';
+    rfi.progress.completedAt = now;
+    rfi.progress.lastActivityAt = now;
+    rfi.results = input.results;
+
+    return { ...rfi };
+  },
+
+  // Program Match Candidates (Phase 9)
+  async listProgramMatchCandidates(ctx: DataContext, input: { publishedSnapshotId?: string; quizId?: string; quizVersionId?: string; status?: 'started' | 'completed' | 'abandoned' | 'all'; q?: string; startedAfter?: string; startedBefore?: string; limit?: number; offset?: number }): Promise<ProgramMatchCandidatesListResponse> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return { total: 0, rows: [] };
+    }
+
+    let filtered = [...programMatchRFIs];
+
+    // Filter by publishedSnapshotId
+    if (input.publishedSnapshotId) {
+      filtered = filtered.filter((r: ProgramMatchRFI) => r.publishedSnapshotId === input.publishedSnapshotId);
+    }
+
+    // Filter by quizId
+    if (input.quizId) {
+      filtered = filtered.filter((r: ProgramMatchRFI) => r.quizId === input.quizId);
+    }
+
+    // Filter by quizVersionId
+    if (input.quizVersionId) {
+      filtered = filtered.filter((r: ProgramMatchRFI) => r.quizVersionId === input.quizVersionId);
+    }
+
+    // Filter by status
+    if (input.status && input.status !== 'all') {
+      filtered = filtered.filter((r: ProgramMatchRFI) => r.status === input.status);
+    }
+
+    // Filter by search query (email, firstName, lastName)
+    if (input.q) {
+      const query = input.q.toLowerCase();
+      filtered = filtered.filter((r: ProgramMatchRFI) => {
+        const email = r.contact.email?.toLowerCase() || '';
+        const firstName = r.contact.firstName?.toLowerCase() || '';
+        const lastName = r.contact.lastName?.toLowerCase() || '';
+        return email.includes(query) || firstName.includes(query) || lastName.includes(query);
+      });
+    }
+
+    // Filter by date range
+    if (input.startedAfter) {
+      filtered = filtered.filter((r: ProgramMatchRFI) => r.progress.startedAt >= input.startedAfter!);
+    }
+    if (input.startedBefore) {
+      filtered = filtered.filter((r: ProgramMatchRFI) => r.progress.startedAt <= input.startedBefore!);
+    }
+
+    // Sort by lastActivityAt desc
+    filtered.sort((a, b) => {
+      const aTime = new Date(a.progress.lastActivityAt).getTime();
+      const bTime = new Date(b.progress.lastActivityAt).getTime();
+      return bTime - aTime;
+    });
+
+    const total = filtered.length;
+
+    // Apply pagination
+    const offset = input.offset || 0;
+    const limit = input.limit || 100;
+    const rows = filtered.slice(offset, offset + limit);
+
+    return { total, rows };
+  },
+
+  async markProgramMatchAbandons(ctx: DataContext, input: { olderThanMinutes: number }): Promise<{ marked: number }> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return { marked: 0 };
+    }
+
+    const threshold = new Date(Date.now() - input.olderThanMinutes * 60 * 1000);
+    let marked = 0;
+
+    programMatchRFIs.forEach((rfi: ProgramMatchRFI) => {
+      if (rfi.status === 'started') {
+        const lastActivity = new Date(rfi.progress.lastActivityAt);
+        if (lastActivity < threshold) {
+          rfi.status = 'abandoned';
+          rfi.abandonment = {
+            abandonedAt: new Date().toISOString(),
+            reason: 'timeout',
+          };
+          marked++;
+        }
+      }
+    });
+
+    return { marked };
+  },
+
+  async exportProgramMatchCandidatesCSV(ctx: DataContext, input: { status?: 'completed' | 'abandoned' | 'started' | 'all'; publishedSnapshotId?: string }): Promise<{ filename: string; csv: string }> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return { filename: 'candidates.csv', csv: '' };
+    }
+
+    // Use listProgramMatchCandidates to get filtered results
+    const result = await this.listProgramMatchCandidates(ctx, {
+      status: input.status || 'all',
+      publishedSnapshotId: input.publishedSnapshotId,
+    });
+
+    // Generate CSV
+    const headers = ['Email', 'First Name', 'Last Name', 'Phone', 'Status', 'Started At', 'Completed At', 'Top Programs', 'Confidence'];
+    const rows = result.rows.map((rfi: ProgramMatchRFI) => {
+      const topPrograms = rfi.results?.topProgramIds.join('; ') || '';
+      const confidence = rfi.results?.confidenceLabel || '';
+      return [
+        rfi.contact.email || '',
+        rfi.contact.firstName || '',
+        rfi.contact.lastName || '',
+        rfi.contact.phone || '',
+        rfi.status,
+        rfi.progress.startedAt,
+        rfi.progress.completedAt || '',
+        topPrograms,
+        confidence,
+      ];
+    });
+
+    const csvRows = [headers, ...rows].map((row: (string | undefined)[]) => {
+      return row.map((cell: string | undefined) => {
+        const value = cell || '';
+        // Escape quotes and wrap in quotes if contains comma, quote, or newline
+        if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+          return `"${value.replace(/"/g, '""')}"`;
+        }
+        return value;
+      }).join(',');
+    });
+
+    const csv = csvRows.join('\n');
+    const filename = `program-match-candidates-${new Date().toISOString().split('T')[0]}.csv`;
+
+    return { filename, csv };
+  },
+
+  async getProgramMatchAnalytics(ctx: DataContext, input: { publishedSnapshotId?: string; rangeDays: 7 | 30 | 90 }): Promise<ProgramMatchAnalytics> {
+    await delay(100);
+    
+    if (ctx.workspace !== 'admissions') {
+      return {
+        tiles: {
+          gateSubmits: 0,
+          quizStarts: 0,
+          quizCompletes: 0,
+          resultsViewed: 0,
+          abandonRate: 0,
+        },
+        funnel: [],
+        byDay: [],
+      };
+    }
+
+    // Filter RFIs by publishedSnapshotId if provided
+    let rfis = [...programMatchRFIs];
+    if (input.publishedSnapshotId) {
+      rfis = rfis.filter((r: ProgramMatchRFI) => r.publishedSnapshotId === input.publishedSnapshotId);
+    }
+
+    // Filter by date range
+    const rangeStart = new Date(Date.now() - input.rangeDays * 24 * 60 * 60 * 1000);
+    rfis = rfis.filter((r: ProgramMatchRFI) => new Date(r.progress.startedAt) >= rangeStart);
+
+    // Compute tiles
+    const gateSubmits = rfis.length;
+    const quizStarts = rfis.filter((r: ProgramMatchRFI) => (r.progress.lastQuestionIndex ?? -1) >= 0).length;
+    const quizCompletes = rfis.filter((r: ProgramMatchRFI) => r.status === 'completed').length;
+    const resultsViewed = quizCompletes; // Same as completes for now
+    const abandonRate = gateSubmits > 0 ? Math.round((rfis.filter((r: ProgramMatchRFI) => r.status === 'abandoned').length / gateSubmits) * 100) : 0;
+
+    // Compute funnel
+    const funnel = [
+      { step: 'Gate submits', count: gateSubmits },
+      { step: 'Quiz starts', count: quizStarts },
+      { step: 'Quiz completes', count: quizCompletes },
+      { step: 'Results viewed', count: resultsViewed },
+    ];
+
+    // Compute daily trends
+    const byDayMap = new Map<string, { gateSubmits: number; quizCompletes: number }>();
+    rfis.forEach((rfi: ProgramMatchRFI) => {
+      const date = rfi.progress.startedAt.split('T')[0];
+      const existing = byDayMap.get(date) || { gateSubmits: 0, quizCompletes: 0 };
+      existing.gateSubmits++;
+      if (rfi.status === 'completed') {
+        existing.quizCompletes++;
+      }
+      byDayMap.set(date, existing);
+    });
+
+    const byDay = Array.from(byDayMap.entries())
+      .map(([date, counts]) => ({ date, ...counts }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    return {
+      tiles: {
+        gateSubmits,
+        quizStarts,
+        quizCompletes,
+        resultsViewed,
+        abandonRate,
+      },
+      funnel,
+      byDay,
+    };
   },
 
 };

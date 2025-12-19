@@ -73,7 +73,7 @@ export interface DataProvider {
   getProgramMatchCandidatesSummary(ctx: DataContext): Promise<ProgramMatchCandidatesSummary | null>;
   getProgramMatchAnalyticsSummary(ctx: DataContext): Promise<ProgramMatchAnalyticsSummary | null>;
   getProgramMatchDraftConfig(ctx: DataContext): Promise<ProgramMatchDraftConfig | null>;
-  updateProgramMatchDraftConfig(ctx: DataContext, input: { voiceToneProfileId?: string | null }): Promise<ProgramMatchDraftConfig | null>;
+  updateProgramMatchDraftConfig(ctx: DataContext, input: { voiceToneProfileId?: string | null; outcomesEnabled?: boolean; gate?: Partial<ProgramMatchGateConfig> }): Promise<ProgramMatchDraftConfig | null>;
   listVoiceToneProfiles(ctx: DataContext): Promise<VoiceToneProfile[]>;
 
   // Program Match Traits
@@ -94,6 +94,69 @@ export interface DataProvider {
   // Program Match ICP
   getProgramMatchProgramICP(ctx: DataContext, programId: string): Promise<ProgramMatchProgramICP | null>;
   updateProgramMatchProgramICP(ctx: DataContext, programId: string, buckets: ProgramMatchICPBuckets): Promise<ProgramMatchProgramICP>;
+
+  // Program Match Outcomes
+  listProgramMatchOutcomes(ctx: DataContext, input?: { type?: 'priority' | 'field' | 'role' }): Promise<ProgramMatchOutcome[]>;
+  createProgramMatchOutcome(ctx: DataContext, input: { type: 'priority' | 'field' | 'role'; name: string; category?: string | null; description: string }): Promise<ProgramMatchOutcome>;
+  updateProgramMatchOutcome(ctx: DataContext, id: string, input: Partial<{ name: string; category?: string | null; description: string; isActive: boolean }>): Promise<ProgramMatchOutcome>;
+
+  // Program Match Program Outcomes
+  getProgramMatchProgramOutcomes(ctx: DataContext, programId: string): Promise<ProgramMatchProgramOutcomes | null>;
+  updateProgramMatchProgramOutcomes(ctx: DataContext, programId: string, payload: Omit<ProgramMatchProgramOutcomes, 'programId' | 'updatedAt'>): Promise<ProgramMatchProgramOutcomes>;
+
+  // Program Match Quiz Library
+  listProgramMatchQuizzes(ctx: DataContext): Promise<ProgramMatchQuiz[]>;
+  createProgramMatchQuiz(ctx: DataContext, input: { name: string }): Promise<ProgramMatchQuiz>;
+  updateProgramMatchQuiz(ctx: DataContext, input: { id: string; name?: string; status?: 'archived' }): Promise<ProgramMatchQuiz>;
+  
+  // Program Match Quiz Draft (scoped to quiz)
+  getProgramMatchQuizDraftByQuizId(ctx: DataContext, quizId: string): Promise<ProgramMatchQuizDraft | null>;
+  updateProgramMatchQuizDraftByQuizId(ctx: DataContext, quizId: string, input: Partial<Omit<ProgramMatchQuizDraft, 'id' | 'quizId' | 'updatedAt'>> & { questions?: ProgramMatchQuizQuestion[] }): Promise<ProgramMatchQuizDraft>;
+  
+  // Program Match Quiz Publish & Versions
+  listProgramMatchQuizPublishedVersions(ctx: DataContext, quizId: string): Promise<ProgramMatchQuizPublishedVersion[]>;
+  publishProgramMatchQuizDraft(ctx: DataContext, quizId: string): Promise<ProgramMatchQuizPublishedVersion>;
+  getProgramMatchQuizPublishedVersion(ctx: DataContext, id: string): Promise<ProgramMatchQuizPublishedVersion | null>;
+  
+  // Program Match Quiz AI Generation
+  generateProgramMatchQuizDraftWithAI(ctx: DataContext, req: ProgramMatchQuizAIDraftRequest & { quizId: string }): Promise<ProgramMatchQuizDraft>;
+
+  // Program Match Publish & Versioning
+  listProgramMatchPublishedSnapshots(ctx: DataContext): Promise<ProgramMatchPublishSnapshot[]>;
+  publishProgramMatchDraft(ctx: DataContext): Promise<ProgramMatchPublishSnapshot>;
+  getProgramMatchPublishedSnapshot(ctx: DataContext, id: string): Promise<ProgramMatchPublishSnapshot | null>;
+
+  // Program Match Preview Links
+  createProgramMatchPreviewLink(ctx: DataContext, input: { mode: 'draft' | 'published'; targetId: string; expiresInDays: number }): Promise<ProgramMatchPreviewLink>;
+  revokeProgramMatchPreviewLink(ctx: DataContext, id: string): Promise<void>;
+  listProgramMatchPreviewLinks(ctx: DataContext, input?: { mode?: 'draft' | 'published' }): Promise<ProgramMatchPreviewLink[]>;
+
+  // Program Match Deploy
+  getProgramMatchDeployConfig(ctx: DataContext, publishedSnapshotId: string, embedType: 'js' | 'iframe', quizVersionId: string): Promise<ProgramMatchDeployConfig>;
+  markProgramMatchDeployVerified(ctx: DataContext, publishedSnapshotId: string): Promise<ProgramMatchDeployConfig>;
+
+  // Program Match Widget
+  getProgramMatchWidgetConfig(ctx: DataContext, input: { publishedSnapshotId: string; quizVersionId: string }): Promise<ProgramMatchWidgetConfig | null>;
+
+  // Program Match RFI
+  createProgramMatchRFI(ctx: DataContext, input: { publishedSnapshotId: string; quizId: string; quizVersionId: string; contact: { email: string; firstName?: string; lastName?: string; phone?: string }; deploymentId?: string; pageTag?: string }): Promise<ProgramMatchRFI>;
+  updateProgramMatchRFIProgress(ctx: DataContext, input: { rfiId: string; lastQuestionIndex: number }): Promise<ProgramMatchRFI>;
+  completeProgramMatchRFI(ctx: DataContext, input: { rfiId: string; results: { topProgramIds: string[]; confidenceLabel: 'high' | 'medium' | 'low'; reasons: string[] } }): Promise<ProgramMatchRFI>;
+  listProgramMatchCandidates(ctx: DataContext, input: { publishedSnapshotId?: string; quizId?: string; quizVersionId?: string; status?: 'started' | 'completed' | 'abandoned' | 'all'; q?: string; startedAfter?: string; startedBefore?: string; limit?: number; offset?: number }): Promise<ProgramMatchCandidatesListResponse>;
+  markProgramMatchAbandons(ctx: DataContext, input: { olderThanMinutes: number }): Promise<{ marked: number }>;
+  exportProgramMatchCandidatesCSV(ctx: DataContext, input: { status?: 'completed' | 'abandoned' | 'started' | 'all'; publishedSnapshotId?: string }): Promise<{ filename: string; csv: string }>;
+  getProgramMatchAnalytics(ctx: DataContext, input: { publishedSnapshotId?: string; rangeDays: 7 | 30 | 90 }): Promise<ProgramMatchAnalytics>;
+
+  // Program Match Templates
+  listProgramMatchTemplates(ctx: DataContext): Promise<ProgramMatchTemplateSummary[]>;
+  getProgramMatchTemplatePackage(ctx: DataContext, id: string): Promise<ProgramMatchTemplatePackage | null>;
+  planApplyProgramMatchTemplate(ctx: DataContext, input: { templateId: string }): Promise<ProgramMatchTemplateApplyPlan>;
+  applyProgramMatchTemplate(ctx: DataContext, input: { templateId: string }): Promise<ProgramMatchTemplateApplyResult>;
+
+  // Program Match Scoring v2 + AI Explanations
+  scoreProgramMatchResponses(ctx: DataContext, input: { publishedSnapshotId: string; answers: ProgramMatchAnswerPayload[] }): Promise<ProgramMatchScoreResult>;
+  generateProgramMatchExplanations(ctx: DataContext, input: { publishedSnapshotId: string; toneProfileId: string; scoreResult: ProgramMatchScoreResult; includeOutcomes: boolean }): Promise<ProgramMatchExplanationsResult>;
+  attachProgramMatchExplanationsToRFI(ctx: DataContext, input: { rfiId: string; explanations: ProgramMatchExplanationsResult }): Promise<void>;
 
 }
 
@@ -303,10 +366,30 @@ export interface ProgramMatchAnalyticsSummary {
   // Chart placeholders can be added later
 }
 
+export interface ProgramMatchGateConfig {
+  enabled: boolean;
+  requiredFields: {
+    email: true;
+    firstName: boolean;
+    lastName: boolean;
+    phone: boolean;
+  };
+  consent: {
+    emailOptIn: boolean;
+    smsOptIn: boolean;
+  };
+  copy: {
+    headline: string;
+    helperText: string;
+  };
+}
+
 export interface ProgramMatchDraftConfig {
   id: string;
   status: 'draft';
   voiceToneProfileId: string | null;
+  outcomesEnabled: boolean;
+  gate: ProgramMatchGateConfig;
   updatedAt: string;
 }
 
@@ -354,5 +437,304 @@ export interface ProgramMatchProgramICP {
   programId: string;
   buckets: ProgramMatchICPBuckets;
   updatedAt: string;
+}
+
+export interface ProgramMatchOutcome {
+  id: string;
+  type: 'priority' | 'field' | 'role';
+  name: string;
+  category?: string | null;
+  description: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProgramMatchProgramOutcomes {
+  programId: string;
+  priorities: {
+    strong: string[];
+    moderate: string[];
+  };
+  fields: {
+    strong: string[];
+    moderate: string[];
+  };
+  roles: {
+    strong: string[];
+    moderate: string[];
+  };
+  updatedAt: string;
+}
+
+export interface ProgramMatchQuizOption {
+  id: string;
+  label: string;
+  traitIds: string[];
+  skillIds: string[];
+  outcomeIds?: string[];
+}
+
+export interface ProgramMatchQuizQuestion {
+  id: string;
+  type: 'single_select' | 'multi_select' | 'scale';
+  section: 'fit' | 'readiness' | 'outcomes';
+  prompt: string;
+  helperText?: string | null;
+  options: ProgramMatchQuizOption[];
+  isOptional: boolean;
+}
+
+export interface ProgramMatchQuiz {
+  id: string;
+  name: string;
+  status: 'draft' | 'published' | 'archived';
+  createdAt: string;
+  updatedAt: string;
+  lastPublishedAt?: string | null;
+  activePublishedVersionId?: string | null;
+}
+
+export interface ProgramMatchQuizDraft {
+  id: string;
+  quizId: string;
+  title: string;
+  description: string;
+  targetLength: 8 | 9 | 10;
+  updatedAt: string;
+  questions: ProgramMatchQuizQuestion[];
+}
+
+export interface ProgramMatchQuizPublishedVersion {
+  id: string;
+  quizId: string;
+  version: number;
+  publishedAt: string;
+  publishedBy?: string | null;
+  title: string;
+  description: string;
+  targetLength: 8 | 9 | 10;
+  questions: ProgramMatchQuizQuestion[];
+}
+
+export interface ProgramMatchQuizAIDraftRequest {
+  targetLength: 8 | 9 | 10;
+  includeSkillsQuestions: boolean;
+  includeOutcomesQuestions: boolean;
+  toneProfileId: string;
+  activeTraitIds: string[];
+  activeSkillIds: string[];
+  activeOutcomeIds?: string[];
+  programSummaries: { id: string; name: string }[];
+  quizId: string;
+}
+
+export interface ProgramMatchPublishSnapshot {
+  id: string;
+  version: number;
+  status: 'published';
+  publishedAt: string;
+  publishedBy?: string | null;
+  draftConfig: ProgramMatchDraftConfig;
+  traits: ProgramMatchTrait[];
+  skills: ProgramMatchSkill[];
+  outcomes?: ProgramMatchOutcome[];
+  programs: ProgramMatchProgram[];
+  programICPs: ProgramMatchProgramICP[];
+  programOutcomes?: ProgramMatchProgramOutcomes[];
+}
+
+export interface ProgramMatchPreviewLink {
+  id: string;
+  mode: 'draft' | 'published';
+  targetId: string;
+  urlPath: string;
+  expiresAt: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface ProgramMatchDeployConfig {
+  id: string;
+  publishedSnapshotId: string;
+  quizVersionId: string;
+  embedType: 'js' | 'iframe';
+  snippet: string;
+  verifiedAt?: string | null;
+}
+
+export interface ProgramMatchWidgetConfig {
+  publishedSnapshotId: string;
+  voiceToneProfileId: string;
+  gate: {
+    requiredFields: { email: true; firstName?: boolean; lastName?: boolean; phone?: boolean };
+    placement: 'before_quiz';
+    consent?: { emailOptIn?: boolean; smsOptIn?: boolean };
+    headline: string;
+    helperText: string;
+  };
+  quiz: ProgramMatchQuizDraft;
+  programs: { id: string; name: string }[];
+  icpByProgramId: Record<string, ProgramMatchICPBuckets>;
+  outcomesEnabled: boolean;
+  programOutcomesByProgramId?: Record<string, ProgramMatchProgramOutcomes>;
+  updatedAt: string;
+}
+
+export interface ProgramMatchRFI {
+  id: string;
+  publishedSnapshotId: string;
+  quizId: string;
+  quizVersionId: string;
+  deploymentId?: string | null;
+  pageTag?: string | null;
+  createdAt: string;
+  contact: {
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+  };
+  status: 'started' | 'completed' | 'abandoned';
+  progress: {
+    startedAt: string;
+    completedAt?: string;
+    lastActivityAt: string;
+    lastQuestionIndex?: number;
+  };
+  abandonment?: {
+    abandonedAt?: string;
+    reason?: 'timeout' | 'manual' | 'unknown';
+  };
+  results?: {
+    topProgramIds: string[];
+    confidenceLabel: 'high' | 'medium' | 'low';
+    reasons: string[];
+  };
+  explanations?: ProgramMatchExplanationsResult;
+}
+
+export interface ProgramMatchAnswerPayload {
+  questionId: string;
+  selectedOptionIds: string[];
+  skipped?: boolean;
+}
+
+export interface ProgramMatchScoreResult {
+  publishedSnapshotId: string;
+  topProgramIds: string[];
+  runnerUpProgramIds?: string[];
+  programScores: Array<{ programId: string; score: number }>;
+  confidenceLabel: 'high' | 'medium' | 'low';
+  evidence: Array<{
+    programId: string;
+    topTraits: Array<{ traitId: string; bucket: 'critical' | 'veryImportant' | 'important' | 'niceToHave'; points: number }>;
+    topSkills: Array<{ skillId: string; bucket: 'critical' | 'veryImportant' | 'important' | 'niceToHave'; points: number }>;
+    outcomesHits?: Array<{ outcomeId: string; strength: 'strong' | 'moderate'; points: number }>;
+  }>;
+}
+
+export interface ProgramMatchExplanation {
+  programId: string;
+  headline: string;
+  bullets: string[];
+  nextStepCtaLabel: string;
+  nextStepCtaHelper?: string;
+}
+
+export interface ProgramMatchExplanationsResult {
+  publishedSnapshotId: string;
+  toneProfileId: string;
+  explanations: ProgramMatchExplanation[];
+  model?: string;
+  generatedAt: string;
+}
+
+export interface ProgramMatchCandidatesListResponse {
+  total: number;
+  rows: ProgramMatchRFI[];
+}
+
+export interface ProgramMatchAnalytics {
+  tiles: {
+    gateSubmits: number;
+    quizStarts: number;
+    quizCompletes: number;
+    resultsViewed: number;
+    abandonRate: number;
+  };
+  funnel: { step: string; count: number }[];
+  byDay: { date: string; gateSubmits: number; quizCompletes: number }[];
+}
+
+export interface ProgramMatchTemplateSummary {
+  id: string;
+  name: string;
+  description: string;
+  tags: string[];
+  audience: 'graduate';
+  includes: {
+    traits: number;
+    skills: number;
+    outcomes: number;
+    programs: number;
+    icps: number;
+    quiz: boolean;
+  };
+  updatedAt: string;
+}
+
+export interface ProgramMatchTemplatePackage {
+  id: string;
+  name: string;
+  version: string;
+  traits: Array<{ name: string; category: string; description: string }>;
+  skills: Array<{ name: string; category: string; description: string }>;
+  outcomes?: Array<{ type: 'priority' | 'field' | 'role'; name: string; category?: string | null; description: string }>;
+  programs: Array<{
+    name: string;
+    status: 'draft' | 'active';
+    icp: {
+      traits: { critical: string[]; veryImportant: string[]; important: string[]; niceToHave: string[] };
+      skills: { critical: string[]; veryImportant: string[]; important: string[]; niceToHave: string[] };
+    };
+    outcomes?: {
+      priorities?: { strong: string[]; moderate: string[] };
+      fields?: { strong: string[]; moderate: string[] };
+      roles?: { strong: string[]; moderate: string[] };
+    };
+  }>;
+  quizDraft?: {
+    title: string;
+    description: string;
+    targetLength: 8 | 9 | 10;
+    questions: Array<{
+      section: 'fit' | 'readiness' | 'outcomes';
+      type: 'single_select' | 'multi_select';
+      prompt: string;
+      helperText?: string;
+      isOptional: boolean;
+      options: Array<{
+        label: string;
+        traits?: string[];
+        skills?: string[];
+        outcomes?: string[];
+      }>;
+    }>;
+  };
+}
+
+export interface ProgramMatchTemplateApplyPlan {
+  templateId: string;
+  willCreate: { traits: number; skills: number; outcomes: number; programs: number };
+  willSkip: { traits: number; skills: number; outcomes: number; programs: number };
+  warnings: string[];
+}
+
+export interface ProgramMatchTemplateApplyResult {
+  appliedAt: string;
+  created: { traits: number; skills: number; outcomes: number; programs: number };
+  skipped: { traits: number; skills: number; outcomes: number; programs: number };
+  warnings: string[];
 }
 

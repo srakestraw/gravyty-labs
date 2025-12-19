@@ -58,13 +58,14 @@ export function getAppRegistry(params?: { persona?: 'higher-ed' | 'nonprofit' })
       color: '#8B5CF6',
       requiresRole: true,
       description: isHigherEd
-        ? 'AI assistants and workflows for admissions, financial aid, registrar, student success, and housing.'
+        ? 'AI assistants across the student lifecycle.'
         : 'AI assistants for supporter onboarding, donations, renewals, stewardship workflows, and service interactions.',
       pills: isHigherEd
         ? [
             { id: 'admissions', label: 'Admissions', href: '/student-lifecycle/admissions' },
             { id: 'registrar', label: 'Registrar', href: '/student-lifecycle/registrar' },
             { id: 'financial-aid', label: 'Financial Aid', href: '/student-lifecycle/financial-aid' },
+            { id: 'bursar', label: 'Bursar', href: '/student-lifecycle/bursar' },
             { id: 'housing', label: 'Housing', href: '/student-lifecycle/housing' },
             { id: 'student-success', label: 'Student Success', href: '/student-lifecycle/student-success' },
           ]
@@ -91,8 +92,15 @@ export function getAppRegistry(params?: { persona?: 'higher-ed' | 'nonprofit' })
       color: '#DC2626',
       poweredBy: 'Platform',
       description: isHigherEd
-        ? 'Fundraising and annual giving — giving forms, campaigns, appeals, Giving Day, recurring gifts, stewardship, and fundraising ambassadors. Includes: Advance, Raise, Gratavid.'
+        ? 'Build stronger donor relationships with human-centered AI'
         : 'Donor development and fundraising — campaigns, appeals, recurring giving, stewardship, and ambassadors.',
+      pills: isHigherEd
+        ? [
+            { id: 'pipeline', label: 'Pipeline', href: '/advancement/pipeline' },
+            { id: 'giving', label: 'Giving', href: '/advancement/giving' },
+            { id: 'payments', label: 'Payments & Processing', href: '/advancement/payments' },
+          ]
+        : undefined,
       group: 'main',
     },
     {

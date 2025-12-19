@@ -11,10 +11,13 @@ import {
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 import { cn } from '@/lib/utils';
 import type { WorkspaceConfig } from '@/lib/student-lifecycle/workspaces';
+import type { AdvancementWorkspaceConfig } from '@/lib/advancement/workspaces';
+
+type WorkspaceConfigUnion = WorkspaceConfig | AdvancementWorkspaceConfig;
 
 interface WorkspaceSwitcherProps {
-  currentWorkspace: WorkspaceConfig | null;
-  availableWorkspaces: WorkspaceConfig[];
+  currentWorkspace: WorkspaceConfigUnion | null;
+  availableWorkspaces: WorkspaceConfigUnion[];
 }
 
 export function WorkspaceSwitcher({ currentWorkspace, availableWorkspaces }: WorkspaceSwitcherProps) {
@@ -38,16 +41,25 @@ export function WorkspaceSwitcher({ currentWorkspace, availableWorkspaces }: Wor
   const handleWorkspaceSelect = (workspaceId: string) => {
     if (!pathname) return;
 
-    // Extract the current route path after the workspace
-    // e.g., /student-lifecycle/admissions/ai -> /ai
-    // e.g., /student-lifecycle/admissions/assistant -> /assistant
-    const match = pathname.match(/^\/student-lifecycle\/[^/]+(\/.+)?$/);
-    const subPath = match?.[1] || '/ai'; // Default to /ai (Command Center) if no sub-path
+    // Check if we're in Student Lifecycle
+    const studentLifecycleMatch = pathname.match(/^\/student-lifecycle\/[^/]+(\/.+)?$/);
+    if (studentLifecycleMatch) {
+      const subPath = studentLifecycleMatch[1] || '/ai'; // Default to /ai (Command Center) if no sub-path
+      const newPath = `/student-lifecycle/${workspaceId}${subPath}`;
+      setOpen(false);
+      router.push(newPath);
+      return;
+    }
 
-    // Navigate to the new workspace with the same sub-path
-    const newPath = `/student-lifecycle/${workspaceId}${subPath}`;
-    setOpen(false);
-    router.push(newPath);
+    // Check if we're in Advancement
+    const advancementMatch = pathname.match(/^\/advancement\/([^/]+)(\/.+)?$/);
+    if (advancementMatch) {
+      const subPath = advancementMatch[2] || ''; // Preserve sub-path if exists, otherwise empty
+      const newPath = `/advancement/${workspaceId}${subPath}`;
+      setOpen(false);
+      router.push(newPath);
+      return;
+    }
   };
 
   return (

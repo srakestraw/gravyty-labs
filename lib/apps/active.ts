@@ -78,6 +78,9 @@ export function isAppActiveInSwitcher(params: {
   // Pill routes should keep the top-level app active.
   if (pathname && app.pills && getActivePillId(app, pathname)) return true;
 
+  // Advancement pill routes should keep the top-level app active.
+  if (app.id === 'advancement-philanthropy' && !!pathname?.startsWith('/advancement')) return true;
+
   return false;
 }
 
