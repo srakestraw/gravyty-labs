@@ -101,11 +101,11 @@ export const WORKSPACES: WorkspaceConfig[] = [
     label: 'Bursar',
     peopleLabel: 'Students',
     defaultPeopleFilters: {
-      role: 'Bursar',
+      role: 'Registrar',
       status: 'Open',
     },
     defaultQueueView: {
-      role: 'Bursar',
+      role: 'Registrar',
       status: 'Open',
     },
     recommendedAgents: [],

@@ -1,5 +1,15 @@
 import { dataClient } from '@/lib/data';
 import { ProgramMatchHubClient } from '@/app/(shell)/admissions/program-match/ProgramMatchHubClient';
+import { WORKSPACES } from '@/lib/student-lifecycle/workspaces';
+
+export const dynamic = 'force-static';
+
+// Required for static export with dynamic routes
+export async function generateStaticParams() {
+  return WORKSPACES.map((w) => ({
+    workspace: w.id,
+  }));
+}
 
 interface PageProps {
   params: { workspace: string };

@@ -1642,67 +1642,6 @@ export const mockProvider: DataProvider = {
   },
 
   // Pipeline Leadership Command Center
-  async getPipelineLeadershipTodaysFocus(ctx: DataContext): Promise<AdmissionsOperatorTodaysFocusData | null> {
-    await delay(100);
-    
-    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || ctx.mode !== 'leadership') {
-      return null;
-    }
-
-    return {
-      text: "Protect quarter-end forecast, tighten next steps for top prospects, and remove late-stage blockers.",
-    };
-  },
-
-  async getPipelineLeadershipGamePlan(ctx: DataContext): Promise<AdmissionsOperatorGamePlanData | null> {
-    await delay(150);
-    
-    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || ctx.mode !== 'leadership') {
-      return null;
-    }
-
-    return {
-      total: 3,
-      completed: 0,
-      coachMessage: "Your best leverage today is improving coverage and removing blockers on late-stage proposals.",
-      items: [
-        {
-          id: 'review-late-stage-opportunities',
-          title: 'Review 10 late-stage opportunities at risk',
-          description: 'Focus on proposals over $50K without next steps in the last 21 days.',
-          impactHint: 'Addressing these could recover $350K in forecast variance.',
-          status: 'open',
-          ctas: [
-            { label: 'Open', href: '/advancement/pipeline/agent-ops/queue?filter=late-stage-at-risk' },
-            { label: 'Let AI suggest next step', href: '/advancement/pipeline/assistant' },
-          ],
-        },
-        {
-          id: 'fix-next-step-coverage',
-          title: 'Fix next-step coverage for top 50 prospects',
-          description: 'Ensure every top prospect has a clear next step scheduled within 14 days.',
-          impactHint: 'Improving coverage reduces forecast risk by 18%.',
-          status: 'open',
-          ctas: [
-            { label: 'Open', href: '/advancement/pipeline/agent-ops/queue?filter=missing-next-steps' },
-            { label: 'Let AI suggest next step', href: '/advancement/pipeline/assistant' },
-          ],
-        },
-        {
-          id: 'clear-proposal-blockers',
-          title: 'Clear proposal blockers for 3 high-value asks',
-          description: 'Remove blockers preventing advancement on proposals over $100K.',
-          impactHint: 'Unblocking these could add $300K to committed forecast.',
-          status: 'open',
-          ctas: [
-            { label: 'Open', href: '/advancement/pipeline/agent-ops/queue?filter=blocked-proposals' },
-            { label: 'Let AI suggest next step', href: '/advancement/pipeline/assistant' },
-          ],
-        },
-      ],
-    };
-  },
-
   async getPipelineLeadershipPortfolioHealth(ctx: DataContext): Promise<PipelineLeadershipPortfolioHealthData | null> {
     await delay(100);
     

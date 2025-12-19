@@ -65,7 +65,7 @@ export function AdvancementLeadershipCommandCenter({
         workspace: 'advancement',
         app: 'advancement',
         mode: 'leadership' as const,
-        userId: user?.id,
+        userId: user?.uid,
       };
 
       try {
@@ -118,7 +118,7 @@ export function AdvancementLeadershipCommandCenter({
     };
 
     loadData();
-  }, [user?.id]);
+  }, [user?.uid]);
 
   // Mock user name - in real app, this would come from auth context
   const userName = user?.displayName || user?.email?.split('@')[0] || 'Alex';
