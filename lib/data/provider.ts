@@ -292,6 +292,7 @@ export interface AdmissionsOperatorMomentumData {
     key: string;
     title: string;
     subtitle: string;
+    icon?: string; // FontAwesome icon name (e.g., 'calendar-check', 'hand-holding-heart')
     todayCount?: number;
     weekCurrent: number;
     weekTarget: number;

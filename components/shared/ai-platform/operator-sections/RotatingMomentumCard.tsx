@@ -252,7 +252,15 @@ export function RotatingMomentumCard({ data }: RotatingMomentumCardProps) {
           {hasGames && currentGame ? (
             <div className="space-y-1">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">{currentGame.title}</span>
+                <div className="flex items-center gap-2">
+                  {currentGame.icon && (
+                    <FontAwesomeIcon 
+                      icon={`fa-solid fa-${currentGame.icon}`} 
+                      className={`h-4 w-4 ${theme.textClass} opacity-70`}
+                    />
+                  )}
+                  <span className="text-gray-600">{currentGame.title}</span>
+                </div>
                 <span className="font-medium text-gray-900">
                   {weekly.completed}/{weekly.total}
                 </span>
