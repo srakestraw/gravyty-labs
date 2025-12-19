@@ -65,7 +65,8 @@ export interface DataProvider {
   getPipelineTeamGamePlan(ctx: DataContext): Promise<AdmissionsOperatorGamePlanData | null>;
   getPipelineTeamMomentum(ctx: DataContext): Promise<AdmissionsOperatorMomentumData | null>;
   getPipelineTeamFlaggedRisks(ctx: DataContext): Promise<AdmissionsOperatorFlaggedRiskData[]>;
-  getPipelineTeamGoalTracker(ctx: DataContext): Promise<AdmissionsOperatorGoalTrackerData | null>;
+  getPipelineTeamGoalTracker(ctx: DataContext, timeframe?: 'week' | 'month' | 'quarter' | 'fiscalYear'): Promise<AdmissionsOperatorGoalTrackerData | null>;
+  getPipelineTeamForecast(ctx: DataContext): Promise<PipelineTeamForecastData | null>;
   getPipelineTeamAssistants(ctx: DataContext): Promise<AdmissionsOperatorAssistantData[]>;
   getPipelineTeamRecentWins(ctx: DataContext): Promise<AdmissionsOperatorRecentWinData[]>;
   getPipelineTeamRecentActivity(ctx: DataContext): Promise<AdmissionsOperatorRecentActivityData[]>;
@@ -279,6 +280,17 @@ export interface AdmissionsOperatorMomentumData {
     weekCurrent: number;
     weekTarget: number;
     hint: string;
+    // Per-game header overrides (optional, fallback to top-level values)
+    streakDays?: number;
+    streakLabel?: string;
+    score?: number;
+    scoreBasisLabel?: string;
+    weeklyChallenge?: {
+      completed: number;
+      total: number;
+      label: string;
+    };
+    status?: 'on-track' | 'slightly-behind' | 'at-risk';
   }>;
 }
 
@@ -325,6 +337,20 @@ export interface AdmissionsOperatorRecentActivityData {
   id: string;
   timestamp: string;
   text: string;
+}
+
+// Pipeline Team Forecast Data
+export interface PipelineTeamForecastData {
+  title: string;
+  subtitle: string;
+  committedAmount: number;
+  mostLikelyAmount: number;
+  atRiskAmount: number;
+  currency: 'USD';
+  confidence: 'high' | 'medium' | 'low';
+  primaryRiskDriver: string;
+  timeContextLabel: string;
+  timeContextDateISO: string;
 }
 
 // Admissions Team Game Plan (for Queue integration)

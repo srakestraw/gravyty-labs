@@ -15,6 +15,7 @@ import type {
   AdmissionsOperatorRecentWinData,
   AdmissionsOperatorRecentActivityData,
   AdmissionsTeamGamePlanData,
+  PipelineTeamForecastData,
   ProgramMatchHubSummary,
   ProgramMatchChecklistItem,
   ProgramMatchLibrariesSummary,
@@ -1160,9 +1161,19 @@ export const mockProvider: DataProvider = {
           title: 'Next Steps Scheduled',
           subtitle: 'Keeping relationships moving forward',
           todayCount: 3,
-          weekCurrent: 9,
+          weekCurrent: 13,
           weekTarget: 15,
           hint: 'Scheduling clear next steps prevents opportunities from stalling.',
+          streakDays: 4,
+          streakLabel: 'Keeping relationships moving forward',
+          score: 78,
+          scoreBasisLabel: 'Based on next steps scheduled today',
+          weeklyChallenge: {
+            completed: 13,
+            total: 15,
+            label: 'next steps scheduled',
+          },
+          status: 'on-track', // 13/15 = 86.7% >= 85%
         },
         {
           key: 'stewardship-on-time',
@@ -1172,6 +1183,16 @@ export const mockProvider: DataProvider = {
           weekCurrent: 6,
           weekTarget: 10,
           hint: 'Thank-you notes within 48 hours increase repeat giving by 23%.',
+          streakDays: 6,
+          streakLabel: 'Keeping promises to donors',
+          score: 72,
+          scoreBasisLabel: 'Based on stewardship completed on time today',
+          weeklyChallenge: {
+            completed: 6,
+            total: 10,
+            label: 'on-time stewardship touches',
+          },
+          status: 'slightly-behind',
         },
         {
           key: 'opportunities-advanced',
@@ -1181,6 +1202,16 @@ export const mockProvider: DataProvider = {
           weekCurrent: 4,
           weekTarget: 8,
           hint: 'Each stage advancement brings you closer to closing.',
+          streakDays: 2,
+          streakLabel: 'Moving opportunities forward',
+          score: 69,
+          scoreBasisLabel: 'Based on opportunities advanced today',
+          weeklyChallenge: {
+            completed: 4,
+            total: 8,
+            label: 'opportunities advanced',
+          },
+          status: 'at-risk', // 4/8 = 50% < 60%
         },
         {
           key: 'strategic-meetings-completed',
@@ -1190,6 +1221,16 @@ export const mockProvider: DataProvider = {
           weekCurrent: 3,
           weekTarget: 5,
           hint: 'Face-to-face meetings have the highest conversion rate.',
+          streakDays: 3,
+          streakLabel: 'Engaging with top prospects',
+          score: 74,
+          scoreBasisLabel: 'Based on strategic meetings completed today',
+          weeklyChallenge: {
+            completed: 3,
+            total: 5,
+            label: 'strategic meetings completed',
+          },
+          status: 'slightly-behind', // 3/5 = 60% (at threshold)
         },
         {
           key: 'lybunt-recovery-touches',
@@ -1199,6 +1240,16 @@ export const mockProvider: DataProvider = {
           weekCurrent: 5,
           weekTarget: 12,
           hint: 'Early re-engagement recovers 40% more donors than waiting.',
+          streakDays: 5,
+          streakLabel: 'Re-engaging lapsed donors',
+          score: 71,
+          scoreBasisLabel: 'Based on LYBUNT recovery touches today',
+          weeklyChallenge: {
+            completed: 5,
+            total: 12,
+            label: 'LYBUNT recovery touches',
+          },
+          status: 'at-risk',
         },
       ],
     };
@@ -1232,7 +1283,7 @@ export const mockProvider: DataProvider = {
     ];
   },
 
-  async getPipelineTeamGoalTracker(ctx: DataContext): Promise<AdmissionsOperatorGoalTrackerData | null> {
+  async getPipelineTeamGoalTracker(ctx: DataContext, timeframe: 'week' | 'month' | 'quarter' | 'fiscalYear' = 'month'): Promise<AdmissionsOperatorGoalTrackerData | null> {
     await delay(100);
     
     // Normalize mode for backwards compatibility (accept 'operator' or 'team')
@@ -1241,48 +1292,209 @@ export const mockProvider: DataProvider = {
       return null;
     }
 
+    const goalsByTimeframe: Record<'week' | 'month' | 'quarter' | 'fiscalYear', AdmissionsOperatorGoalTrackerData> = {
+      week: {
+        title: 'Goal Tracker',
+        timeframeLabel: 'This week',
+        subtitle: 'Track your donor pipeline and recovery progress.',
+        metrics: [
+          {
+            id: 'strategic-donor-meetings',
+            label: 'Strategic Donor Meetings',
+            current: 2,
+            target: 4,
+            unit: 'meetings',
+            trend: 'up',
+            status: 'slightly-behind',
+          },
+          {
+            id: 'key-proposals-advanced',
+            label: 'Key Proposals Advanced',
+            current: 2,
+            target: 3,
+            unit: 'proposals',
+            trend: 'up',
+            status: 'on-track',
+          },
+          {
+            id: 'lybunt-recovery',
+            label: 'LYBUNT Recovery',
+            current: 6,
+            target: 10,
+            unit: 'donors',
+            trend: 'up',
+            status: 'slightly-behind',
+          },
+          {
+            id: 'stewardship-on-time',
+            label: 'Stewardship On-Time',
+            current: 8,
+            target: 10,
+            unit: 'gifts',
+            trend: 'up',
+            status: 'at-risk',
+          },
+        ],
+      },
+      month: {
+        title: 'Goal Tracker',
+        timeframeLabel: 'This month',
+        subtitle: 'Track your donor pipeline and recovery progress.',
+        metrics: [
+          {
+            id: 'strategic-donor-meetings',
+            label: 'Strategic Donor Meetings',
+            current: 6,
+            target: 15,
+            unit: 'meetings',
+            trend: 'up',
+            status: 'at-risk',
+          },
+          {
+            id: 'key-proposals-advanced',
+            label: 'Key Proposals Advanced',
+            current: 18,
+            target: 25,
+            unit: 'proposals',
+            trend: 'up',
+            status: 'on-track',
+          },
+          {
+            id: 'lybunt-recovery',
+            label: 'LYBUNT Recovery',
+            current: 89,
+            target: 150,
+            unit: 'donors',
+            trend: 'up',
+            status: 'slightly-behind',
+          },
+          {
+            id: 'quarterly-giving-goal',
+            label: 'Quarterly Giving Goal',
+            current: 1.2,
+            target: 2.0,
+            unit: '$M',
+            trend: 'up',
+            status: 'on-track',
+          },
+        ],
+      },
+      quarter: {
+        title: 'Goal Tracker',
+        timeframeLabel: 'This quarter',
+        subtitle: 'Track your donor pipeline and recovery progress.',
+        metrics: [
+          {
+            id: 'quarterly-giving-goal',
+            label: 'Quarterly Giving Goal',
+            current: 1.2,
+            target: 2.0,
+            unit: '$M',
+            trend: 'up',
+            status: 'on-track',
+          },
+          {
+            id: 'lybunt-recovery',
+            label: 'LYBUNT Recovery',
+            current: 89,
+            target: 150,
+            unit: 'donors',
+            trend: 'up',
+            status: 'slightly-behind',
+          },
+          {
+            id: 'key-proposals-advanced',
+            label: 'Key Proposals Advanced',
+            current: 18,
+            target: 25,
+            unit: 'proposals',
+            trend: 'up',
+            status: 'on-track',
+          },
+          {
+            id: 'strategic-donor-meetings',
+            label: 'Strategic Donor Meetings',
+            current: 6,
+            target: 15,
+            unit: 'meetings',
+            trend: 'up',
+            status: 'at-risk',
+          },
+        ],
+      },
+      fiscalYear: {
+        title: 'Goal Tracker',
+        timeframeLabel: 'This fiscal year',
+        subtitle: 'Track your donor pipeline and recovery progress.',
+        metrics: [
+          {
+            id: 'fiscal-year-giving-goal',
+            label: 'Fiscal Year Giving Goal',
+            current: 6.8,
+            target: 12.0,
+            unit: '$M',
+            trend: 'up',
+            status: 'slightly-behind',
+          },
+          {
+            id: 'lybunt-recovery',
+            label: 'LYBUNT Recovery',
+            current: 240,
+            target: 450,
+            unit: 'donors',
+            trend: 'up',
+            status: 'slightly-behind',
+          },
+          {
+            id: 'key-proposals-advanced',
+            label: 'Key Proposals Advanced',
+            current: 62,
+            target: 90,
+            unit: 'proposals',
+            trend: 'up',
+            status: 'on-track',
+          },
+          {
+            id: 'strategic-donor-meetings',
+            label: 'Strategic Donor Meetings',
+            current: 28,
+            target: 60,
+            unit: 'meetings',
+            trend: 'up',
+            status: 'at-risk',
+          },
+        ],
+      },
+    };
+
+    return goalsByTimeframe[timeframe];
+  },
+
+  async getPipelineTeamForecast(ctx: DataContext): Promise<PipelineTeamForecastData | null> {
+    await delay(100);
+    
+    // Normalize mode for backwards compatibility (accept 'operator' or 'team')
+    const normalizedMode = ctx.mode === 'operator' || ctx.mode === 'team' ? 'team' : ctx.mode;
+    if (ctx.workspace !== 'advancement' || ctx.app !== 'advancement' || normalizedMode !== 'team') {
+      return null;
+    }
+
+    // Calculate 21 days from now for time context
+    const now = new Date();
+    const quarterEndDate = new Date(now);
+    quarterEndDate.setDate(now.getDate() + 21);
+
     return {
-      title: 'Goal Tracker',
-      timeframeLabel: 'This fiscal year',
-      subtitle: 'Track your donor pipeline and recovery progress.',
-      metrics: [
-        {
-          id: 'quarterly-giving-goal',
-          label: 'Quarterly Giving Goal',
-          current: 1.2,
-          target: 2.0,
-          unit: '$M',
-          trend: 'up',
-          status: 'on-track',
-        },
-        {
-          id: 'lybunt-recovery',
-          label: 'LYBUNT Recovery',
-          current: 89,
-          target: 150,
-          unit: 'donors',
-          trend: 'up',
-          status: 'slightly-behind',
-        },
-        {
-          id: 'key-proposals-advanced',
-          label: 'Key Proposals Advanced',
-          current: 18,
-          target: 25,
-          unit: 'proposals',
-          trend: 'up',
-          status: 'on-track',
-        },
-        {
-          id: 'strategic-donor-meetings',
-          label: 'Strategic Donor Meetings',
-          current: 6,
-          target: 15,
-          unit: 'meetings',
-          trend: 'up',
-          status: 'at-risk',
-        },
-      ],
+      title: 'Your Forecast',
+      subtitle: 'Projected gifts from your portfolio',
+      committedAmount: 420000,
+      mostLikelyAmount: 610000,
+      atRiskAmount: 280000,
+      currency: 'USD',
+      confidence: 'medium',
+      primaryRiskDriver: 'Most risk is coming from late-stage proposals missing a next step.',
+      timeContextLabel: 'Quarter ends',
+      timeContextDateISO: quarterEndDate.toISOString(),
     };
   },
 

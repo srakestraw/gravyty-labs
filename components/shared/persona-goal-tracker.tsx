@@ -1,8 +1,18 @@
 'use client';
 
+import { useState } from 'react';
+import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 
 export type GoalStatus = 'on-track' | 'slightly-behind' | 'at-risk';
+export type GoalTimeframe = 'week' | 'month' | 'quarter' | 'fiscalYear';
 
 export type GoalMetric = {
   id: string;
@@ -22,6 +32,10 @@ export type PersonaGoalTrackerProps = {
   subtitle?: string; // short explanation
   timeframeLabel: string; // e.g. "This term", "This cycle", "This week"
   metrics: GoalMetric[];
+  // Optional timeframe selector
+  timeframes?: Array<{ value: GoalTimeframe; label: string }>;
+  selectedTimeframe?: GoalTimeframe;
+  onTimeframeChange?: (timeframe: GoalTimeframe) => void;
 };
 
 const getStatusStyles = (status: GoalStatus) => {
@@ -84,13 +98,32 @@ export function PersonaGoalTracker({
   subtitle,
   timeframeLabel,
   metrics,
+  timeframes,
+  selectedTimeframe,
+  onTimeframeChange,
 }: PersonaGoalTrackerProps) {
-  // Calculate overall status based on average completion
-  const overallCompletion =
-    metrics.reduce((sum, m) => sum + (m.current / m.target) * 100, 0) / metrics.length;
-  const overallStatus: GoalStatus =
-    overallCompletion >= 90 ? 'on-track' : overallCompletion >= 70 ? 'slightly-behind' : 'at-risk';
+  // Calculate overall status based on worst status (not average)
+  // Priority: at-risk > slightly-behind > on-track
+  const getWorstStatus = (): GoalStatus => {
+    if (metrics.some((m) => {
+      const status = m.status || calculateStatus(m.current, m.target);
+      return status === 'at-risk';
+    })) {
+      return 'at-risk';
+    }
+    if (metrics.some((m) => {
+      const status = m.status || calculateStatus(m.current, m.target);
+      return status === 'slightly-behind';
+    })) {
+      return 'slightly-behind';
+    }
+    return 'on-track';
+  };
+
+  const overallStatus = getWorstStatus();
   const overallStyles = getStatusStyles(overallStatus);
+
+  const hasTimeframeSelector = timeframes && timeframes.length > 0 && onTimeframeChange;
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -108,9 +141,36 @@ export function PersonaGoalTracker({
           >
             {overallStyles.label}
           </span>
-          <button className="rounded-full border border-gray-200 px-3 py-1 text-xs font-medium text-gray-600 bg-gray-50">
-            {timeframeLabel}
-          </button>
+          {hasTimeframeSelector ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="rounded-full border border-gray-200 px-3 py-1 text-xs font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 transition-colors flex items-center gap-1.5">
+                  {timeframeLabel}
+                  <FontAwesomeIcon icon="fa-solid fa-chevron-down" className="h-2.5 w-2.5 opacity-50" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-[140px]">
+                <DropdownMenuRadioGroup
+                  value={selectedTimeframe}
+                  onValueChange={(value) => {
+                    if (value && (value === 'week' || value === 'month' || value === 'quarter' || value === 'fiscalYear')) {
+                      onTimeframeChange(value);
+                    }
+                  }}
+                >
+                  {timeframes.map((tf) => (
+                    <DropdownMenuRadioItem key={tf.value} value={tf.value}>
+                      {tf.label}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <button className="rounded-full border border-gray-200 px-3 py-1 text-xs font-medium text-gray-600 bg-gray-50">
+              {timeframeLabel}
+            </button>
+          )}
         </div>
       </div>
 

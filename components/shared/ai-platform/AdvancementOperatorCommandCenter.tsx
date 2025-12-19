@@ -11,6 +11,7 @@ import type {
   AdmissionsOperatorAssistantData,
   AdmissionsOperatorRecentWinData,
   AdmissionsOperatorRecentActivityData,
+  PipelineTeamForecastData,
 } from '@/lib/data/provider';
 import {
   TodaysFocusCard,
@@ -18,6 +19,7 @@ import {
   TodaysGamePlanCard,
   FlaggedRisksCard,
   GoalTrackerCard,
+  PipelineTeamForecastCard,
   AssistantsWorkingCard,
   RecentWinsCard,
   RecentActivityCard,
@@ -44,6 +46,7 @@ export function AdvancementOperatorCommandCenter({
   const [momentum, setMomentum] = useState<AdmissionsOperatorMomentumData | null>(null);
   const [flaggedRisks, setFlaggedRisks] = useState<AdmissionsOperatorFlaggedRiskData[]>([]);
   const [goalTracker, setGoalTracker] = useState<AdmissionsOperatorGoalTrackerData | null>(null);
+  const [forecast, setForecast] = useState<PipelineTeamForecastData | null>(null);
   const [assistants, setAssistants] = useState<AdmissionsOperatorAssistantData[]>([]);
   const [recentWins, setRecentWins] = useState<AdmissionsOperatorRecentWinData[]>([]);
   const [recentActivity, setRecentActivity] = useState<AdmissionsOperatorRecentActivityData[]>([]);
@@ -60,6 +63,11 @@ export function AdvancementOperatorCommandCenter({
         mode: 'team' as const,
       };
 
+      // Get default timeframe from localStorage (defaults to 'month')
+      const defaultTimeframe = typeof window !== 'undefined' 
+        ? (window.localStorage.getItem('pipelineGoalTimeframe') as 'week' | 'month' | 'quarter' | 'fiscalYear' | null) || 'month'
+        : 'month';
+
       try {
         const [
           focusData,
@@ -67,6 +75,7 @@ export function AdvancementOperatorCommandCenter({
           momentumData,
           risksData,
           goalData,
+          forecastData,
           assistantsData,
           winsData,
           activityData,
@@ -75,7 +84,8 @@ export function AdvancementOperatorCommandCenter({
           dataClient.getPipelineTeamGamePlan(ctx),
           dataClient.getPipelineTeamMomentum(ctx),
           dataClient.getPipelineTeamFlaggedRisks(ctx),
-          dataClient.getPipelineTeamGoalTracker(ctx),
+          dataClient.getPipelineTeamGoalTracker(ctx, defaultTimeframe),
+          dataClient.getPipelineTeamForecast(ctx),
           dataClient.getPipelineTeamAssistants(ctx),
           dataClient.getPipelineTeamRecentWins(ctx),
           dataClient.getPipelineTeamRecentActivity(ctx),
@@ -86,6 +96,7 @@ export function AdvancementOperatorCommandCenter({
         setMomentum(momentumData);
         setFlaggedRisks(risksData);
         setGoalTracker(goalData);
+        setForecast(forecastData);
         setAssistants(assistantsData);
         setRecentWins(winsData);
         setRecentActivity(activityData);
@@ -139,12 +150,19 @@ export function AdvancementOperatorCommandCenter({
                 taskTitle: item.title,
               }))
             ) || []}
+          enableTimeframeSelector={true}
+          dataContext={{
+            workspace: 'advancement',
+            app: 'advancement',
+            mode: 'team' as const,
+          }}
         />
       </div>
 
       {/* RIGHT COLUMN */}
       <div className="space-y-4">
         <RotatingMomentumCard data={momentum} />
+        <PipelineTeamForecastCard data={forecast} />
         <FlaggedRisksCard data={flaggedRisks} />
         <RecentWinsCard data={recentWins} />
         <AssistantsWorkingCard data={assistants} basePath={effectiveBasePath} />

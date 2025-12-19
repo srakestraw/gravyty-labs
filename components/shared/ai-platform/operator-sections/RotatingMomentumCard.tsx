@@ -143,6 +143,77 @@ export function RotatingMomentumCard({ data }: RotatingMomentumCardProps) {
 
   const currentGame = hasGames ? games[activeIndex] : null;
 
+  // Get per-game values with fallbacks to top-level
+  const streakDays = currentGame?.streakDays ?? data.streakDays;
+  const streakLabel = currentGame?.streakLabel ?? currentGame?.subtitle ?? 'Building momentum';
+  const score = currentGame?.score ?? data.score;
+  const scoreBasisLabel = currentGame?.scoreBasisLabel ?? 'Based on progress today';
+  const weekly = currentGame?.weeklyChallenge ?? data.weeklyChallenge;
+
+  // Single source of truth for status theme mapping (matches Goal Tracker styling)
+  type Status = 'on-track' | 'slightly-behind' | 'at-risk';
+  const getStatusTheme = (status: Status) => {
+    switch (status) {
+      case 'on-track':
+        return {
+          ringClass: 'border-emerald-500',
+          barClass: 'bg-emerald-500',
+          dotClass: 'bg-emerald-600',
+          textClass: 'text-emerald-600',
+        };
+      case 'slightly-behind':
+        return {
+          ringClass: 'border-amber-500',
+          barClass: 'bg-amber-500',
+          dotClass: 'bg-amber-600',
+          textClass: 'text-amber-600',
+        };
+      case 'at-risk':
+        return {
+          ringClass: 'border-rose-500',
+          barClass: 'bg-rose-500',
+          dotClass: 'bg-rose-600',
+          textClass: 'text-rose-600',
+        };
+      default:
+        return {
+          ringClass: 'border-purple-500',
+          barClass: 'bg-purple-600',
+          dotClass: 'bg-purple-600',
+          textClass: 'text-purple-600',
+        };
+    }
+  };
+
+  // Compute status fallback (only if provider doesn't supply it)
+  const computeStatusFromProgress = (): Status => {
+    if (!currentGame) return 'on-track';
+    const progress = currentGame.weekTarget > 0 ? currentGame.weekCurrent / currentGame.weekTarget : 0;
+    if (progress >= 0.85) return 'on-track';
+    if (progress >= 0.60) return 'slightly-behind';
+    return 'at-risk';
+  };
+
+  // Get status: provider data first, computed fallback only if missing
+  const status: Status = currentGame?.status ?? computeStatusFromProgress();
+  const theme = getStatusTheme(status);
+
+  // Dev-only verification (remove in production or guard with env check)
+  if (process.env.NODE_ENV === 'development' && currentGame) {
+    const progress = currentGame.weekTarget > 0 ? currentGame.weekCurrent / currentGame.weekTarget : 0;
+    const computedStatus = computeStatusFromProgress();
+    console.debug('[RotatingMomentumCard]', {
+      gameKey: currentGame.key,
+      weekCurrent: currentGame.weekCurrent,
+      weekTarget: currentGame.weekTarget,
+      progress: `${(progress * 100).toFixed(1)}%`,
+      statusProvided: currentGame.status ?? null,
+      statusComputed: computedStatus,
+      statusUsed: status,
+      statusSource: currentGame.status ? 'provider' : 'computed',
+    });
+  }
+
   return (
     <div className="space-y-2">
       <h2 className="text-sm font-medium text-gray-500">Your Momentum</h2>
@@ -155,24 +226,24 @@ export function RotatingMomentumCard({ data }: RotatingMomentumCardProps) {
         tabIndex={0}
       >
         <div className="space-y-3">
-          {/* Streak and Score - consistent across games */}
+          {/* Streak and Score - per-game values */}
           <div className="flex items-center justify-between">
             <div>
               <div className="text-sm font-medium text-gray-600">Active streak</div>
               <div className="text-2xl font-semibold text-gray-900">
-                {data.streakDays} days
+                {streakDays} days
               </div>
               <div className="text-xs text-gray-500 mt-0.5">
-                {currentGame?.subtitle || 'Building momentum'}
+                {streakLabel}
               </div>
             </div>
             <div className="flex flex-col items-center">
               <div className="text-xs font-medium text-gray-600 mb-1">Daily impact score</div>
-              <div className="h-12 w-12 rounded-full border-2 border-purple-500 flex items-center justify-center text-xs font-medium text-purple-600">
-                {data.score}/100
+              <div className={`h-12 w-12 rounded-full border-2 ${theme.ringClass} flex items-center justify-center text-xs font-medium ${theme.textClass} transition-colors duration-300`}>
+                {score}/100
               </div>
               <div className="text-xs text-gray-500 mt-1 text-center">
-                Based on progress today
+                {scoreBasisLabel}
               </div>
             </div>
           </div>
@@ -183,7 +254,7 @@ export function RotatingMomentumCard({ data }: RotatingMomentumCardProps) {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600">{currentGame.title}</span>
                 <span className="font-medium text-gray-900">
-                  {currentGame.weekCurrent}/{currentGame.weekTarget}
+                  {weekly.completed}/{weekly.total}
                 </span>
               </div>
               {currentGame.todayCount !== undefined && (
@@ -193,15 +264,20 @@ export function RotatingMomentumCard({ data }: RotatingMomentumCardProps) {
               )}
               <div className="h-2 rounded-full bg-gray-200">
                 <div
-                  className="h-2 rounded-full bg-purple-600 transition-all duration-500"
+                  className={`h-2 rounded-full ${theme.barClass} transition-all duration-500 transition-colors duration-300`}
                   style={{
                     width: `${Math.min(
                       100,
-                      (currentGame.weekCurrent / currentGame.weekTarget) * 100
+                      (weekly.completed / weekly.total) * 100
                     )}%`,
                   }}
                 />
               </div>
+              {weekly.label && (
+                <div className="text-xs text-gray-500">
+                  {weekly.label}
+                </div>
+              )}
             </div>
           ) : (
             // Fallback to weekly challenge if no games
@@ -241,23 +317,26 @@ export function RotatingMomentumCard({ data }: RotatingMomentumCardProps) {
             <div className="flex items-center justify-between pt-2 border-t border-gray-100">
               {/* Dots indicator */}
               <div className="flex items-center gap-1.5">
-                {games.map((_, index) => (
-                  <button
-                    key={index}
-                    type="button"
-                    onClick={() => goToGame(index)}
-                    onFocus={handleInteraction}
-                    className={`
-                      h-1.5 rounded-full transition-all duration-300
-                      ${index === activeIndex 
-                        ? 'w-6 bg-purple-600' 
-                        : 'w-1.5 bg-gray-300 hover:bg-gray-400'
-                      }
-                    `}
-                    aria-label={`Go to ${games[index].title}`}
-                    aria-current={index === activeIndex ? 'true' : undefined}
-                  />
-                ))}
+                {games.map((_, index) => {
+                  const isActive = index === activeIndex;
+                  return (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => goToGame(index)}
+                      onFocus={handleInteraction}
+                      className={`
+                        h-1.5 rounded-full transition-all duration-300 transition-colors
+                        ${isActive 
+                          ? `w-6 ${theme.dotClass}` 
+                          : 'w-1.5 bg-gray-300 hover:bg-gray-400'
+                        }
+                      `}
+                      aria-label={`Go to ${games[index].title}`}
+                      aria-current={isActive ? 'true' : undefined}
+                    />
+                  );
+                })}
               </div>
 
               {/* Navigation buttons and pause toggle */}
