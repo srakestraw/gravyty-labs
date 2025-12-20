@@ -329,8 +329,8 @@ type Navigation =
                 const isExpanded = hasChildren && expandedGroups.has(item.id || '');
                 
                 // For expandable groups, check if any child or the parent is active
-                // For /ai-assistants, /admin, and /advancement, only exact match. For others, exact match or starts with href + '/'
-                const isParentActive = (item.href === '/ai-assistants' || item.href === '/admin' || item.href === '/advancement')
+                // For /ai-assistants, /admin, /advancement, and /advancement/pipeline, only exact match. For others, exact match or starts with href + '/'
+                const isParentActive = (item.href === '/ai-assistants' || item.href === '/admin' || item.href === '/advancement' || item.href === '/advancement/pipeline')
                   ? pathname === item.href
                   : pathname === item.href || pathname?.startsWith(item.href + '/');
                 

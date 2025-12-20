@@ -9,6 +9,8 @@ import { useState, useEffect } from 'react';
 
 const MOCK_FEATURE_FLAGS: Record<string, boolean> = {
   ai_assistants: true, // Enable AI Assistants for v1
+  queueReviewMode: true, // Enable Review Mode for Queue
+  queueFocusWorkbenchV2: true, // Enable Superhuman-style Focus Mode workbench
 };
 
 /**

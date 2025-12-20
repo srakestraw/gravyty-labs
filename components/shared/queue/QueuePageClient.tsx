@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useClientSearchParams } from '@/lib/hooks/useClientSearchParams';
 import { AgentOpsFilters, AgentOpsItem } from '@/lib/agent-ops/types';
@@ -17,6 +17,19 @@ import { Button } from '@/components/ui/button';
 import { GamePlanPanel } from '@/components/shared/ai-platform/GamePlanPanel';
 import { GamePlanItemsLane } from '@/components/shared/ai-platform/GamePlanItemsLane';
 import { FocusModePage } from '@/components/shared/ai-platform/FocusModePage';
+import { useFeatureFlag } from '@/lib/features';
+import { ReviewModeShell } from './ReviewModeShell';
+import { SplitTabs } from './SplitTabs';
+import { ReviewActionBar, type ReviewAction } from './ReviewActionBar';
+import { useQueueReviewController } from './useQueueReviewController';
+import { getDefaultSplits } from './splits/advancementSplits';
+import { useToast } from './useToast';
+import { ToastContainer } from './ToastContainer';
+import { ReviewModeCoachmark } from './ReviewModeCoachmark';
+import { WorkbenchToolbar } from './WorkbenchToolbar';
+import { FiltersDrawer } from './FiltersDrawer';
+import { ActiveFilterChips } from './ActiveFilterChips';
+import { ShortcutsOverlay } from './ShortcutsOverlay';
 
 interface QueuePageClientProps {
   basePath?: string;
@@ -129,6 +142,21 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
     return objective || null;
   }, [searchParams]);
   
+  // Feature flags
+  const reviewModeEnabled = useFeatureFlag('queueReviewMode');
+  const workbenchV2Enabled = useFeatureFlag('queueFocusWorkbenchV2');
+
+  // Review Mode state management - use mode=review&itemId=123
+  const isReviewMode = useMemo(() => {
+    if (!reviewModeEnabled) return false;
+    const modeParam = searchParams.get('mode');
+    return modeParam === 'review';
+  }, [searchParams, reviewModeEnabled]);
+
+  const reviewModeItemId = useMemo(() => {
+    return searchParams.get('itemId') || null;
+  }, [searchParams]);
+
   // Focus Mode state management - use focus=1 (not focus=true)
   const isFocusMode = useMemo(() => {
     const focusParam = searchParams.get('focus');
@@ -345,6 +373,19 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
   const [filters, setFilters] = useState<AgentOpsFilters>(getInitialFilters);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const defaultsAppliedRef = useRef(false);
+
+  // Filters drawer state (for workbench mode)
+  const [filtersDrawerOpen, setFiltersDrawerOpen] = useState(false);
+
+  // Active split for workbench mode (uses splits from review controller)
+  const [workbenchSplitId, setWorkbenchSplitId] = useState<string | null>(null);
+
+  // Preserve list state for Review Mode exit
+  const listStateRef = useRef<{
+    scrollPosition?: number;
+    selectedItemId?: string | null;
+    filters?: AgentOpsFilters;
+  }>({});
   
   // Apply defaults only once on mount
   useEffect(() => {
@@ -354,8 +395,27 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
     }
   }, [defaultFilters]);
 
+  // Calculate active filter count (excluding search and "All" values)
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (filters.role !== 'All') count++;
+    if (filters.status !== 'All') count++;
+    if (filters.type !== 'All') count++;
+    if (filters.severity !== 'All') count++;
+    if (filters.assignee !== 'All') count++;
+    return count;
+  }, [filters]);
+
   const filteredItems = useMemo(() => {
     let items = allItems;
+
+    // In workbench mode, apply split filter first
+    if (isFocusMode && workbenchV2Enabled && workbenchSplitId) {
+      const split = splits.find((s) => s.id === workbenchSplitId);
+      if (split && split.filterFn) {
+        items = items.filter(split.filterFn);
+      }
+    }
     
     // If an objective is active, filter to only show items matching that objective
     if (activeObjectiveId && workspaceId === 'admissions') {
@@ -431,35 +491,30 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
       }
       return true;
     });
-  }, [allItems, filters, activeObjectiveId, workspaceId]);
+  }, [allItems, filters, activeObjectiveId, workspaceId, isFocusMode, workbenchV2Enabled, workbenchSplitId, splits]);
 
-  const selectedIndex = filteredItems.findIndex((i) => i.id === selectedItemId);
-  const selectedItem = selectedIndex >= 0 ? filteredItems[selectedIndex] : filteredItems[0] ?? null;
+  // Handle split change in workbench mode
+  const handleWorkbenchSplitChange = useCallback((splitId: string | null) => {
+    setWorkbenchSplitId(splitId);
+    // Selection will be reset by the useEffect that watches filteredItems
+  }, []);
 
-  // Ensure something is selected once data loads
-  useEffect(() => {
-    if (!selectedItemId && filteredItems.length > 0) {
-      setSelectedItemId(filteredItems[0].id);
-    } else if (selectedItemId && !filteredItems.find((i) => i.id === selectedItemId)) {
-      // Selected item is no longer in filtered set, select first item
-      if (filteredItems.length > 0) {
-        setSelectedItemId(filteredItems[0].id);
-      } else {
-        setSelectedItemId(null);
-      }
-    }
-  }, [filteredItems, selectedItemId]);
+  // Handle filter removal
+  const handleRemoveFilter = useCallback((key: keyof AgentOpsFilters) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: key === 'search' ? '' : 'All',
+    }));
+  }, []);
 
-  const handleNavigateToPerson = (personId: string) => {
-    router.push(`${basePath}/agent-ops/people?id=${personId}`);
-  };
-
-  const handleNavigateToAgent = (agentId: string) => {
-    router.push(`${basePath}/agents/${agentId}`);
-  };
+  // Get splits for Review Mode
+  const splits = useMemo(() => {
+    return getDefaultSplits(workspaceId);
+  }, [workspaceId]);
 
   // Unified action handler with optimistic updates and auto-advance
-  const handleItemAction = async (id: string, action: QueueAction) => {
+  // Defined early so it can be used in review controller
+  const handleItemAction = useCallback(async (id: string, action: QueueAction) => {
     // Find current index before update
     const currentIndex = filteredItems.findIndex((i) => i.id === id);
     const item = filteredItems[currentIndex];
@@ -501,7 +556,127 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
         }
       }, 100);
     }
+  }, [filteredItems]);
+
+  // Review Mode controller
+  const reviewController = useQueueReviewController({
+    items: filteredItems,
+    splits,
+    defaultSplitId: null,
+    onItemAction: handleItemAction,
+    autoAdvanceOnComplete: true,
+  });
+
+  // Sync review mode item ID with controller (when entering or URL changes)
+  useEffect(() => {
+    if (isReviewMode && reviewModeItemId && reviewController.currentItemId !== reviewModeItemId) {
+      reviewController.setCurrentItemId(reviewModeItemId);
+    }
+  }, [isReviewMode, reviewModeItemId, reviewController]);
+
+  // Sync route when currentItemId changes in Review Mode (from keyboard navigation)
+  useEffect(() => {
+    if (isReviewMode && reviewController.currentItemId && reviewModeItemId !== reviewController.currentItemId) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('itemId', reviewController.currentItemId);
+      router.replace(`${window.location.pathname}?${params.toString()}`);
+    }
+  }, [isReviewMode, reviewController.currentItemId, reviewModeItemId, searchParams, router]);
+
+  const selectedIndex = filteredItems.findIndex((i) => i.id === selectedItemId);
+  const selectedItem = selectedIndex >= 0 ? filteredItems[selectedIndex] : filteredItems[0] ?? null;
+
+  // Ensure something is selected once data loads
+  useEffect(() => {
+    if (!selectedItemId && filteredItems.length > 0) {
+      setSelectedItemId(filteredItems[0].id);
+    } else if (selectedItemId && !filteredItems.find((i) => i.id === selectedItemId)) {
+      // Selected item is no longer in filtered set, select first item
+      if (filteredItems.length > 0) {
+        setSelectedItemId(filteredItems[0].id);
+      } else {
+        setSelectedItemId(null);
+      }
+    }
+  }, [filteredItems, selectedItemId]);
+
+  // Initialize workbench split when entering Focus Mode with workbench enabled
+  useEffect(() => {
+    if (isFocusMode && workbenchV2Enabled && splits.length > 0 && !workbenchSplitId) {
+      // Default to first split or null (all items)
+      setWorkbenchSplitId(null);
+    }
+  }, [isFocusMode, workbenchV2Enabled, splits, workbenchSplitId]);
+
+  const handleNavigateToPerson = (personId: string) => {
+    router.push(`${basePath}/agent-ops/people?id=${personId}`);
   };
+
+  const handleNavigateToAgent = (agentId: string) => {
+    router.push(`${basePath}/agents/${agentId}`);
+  };
+
+  // Toast for notifications
+  const toast = useToast();
+
+  // Review Mode handlers
+  const handleEnterReviewMode = (itemId?: string) => {
+    const targetItemId = itemId || selectedItemId;
+    if (!targetItemId) return;
+
+    // Save current list state
+    listStateRef.current = {
+      selectedItemId: selectedItemId,
+      filters: { ...filters },
+    };
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('mode', 'review');
+    params.set('itemId', targetItemId);
+    router.replace(`${window.location.pathname}?${params.toString()}`);
+
+      // Show entry toast (one-time per session)
+      const toastShown = sessionStorage.getItem('review-mode-toast-shown');
+      if (!toastShown) {
+        setTimeout(() => {
+          toast.info('Review mode - J/K or ↑↓ to move, Esc to exit', 4000);
+          sessionStorage.setItem('review-mode-toast-shown', 'true');
+        }, 300);
+      }
+  };
+
+  const handleExitReviewMode = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('mode');
+    params.delete('itemId');
+    const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
+    router.replace(newUrl);
+
+    // Restore list state if available
+    if (listStateRef.current.selectedItemId) {
+      setSelectedItemId(listStateRef.current.selectedItemId);
+    }
+    if (listStateRef.current.filters) {
+      setFilters(listStateRef.current.filters);
+    }
+  };
+
+  // Undo handler
+  const handleUndo = () => {
+    const undoAction = reviewController.undo();
+    if (!undoAction) {
+      toast.info('No action to undo');
+      return;
+    }
+
+    // Restore previous state
+    setAllItems((current) =>
+      current.map((item) => (item.id === undoAction.itemId ? undoAction.previousState : item))
+    );
+
+    toast.success(`Undid ${undoAction.action}`);
+  };
+
 
   const handleNextItem = () => {
     if (filteredItems.length === 0) return;
@@ -523,79 +698,305 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
   useHotkeys(
     {
       j: () => {
-        handleNextItem();
+        if (isReviewMode) {
+          reviewController.goToNext();
+        } else {
+          handleNextItem();
+        }
       },
       k: () => {
-        handlePrevItem();
+        if (isReviewMode) {
+          reviewController.goToPrev();
+        } else {
+          handlePrevItem();
+        }
+      },
+      Enter: () => {
+        if (!isReviewMode && selectedItem && reviewModeEnabled) {
+          handleEnterReviewMode();
+        }
       },
       e: () => {
-        if (selectedItem) {
+        if (isReviewMode && reviewController.currentItem) {
+          reviewController.handleAction('resolve');
+        } else if (selectedItem) {
           handleItemAction(selectedItem.id, 'resolve');
         }
       },
       s: () => {
-        if (selectedItem) {
+        if (isReviewMode && reviewController.currentItem) {
+          reviewController.handleAction('snooze');
+        } else if (selectedItem) {
           handleItemAction(selectedItem.id, 'snooze');
         }
       },
       h: () => {
-        if (selectedItem) {
+        if (isReviewMode && reviewController.currentItem) {
+          reviewController.handleAction('hold');
+        } else if (selectedItem) {
           handleItemAction(selectedItem.id, 'hold');
+        }
+      },
+      z: () => {
+        if (isReviewMode && reviewController.canUndo) {
+          handleUndo();
         }
       },
     },
     true
   );
 
-  // Render queue content (same in both focus and unfocused modes)
-  const renderQueueContent = () => (
-    <div className="grid gap-3 flex-1 min-h-0 md:grid-cols-[minmax(280px,380px)_minmax(0,1fr)]">
-      {/* Left: Queue List */}
-      <section 
-        className="flex flex-col overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm"
-        style={{ height: 'calc(100vh - 14rem)' }}
-      >
-        <div className="flex-1 overflow-y-auto">
-          {/* Game Plan Items Lane (when objective is active) */}
-          {activeObjectiveId && (workspaceId === 'admissions' || workspaceId === 'advancement') && gamePlanItems.length > 0 && (
-            <div className="px-2 pt-2">
-              <GamePlanItemsLane
-                items={gamePlanItems}
-                selectedItemId={selectedItem?.id ?? null}
-                onSelectItem={(id) => {
-                  setSelectedItemId(id);
-                }}
-                onItemAction={handleItemAction}
-              />
-            </div>
-          )}
-          
-          {/* Main Queue List */}
-          <QueueList
-            items={filteredItems}
-            selectedItemId={selectedItem?.id ?? null}
-            onSelectItem={(id) => {
-              setSelectedItemId(id);
-            }}
-            onEnterFocusMode={handleEnterFocusMode}
-            onItemAction={handleItemAction}
-          />
+  // Build review actions based on current item
+  const reviewActions = useMemo((): ReviewAction[] => {
+    const item = reviewController.currentItem;
+    if (!item) return [];
+
+    const actions: ReviewAction[] = [];
+
+    if (item.status === 'Open') {
+      actions.push(
+        {
+          id: 'snooze',
+          label: 'Snooze',
+          icon: 'fa-solid fa-clock',
+          keyHint: 'S',
+          onClick: () => reviewController.handleAction('snooze'),
+        },
+        {
+          id: 'skip',
+          label: 'Skip',
+          icon: 'fa-solid fa-forward',
+          keyHint: '',
+          onClick: () => reviewController.handleAction('skip'),
+        },
+        {
+          id: 'send-email',
+          label: 'Send',
+          icon: 'fa-solid fa-envelope',
+          keyHint: '',
+          onClick: () => reviewController.handleAction('send-email'),
+        },
+        {
+          id: 'call',
+          label: 'Call',
+          icon: 'fa-solid fa-phone',
+          keyHint: '',
+          onClick: () => reviewController.handleAction('call'),
+        },
+        {
+          id: 'sms',
+          label: 'SMS',
+          icon: 'fa-solid fa-message',
+          keyHint: '',
+          onClick: () => reviewController.handleAction('sms'),
+        },
+        {
+          id: 'resolve',
+          label: 'Resolve',
+          icon: 'fa-solid fa-check',
+          keyHint: 'E',
+          variant: 'default',
+          onClick: () => reviewController.handleAction('resolve'),
+        }
+      );
+    } else if (item.status === 'Snoozed') {
+      actions.push(
+        {
+          id: 'unsnooze',
+          label: 'Unsnooze',
+          icon: 'fa-solid fa-bell',
+          onClick: () => reviewController.handleAction('unsnooze'),
+        },
+        {
+          id: 'resolve',
+          label: 'Resolve',
+          icon: 'fa-solid fa-check',
+          keyHint: 'E',
+          variant: 'default',
+          onClick: () => reviewController.handleAction('resolve'),
+        }
+      );
+    } else if (item.status === 'Resolved') {
+      actions.push({
+        id: 'reopen',
+        label: 'Reopen',
+        icon: 'fa-solid fa-rotate-left',
+        onClick: () => reviewController.handleAction('reopen'),
+      });
+    }
+
+    return actions;
+  }, [reviewController]);
+
+  // Render Review Mode content
+  const renderReviewMode = () => {
+    const currentItem = reviewController.currentItem;
+    const { progress } = reviewController;
+
+    if (!currentItem) {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <p className="text-lg font-medium text-gray-900 mb-2">All caught up!</p>
+            <p className="text-sm text-gray-500 mb-4">No items in this split.</p>
+            <Button onClick={handleExitReviewMode} variant="outline">
+              Back to Queue
+            </Button>
+          </div>
         </div>
-      </section>
+      );
+    }
+
+    const topBar = (
+      <div className="flex items-center justify-between px-4 h-14 border-b bg-indigo-50/30 border-indigo-200">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleExitReviewMode}
+            className="text-sm"
+            aria-label="Back to Queue"
+          >
+            <FontAwesomeIcon icon="fa-solid fa-arrow-left" className="h-4 w-4 mr-2" />
+            Back to Queue
+          </Button>
+          <span className="text-xs text-gray-600">
+            Exit review (<span className="font-mono bg-gray-200 px-1 py-0.5 rounded">Esc</span>)
+          </span>
+        </div>
+        <div className="flex items-center gap-4">
+          <span className="text-sm font-medium text-indigo-900">Review</span>
+          {splits.length > 0 && (
+            <SplitTabs
+              splits={splits}
+              activeSplitId={reviewController.activeSplitId}
+              onSplitChange={reviewController.setActiveSplitId}
+            />
+          )}
+          <div className="text-sm font-medium text-gray-700">
+            {progress.current} of {progress.total}
+          </div>
+        </div>
+      </div>
+    );
+
+    // Navigation handlers (route sync happens via useEffect above)
+    const handleReviewNavigateNext = useCallback(() => {
+      reviewController.goToNext();
+    }, [reviewController]);
+
+    const handleReviewNavigatePrev = useCallback(() => {
+      reviewController.goToPrev();
+    }, [reviewController]);
+
+    return (
+      <ReviewModeShell
+        enabled={true}
+        onExit={handleExitReviewMode}
+        topBar={topBar}
+        bottomBar={<ReviewActionBar actions={reviewActions} />}
+        onNavigateNext={handleReviewNavigateNext}
+        onNavigatePrev={handleReviewNavigatePrev}
+      >
+        <QueueDetail
+          item={currentItem}
+          focusMode={false}
+          onExitFocusMode={handleExitReviewMode}
+          onNext={reviewController.goToNext}
+          onPrev={reviewController.goToPrev}
+          onAction={reviewController.handleAction}
+          onNavigateToPerson={handleNavigateToPerson}
+          onNavigateToAgent={handleNavigateToAgent}
+        />
+      </ReviewModeShell>
+    );
+  };
+
+  // Render queue content (same in both focus and unfocused modes)
+  const renderQueueContent = () => {
+    const isWorkbench = isFocusMode && workbenchV2Enabled;
+    const listHeight = isWorkbench ? '100%' : 'calc(100vh - 14rem)';
+
+    return (
+      <div className={cn(
+        "grid gap-3 flex-1 min-h-0",
+        isWorkbench ? "md:grid-cols-[minmax(280px,380px)_minmax(0,1fr)] h-full" : "md:grid-cols-[minmax(280px,380px)_minmax(0,1fr)]"
+      )}>
+        {/* Left: Queue List */}
+        <section 
+          className="flex flex-col overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm"
+          style={{ height: listHeight }}
+        >
+          <div className="flex-1 overflow-y-auto">
+            {/* Game Plan Items Lane (when objective is active) - hidden in workbench mode */}
+            {!isWorkbench && activeObjectiveId && (workspaceId === 'admissions' || workspaceId === 'advancement') && gamePlanItems.length > 0 && (
+              <div className="px-2 pt-2">
+                <GamePlanItemsLane
+                  items={gamePlanItems}
+                  selectedItemId={selectedItem?.id ?? null}
+                  onSelectItem={(id) => {
+                    setSelectedItemId(id);
+                  }}
+                  onItemAction={handleItemAction}
+                />
+              </div>
+            )}
+            
+            {/* Main Queue List */}
+            <QueueList
+              items={filteredItems}
+              selectedItemId={selectedItem?.id ?? null}
+              onSelectItem={(id) => {
+                setSelectedItemId(id);
+              }}
+              onEnterFocusMode={reviewModeEnabled ? () => handleEnterReviewMode() : handleEnterFocusMode}
+              onItemAction={handleItemAction}
+            />
+          </div>
+        </section>
 
       {/* Right: Detail Panel */}
-      <section className="flex flex-col rounded-xl border border-gray-100 bg-white shadow-sm">
+      <section className="relative flex flex-col rounded-xl border border-gray-100 bg-white shadow-sm">
         {selectedItem ? (
-          <QueueDetail
-            item={selectedItem}
-            focusMode={isFocusMode}
-            onExitFocusMode={handleExitFocusMode}
-            onNext={handleNextItem}
-            onPrev={handlePrevItem}
-            onAction={handleItemAction}
-            onNavigateToPerson={handleNavigateToPerson}
-            onNavigateToAgent={handleNavigateToAgent}
-          />
+          <>
+            {/* Review Mode Entry Point - Primary CTA */}
+            {reviewModeEnabled && !isReviewMode && (
+              <>
+                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
+                  <div className="flex-1">
+                    <p className="text-xs text-gray-600">
+                      Press <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded text-gray-800">Enter</span> to start review
+                    </p>
+                  </div>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => handleEnterReviewMode()}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                    title="Start review (Enter) - full-screen, auto-advance with J/K"
+                  >
+                    <FontAwesomeIcon icon="fa-solid fa-eye" className="h-3 w-3 mr-1.5" />
+                    Start review
+                    <span className="ml-1.5 text-xs font-mono bg-indigo-700/30 px-1.5 py-0.5 rounded">
+                      Enter
+                    </span>
+                  </Button>
+                </div>
+                {/* One-time coachmark */}
+                <ReviewModeCoachmark />
+              </>
+            )}
+            <QueueDetail
+              item={selectedItem}
+              focusMode={isFocusMode}
+              onExitFocusMode={handleExitFocusMode}
+              onNext={handleNextItem}
+              onPrev={handlePrevItem}
+              onAction={handleItemAction}
+              onNavigateToPerson={handleNavigateToPerson}
+              onNavigateToAgent={handleNavigateToAgent}
+            />
+          </>
         ) : (
           <div className="flex items-center justify-center min-h-[400px] p-12">
             <div className="text-center">
@@ -608,89 +1009,162 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
   );
 
   // Render page content (same structure in both modes)
-  const renderPageContent = () => (
-    <div className="relative flex flex-col h-full pb-16">
-      {/* Segment Banner */}
-      {segment && (
-        <div className="sticky top-0 z-10 bg-blue-50 border-b border-blue-200 px-4 py-2 mb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm">
-              <FontAwesomeIcon icon="fa-solid fa-filter" className="h-4 w-4 text-blue-600" />
-              <span className="text-gray-700">
-                Queue scoped to segment: <span className="font-semibold text-blue-900">{segment.title}</span>
-              </span>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClearSegment}
-              className="text-blue-700 hover:text-blue-900 hover:bg-blue-100"
-            >
-              Clear segment
-            </Button>
-          </div>
-        </div>
-      )}
+  // Use useEffect to apply padding after hydration to avoid hydration mismatch
+  const [hasMounted, setHasMounted] = useState(false);
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
-      {/* Page Header with Focus Mode Toggle */}
-      <div className="flex-shrink-0 space-y-3 mb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-900">
-              {workspaceId === 'admissions' 
-                ? 'Admissions Queue' 
-                : workspaceId === 'advancement' 
-                ? 'Advancement Pipeline Queue' 
-                : 'Agent Ops — Queue'}
-            </h1>
-            <p className="text-sm text-gray-600 mt-1">
-              All items that require attention across your agent ecosystem. Filter, triage, and resolve issues in real time.
-            </p>
-          </div>
-          {/* Focus Mode Toggle Button (Admissions and Advancement) */}
-          {(workspaceId === 'admissions' || workspaceId === 'advancement') && (
-            <Button
-              variant={isFocusMode ? "default" : "outline"}
-              size="sm"
-              onClick={isFocusMode ? handleExitFocusMode : handleEnterFocusMode}
-              className={cn(
-                isFocusMode && "bg-indigo-600 hover:bg-indigo-700 text-white"
-              )}
-            >
-              <FontAwesomeIcon 
-                icon={isFocusMode ? "fa-solid fa-compress" : "fa-solid fa-expand"} 
-                className="h-3 w-3 mr-1.5" 
-              />
-              Focus mode
-            </Button>
-          )}
-        </div>
-        
-        {/* Game Plan Panel (Admissions and Advancement) - always visible */}
-        {(workspaceId === 'admissions' || workspaceId === 'advancement') && !isLoadingGamePlan && gamePlanData && (
-          <GamePlanPanel
-            objectives={gamePlanData.objectives}
-            counts={gamePlanCounts}
-            completedCount={gamePlanData.completedCount}
-            totalCount={gamePlanData.totalCount}
-            activeObjectiveId={activeObjectiveId}
-            onApplyObjective={handleApplyObjective}
-            onClearObjective={handleClearObjective}
-            objectiveCompletionStatus={objectiveCompletionStatus}
-          />
-        )}
-        
-        {/* Filters - always show full filters */}
-        <AgentOpsFiltersBar filters={filters} onFiltersChange={setFilters} />
-      </div>
+  // Render workbench mode (Superhuman-style Focus Mode)
+  const renderWorkbenchMode = () => (
+    <div className="flex flex-col h-full">
+      {/* Workbench Toolbar */}
+      <WorkbenchToolbar
+        splits={splits}
+        activeSplitId={workbenchSplitId}
+        onSplitChange={handleWorkbenchSplitChange}
+        searchValue={filters.search}
+        onSearchChange={(value) => setFilters((prev) => ({ ...prev, search: value }))}
+        onFiltersClick={() => setFiltersDrawerOpen(true)}
+        activeFilterCount={activeFilterCount}
+        onReviewNext={reviewModeEnabled && selectedItem ? () => handleEnterReviewMode() : undefined}
+        showReviewNext={reviewModeEnabled && !!selectedItem && !isReviewMode}
+      />
+
+      {/* Active Filter Chips */}
+      <ActiveFilterChips
+        filters={filters}
+        onRemoveFilter={handleRemoveFilter}
+      />
 
       {/* Queue Content */}
-      {renderQueueContent()}
+      <div className="flex-1 min-h-0">
+        {renderQueueContent()}
+      </div>
 
-      {/* Shortcut Footer */}
-      <ShortcutFooter />
+      {/* Filters Drawer */}
+      <FiltersDrawer
+        open={filtersDrawerOpen}
+        onClose={() => setFiltersDrawerOpen(false)}
+        filters={filters}
+        onFiltersChange={setFilters}
+      />
+
+      {/* Shortcuts Overlay */}
+      <ShortcutsOverlay isReviewMode={false} />
     </div>
   );
+
+  const renderPageContent = () => {
+    // Use workbench mode if enabled and in Focus Mode
+    if (isFocusMode && workbenchV2Enabled) {
+      return renderWorkbenchMode();
+    }
+
+    // Standard layout
+    return (
+      <div className={cn("relative flex flex-col h-full pb-16", hasMounted && isFocusMode && "p-6")}>
+        {/* Segment Banner */}
+        {segment && (
+          <div className="sticky top-0 z-10 bg-blue-50 border-b border-blue-200 px-4 py-2 mb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm">
+                <FontAwesomeIcon icon="fa-solid fa-filter" className="h-4 w-4 text-blue-600" />
+                <span className="text-gray-700">
+                  Queue scoped to segment: <span className="font-semibold text-blue-900">{segment.title}</span>
+                </span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearSegment}
+                className="text-blue-700 hover:text-blue-900 hover:bg-blue-100"
+              >
+                Clear segment
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Page Header with Focus Mode Toggle */}
+        <div className="flex-shrink-0 space-y-3 mb-3">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-gray-900">
+                {workspaceId === 'admissions' 
+                  ? 'Admissions Queue' 
+                  : workspaceId === 'advancement' 
+                  ? 'Advancement Pipeline Queue' 
+                  : 'Agent Ops — Queue'}
+              </h1>
+              <p className="text-sm text-gray-600 mt-1">
+                All items that require attention across your agent ecosystem. Filter, triage, and resolve issues in real time.
+              </p>
+            </div>
+            {/* Action Buttons (Admissions and Advancement) */}
+            {(workspaceId === 'admissions' || workspaceId === 'advancement') && (
+              <div className="flex items-center gap-2">
+                {/* Focus Mode Toggle Button */}
+                <Button
+                  variant={isFocusMode ? "default" : "outline"}
+                  size="sm"
+                  onClick={isFocusMode ? handleExitFocusMode : handleEnterFocusMode}
+                  className={cn(
+                    isFocusMode && "bg-indigo-600 hover:bg-indigo-700 text-white"
+                  )}
+                  title={isFocusMode ? "Focus: minimal workbench" : "Enter Focus Mode"}
+                >
+                  <FontAwesomeIcon 
+                    icon={isFocusMode ? "fa-solid fa-compress" : "fa-solid fa-expand"} 
+                    className="h-3 w-3 mr-1.5" 
+                  />
+                  Focus mode
+                </Button>
+              </div>
+            )}
+          </div>
+          
+          {/* Game Plan Panel (Admissions and Advancement) - hidden in workbench mode */}
+          {!workbenchV2Enabled && (workspaceId === 'admissions' || workspaceId === 'advancement') && !isLoadingGamePlan && gamePlanData && (
+            <GamePlanPanel
+              objectives={gamePlanData.objectives}
+              counts={gamePlanCounts}
+              completedCount={gamePlanData.completedCount}
+              totalCount={gamePlanData.totalCount}
+              activeObjectiveId={activeObjectiveId}
+              onApplyObjective={handleApplyObjective}
+              onClearObjective={handleClearObjective}
+              objectiveCompletionStatus={objectiveCompletionStatus}
+            />
+          )}
+          
+          {/* Filters - always show full filters in standard mode */}
+          {!workbenchV2Enabled && (
+            <AgentOpsFiltersBar filters={filters} onFiltersChange={setFilters} />
+          )}
+        </div>
+
+        {/* Queue Content */}
+        {renderQueueContent()}
+
+        {/* Shortcut Footer - only in standard mode */}
+        {!workbenchV2Enabled && (
+          <ShortcutFooter showReviewModeShortcuts={isReviewMode} />
+        )}
+      </div>
+    );
+  };
+
+  // Render Review Mode if active
+  if (isReviewMode && reviewModeEnabled) {
+    return (
+      <>
+        {renderReviewMode()}
+        <ToastContainer toasts={toast.toasts} onDismiss={toast.dismissToast} />
+        <ShortcutsOverlay isReviewMode={true} />
+      </>
+    );
+  }
 
   // Wrap with FocusModePage for Admissions and Advancement workspaces
   if (workspaceId === 'admissions' || workspaceId === 'advancement') {

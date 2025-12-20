@@ -5,9 +5,10 @@ import { cn } from '@/lib/utils';
 
 interface ShortcutFooterProps {
   className?: string;
+  showReviewModeShortcuts?: boolean;
 }
 
-export function ShortcutFooter({ className }: ShortcutFooterProps) {
+export function ShortcutFooter({ className, showReviewModeShortcuts = false }: ShortcutFooterProps) {
   return (
     <div
       className={cn(
@@ -24,15 +25,45 @@ export function ShortcutFooter({ className }: ShortcutFooterProps) {
           'md:gap-6'
         )}
       >
-        <ShortcutHint keyLabel="J" text="previous" />
-        <Divider />
-        <ShortcutHint keyLabel="K" text="next" />
-        <Divider />
-        <ShortcutHint keyLabel="E" text="to resolve" />
-        <Divider />
-        <ShortcutHint keyLabel="S" text="to snooze" />
-        <Divider />
-        <ShortcutHint keyLabel="H" text="to put on hold" />
+        {showReviewModeShortcuts ? (
+          <>
+            <div className="flex items-center gap-1">
+              <ShortcutHint keyLabel="J" text="" />
+              <span className="text-[10px] text-slate-500">or</span>
+              <ShortcutHint keyLabel="↑" text="" />
+              <span className="text-slate-600">previous</span>
+            </div>
+            <Divider />
+            <div className="flex items-center gap-1">
+              <ShortcutHint keyLabel="K" text="" />
+              <span className="text-[10px] text-slate-500">or</span>
+              <ShortcutHint keyLabel="↓" text="" />
+              <span className="text-slate-600">next</span>
+            </div>
+            <Divider />
+            <ShortcutHint keyLabel="E" text="resolve" />
+            <Divider />
+            <ShortcutHint keyLabel="S" text="snooze" />
+            <Divider />
+            <ShortcutHint keyLabel="Z" text="undo" />
+            <Divider />
+            <ShortcutHint keyLabel="Esc" text="exit" />
+          </>
+        ) : (
+          <>
+            <ShortcutHint keyLabel="J" text="previous" />
+            <Divider />
+            <ShortcutHint keyLabel="K" text="next" />
+            <Divider />
+            <ShortcutHint keyLabel="E" text="to resolve" />
+            <Divider />
+            <ShortcutHint keyLabel="S" text="to snooze" />
+            <Divider />
+            <ShortcutHint keyLabel="H" text="to put on hold" />
+            <Divider />
+            <ShortcutHint keyLabel="Enter" text="review mode" />
+          </>
+        )}
       </div>
     </div>
   );

@@ -202,66 +202,78 @@ export function QueueList({
                     <span>{formatDate(item.createdAt)}</span>
                   </div>
                 </div>
-                <div className="ml-3 hidden gap-1 md:flex opacity-0 group-hover:opacity-100 transition-opacity">
-                  {item.status === 'Open' && (
-                    <>
-                      <InlineActionButton
-                        label="Resolve"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onItemAction(item.id, 'resolve');
-                        }}
-                        icon="fa-solid fa-check"
-                      />
-                      <InlineActionButton
-                        label="Snooze"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onItemAction(item.id, 'snooze');
-                        }}
-                        icon="fa-solid fa-clock"
-                      />
-                    </>
-                  )}
-                  {item.status === 'Snoozed' && (
-                    <>
-                      <InlineActionButton
-                        label="Unsnooze"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onItemAction(item.id, 'unsnooze');
-                        }}
-                        icon="fa-solid fa-bell"
-                      />
-                      <InlineActionButton
-                        label="Extend"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onItemAction(item.id, 'extendSnooze');
-                        }}
-                        icon="fa-solid fa-clock"
-                      />
-                    </>
-                  )}
-                  {item.status === 'Resolved' && (
-                    <InlineActionButton
-                      label="Reopen"
+                <div className="ml-3 flex gap-1 items-center">
+                  {/* Review button - always visible on selected row */}
+                  {isSelected && (
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        onItemAction(item.id, 'reopen');
+                        onSelectItem(item.id);
+                        onEnterFocusMode();
                       }}
-                      icon="fa-solid fa-rotate-left"
-                    />
+                      className="px-2 py-1 text-[11px] font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded transition-colors flex items-center gap-1"
+                      title="Enter Review Mode"
+                    >
+                      <FontAwesomeIcon icon="fa-solid fa-eye" className="h-3 w-3" />
+                      Review
+                    </button>
                   )}
-                  <InlineActionButton
-                    label="View"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSelectItem(item.id);
-                      onEnterFocusMode();
-                    }}
-                    icon="fa-solid fa-arrow-right"
-                  />
+                  {/* Other actions - show on hover for non-selected, always for selected */}
+                  <div className={cn(
+                    "hidden gap-1 md:flex",
+                    isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100 transition-opacity"
+                  )}>
+                    {item.status === 'Open' && (
+                      <>
+                        <InlineActionButton
+                          label="Resolve"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onItemAction(item.id, 'resolve');
+                          }}
+                          icon="fa-solid fa-check"
+                        />
+                        <InlineActionButton
+                          label="Snooze"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onItemAction(item.id, 'snooze');
+                          }}
+                          icon="fa-solid fa-clock"
+                        />
+                      </>
+                    )}
+                    {item.status === 'Snoozed' && (
+                      <>
+                        <InlineActionButton
+                          label="Unsnooze"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onItemAction(item.id, 'unsnooze');
+                          }}
+                          icon="fa-solid fa-bell"
+                        />
+                        <InlineActionButton
+                          label="Extend"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onItemAction(item.id, 'extendSnooze');
+                          }}
+                          icon="fa-solid fa-clock"
+                        />
+                      </>
+                    )}
+                    {item.status === 'Resolved' && (
+                      <InlineActionButton
+                        label="Reopen"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onItemAction(item.id, 'reopen');
+                        }}
+                        icon="fa-solid fa-rotate-left"
+                      />
+                    )}
+                  </div>
                 </div>
               </li>
             );
