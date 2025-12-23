@@ -1,0 +1,59 @@
+---
+description: README navigation requirements and no-duplication rules
+globs:
+  - "docs/**/*.md"
+---
+
+# Navigation and Linking
+
+## README Requirements
+
+Every directory README under `docs/` must include:
+
+### Required Sections
+
+1. **Purpose**: What this directory contains
+2. **Audience**: Who should read this
+3. **Navigation Links**:
+   - Link up to parent directory README
+   - Link down to child directory READMEs
+   - Link to related areas (product ↔ design ↔ tech for same domain)
+
+### Domain READMEs
+
+Domain READMEs (`docs/product/domains/<domain>/README.md`, etc.) must:
+- Link to sibling domains (product, design, tech) for the same domain
+- Link to shared services used by the domain
+- Include "Where do I put this?" guidance for domain-specific docs
+
+### Shared Service READMEs
+
+Shared service READMEs (`docs/shared-services/<service>/README.md`) must:
+- Link to domains that use the service
+- Link to related shared services
+- Include contracts, APIs, and runbooks links
+
+## No Duplication Rule
+
+- **DO NOT** copy content from shared services into domain docs
+- **DO** link to shared service docs
+- **DO NOT** duplicate API contracts or runbooks
+- **DO** document domain-specific usage patterns only
+
+## Cross-References
+
+When referencing:
+- **Product requirements** → Link to `docs/product/domains/<domain>/requirements/<feature>.md`
+- **Design flows** → Link to `docs/design/domains/<domain>/ia-and-flows.md`
+- **Technical architecture** → Link to `docs/tech/domains/<domain>/architecture.md`
+- **Shared services** → Link to `docs/shared-services/<service>/README.md`
+- **ADRs** → Link to `docs/tech/decisions/ADR-XXX.md` or `docs/tech/domains/<domain>/decisions/ADR-XXX.md`
+
+## Root README
+
+`docs/README.md` must include:
+- "Where do I put this?" section
+- Domain index (all domains with links)
+- Shared service index (all services with links)
+- Common tasks and PR checklist
+- Quick links to major sections

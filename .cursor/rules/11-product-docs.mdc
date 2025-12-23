@@ -1,0 +1,37 @@
+---
+description: Product documentation requirements and quality bar
+globs:
+  - "docs/product/**"
+---
+
+# Product Documentation
+
+## Location
+
+- Product requirements: `docs/product/domains/<domain>/requirements/<feature>.md`
+- Domain context: `docs/product/domains/<domain>/context.md`
+- Domain overview: `docs/product/domains/<domain>/README.md`
+
+## Quality Bar
+
+Product documentation must include:
+
+- **Outcomes**: What success looks like (not just features)
+- **Metrics**: How we measure success (KPIs, user metrics)
+- **User stories**: Who benefits and why
+- **Acceptance criteria**: Clear definition of done
+- **Dependencies**: Links to design flows and technical architecture
+
+## Update Triggers
+
+Update product docs when:
+- Feature behavior changes
+- Success metrics change
+- User flows change (also update design docs)
+- Business rules change
+
+## Linking Requirements
+
+- Link to related design flows: `docs/design/domains/<domain>/ia-and-flows.md`
+- Link to technical architecture: `docs/tech/domains/<domain>/architecture.md`
+- Link to shared services used: `docs/shared-services/<service>/README.md`

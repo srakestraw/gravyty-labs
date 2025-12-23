@@ -1,0 +1,83 @@
+---
+description: When code changes require documentation updates
+globs:
+  - "**/*"
+---
+
+# Documentation Change Triggers
+
+## Mandatory Checklist
+
+When making code changes, the assistant must mentally run this checklist and reflect updates in the response:
+
+### ✅ Behavior Changes
+
+- [ ] Did behavior change?
+  - If yes → Update `docs/product/domains/<domain>/requirements/<feature>.md`
+  - Update acceptance criteria, outcomes, or user stories
+
+### ✅ API/Data Changes
+
+- [ ] Did any API or data shape change?
+  - If yes → Update `docs/tech/domains/<domain>/apis.md` or `docs/tech/domains/<domain>/data.md`
+  - Update `docs/shared-services/<service>/apis-and-events.md` if shared service changed
+  - Add migration notes if breaking changes
+
+### ✅ UX/Flow Changes
+
+- [ ] Did any UX flow, state, or copy change?
+  - If yes → Update `docs/design/domains/<domain>/ia-and-flows.md`
+  - Update `docs/design/domains/<domain>/content-and-voice.md` if messaging changed
+  - Update product requirements if behavior changed
+
+### ✅ Shared Service Changes
+
+- [ ] Did any shared service contract, SLO, or limit change?
+  - If yes → Update `docs/shared-services/<service>/contracts.md` first
+  - Update `docs/shared-services/<service>/apis-and-events.md` if endpoints changed
+  - Update `docs/shared-services/<service>/runbooks.md` if operational procedures changed
+  - Then update dependent domain docs that reference the service
+
+### ✅ Documentation Summary
+
+- [ ] Which docs were updated?
+  - List all updated documentation files in the response
+  - Note if temporary "Needs update" notes were added
+
+## Temporary "Needs Update" Notes
+
+If full documentation updates are not possible in the same change:
+
+1. Add a "Needs update" note in the **correct** documentation file
+2. Include:
+   - What changed
+   - Where to fix it (specific section or file)
+   - Why it needs updating
+3. Format:
+   ```markdown
+   > **Needs update** (YYYY-MM-DD): [What changed]. Update [where] to reflect [why].
+   ```
+
+## Examples
+
+### Example 1: New Feature
+
+- Code: Add new queue filter
+- Docs updated:
+  - `docs/product/domains/admissions/requirements/queue-filters.md` (new feature)
+  - `docs/design/domains/admissions/ia-and-flows.md` (UX flow)
+  - `docs/tech/domains/admissions/apis.md` (API endpoint)
+
+### Example 2: Shared Service Change
+
+- Code: Change data provider contract
+- Docs updated:
+  - `docs/shared-services/data-provider/contracts.md` (contract change)
+  - `docs/shared-services/data-provider/apis-and-events.md` (API change)
+  - `docs/product/domains/admissions/README.md` (dependency note)
+
+### Example 3: UX Change Only
+
+- Code: Update button copy
+- Docs updated:
+  - `docs/design/domains/admissions/content-and-voice.md` (messaging)

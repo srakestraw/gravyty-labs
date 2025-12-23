@@ -1,0 +1,41 @@
+---
+description: Technical documentation for architecture, APIs, data, runbooks, and ADRs
+globs:
+  - "docs/tech/**"
+---
+
+# Technical Documentation
+
+## Location
+
+- Architecture: `docs/tech/domains/<domain>/architecture.md`
+- APIs: `docs/tech/domains/<domain>/apis.md`
+- Data models: `docs/tech/domains/<domain>/data.md`
+- Runbooks: `docs/tech/domains/<domain>/runbooks.md`
+- ADRs: `docs/tech/domains/<domain>/decisions/ADR-XXX.md` or `docs/tech/decisions/ADR-XXX.md`
+
+## Required Content
+
+Technical documentation must include:
+
+- **Architecture**: System design, component relationships, data flow
+- **APIs**: Endpoints, request/response shapes, authentication, rate limits
+- **Data**: Data models, schemas, relationships, constraints
+- **Runbooks**: Operational procedures, troubleshooting, deployment
+- **ADRs**: Architecture decisions with context, alternatives considered, consequences
+
+## Update Triggers
+
+Update tech docs when:
+- API contracts change (endpoints, request/response shapes)
+- Data models change (schemas, relationships, constraints)
+- Architecture changes (new components, changed relationships)
+- Operational procedures change (deployment, monitoring, troubleshooting)
+- Architecture decisions are made (create ADR)
+
+## Linking Requirements
+
+- Link to product requirements: `docs/product/domains/<domain>/requirements/<feature>.md`
+- Link to design flows: `docs/design/domains/<domain>/ia-and-flows.md`
+- Link to shared services: `docs/shared-services/<service>/README.md`
+- Reference contracts: `docs/shared-services/<service>/contracts.md`

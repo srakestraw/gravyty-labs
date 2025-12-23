@@ -1,0 +1,47 @@
+---
+description: Documentation structure and archiving rules
+globs:
+  - "docs/**"
+---
+
+# Documentation Context Tree
+
+## Structure
+
+```
+docs/
+├── product/          # Product requirements and vision
+│   └── domains/      # Domain-specific requirements
+├── design/           # UX, flows, and design system
+│   └── domains/      # Domain-specific design docs
+├── tech/             # Technical architecture and implementation
+│   ├── decisions/    # Architecture Decision Records (ADRs)
+│   └── domains/      # Domain-specific technical docs
+└── shared-services/  # Cross-cutting services (auth, data, etc.)
+```
+
+## Navigation Requirements
+
+- Every directory README under `docs/` must:
+  - Link up to parent directory
+  - Link down to child directories
+  - Link to related areas (product ↔ design ↔ tech for same domain)
+- Root `docs/README.md` must include:
+  - "Where do I put this?" section
+  - Domain index
+  - Shared service index
+
+## Archiving Rule
+
+- Never delete legacy docs
+- Archive with: `git mv <old-path> docs/archive/<YYYY-MM-DD>-pre-context-tree/<old-path>`
+- Preserve full path structure in archive
+- Update any links that pointed to archived docs
+
+## Documentation Placement
+
+- **Product requirements** → `docs/product/domains/<domain>/requirements/<feature>.md`
+- **UX flows and design specs** → `docs/design/domains/<domain>/ia-and-flows.md`
+- **Technical architecture** → `docs/tech/domains/<domain>/architecture.md`
+- **Shared service docs** → `docs/shared-services/<service>/README.md`
+- **Architecture decisions** → `docs/tech/decisions/ADR-XXX.md`

@@ -1,3 +1,6 @@
+const path = require('path');
+const fs = require('fs');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   compiler: {
@@ -17,7 +20,7 @@ const nextConfig = {
   trailingSlash: true,
   assetPrefix: '',
   transpilePackages: ['@gravyty-labs/contracts', '@gravyty-labs/db', 'recharts'],
-  webpack: (config, { isServer, isProduction }) => {
+  webpack: (config, { isServer, isProduction, webpack }) => {
     // Prevent @prisma/client from being bundled on client-side
     if (!isServer) {
       config.resolve.fallback = {

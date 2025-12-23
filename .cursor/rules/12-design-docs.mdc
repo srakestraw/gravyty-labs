@@ -1,0 +1,38 @@
+---
+description: Design documentation requirements for flows, states, accessibility, and content
+globs:
+  - "docs/design/**"
+---
+
+# Design Documentation
+
+## Location
+
+- UX flows: `docs/design/domains/<domain>/ia-and-flows.md`
+- Content and voice: `docs/design/domains/<domain>/content-and-voice.md`
+- Domain overview: `docs/design/domains/<domain>/README.md`
+
+## Required Content
+
+Design documentation must include:
+
+- **Flows**: User journey maps, interaction flows, state transitions
+- **States**: All UI states (loading, error, empty, success, etc.)
+- **Accessibility**: WCAG compliance, keyboard navigation, screen reader support
+- **Content/Voice**: Messaging guidelines, tone, terminology
+- **Components**: Design system components used (link to component library)
+
+## Update Triggers
+
+Update design docs when:
+- UX flow changes (user journey, interaction patterns)
+- UI states change (new states, removed states, state transitions)
+- Interaction rules change (keyboard shortcuts, gestures, behaviors)
+- Copy/voice changes (messaging, terminology, tone)
+- Accessibility requirements change
+
+## Linking Requirements
+
+- Link to product requirements: `docs/product/domains/<domain>/requirements/<feature>.md`
+- Link to technical implementation: `docs/tech/domains/<domain>/architecture.md`
+- Reference shared services that affect UX: `docs/shared-services/<service>/README.md`

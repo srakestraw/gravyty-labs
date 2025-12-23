@@ -1,5 +1,7 @@
 # Gravyty Labs - Cursor Rules
 
+> **Note**: Documentation rules are now maintained in `.cursor/rules/`. This file contains project-specific coding rules (icons, data provider pattern, etc.). For documentation standards, see `.cursor/rules/`.
+
 ## Icon System
 
 ### Font Awesome Pro Kit (Required)

@@ -1007,6 +1007,7 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
       </section>
     </div>
   );
+  };
 
   // Render page content (same structure in both modes)
   // Use useEffect to apply padding after hydration to avoid hydration mismatch

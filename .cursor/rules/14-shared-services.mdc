@@ -1,0 +1,46 @@
+---
+description: Canonical shared service documentation rules
+globs:
+  - "docs/shared-services/**"
+---
+
+# Shared Services Documentation
+
+## Canonical Location
+
+- Shared service docs live **only** in `docs/shared-services/<service>/`
+- Each service should have:
+  - `README.md` - Service overview, purpose, usage
+  - `contracts.md` - API contracts, data shapes, interfaces
+  - `apis-and-events.md` - Endpoints, events, webhooks
+  - `architecture.md` - Service architecture, dependencies
+  - `runbooks.md` - Operational procedures, SLOs, limits
+
+## No Duplication
+
+- **DO NOT** copy shared service contracts into domain docs
+- **DO** link to shared service docs from domain docs
+- **DO NOT** duplicate runbooks or API specs in domain docs
+
+## Update Priority
+
+1. **Update shared service docs first** when service changes
+2. **Then update domain docs** only if:
+   - Dependency semantics change
+   - Domain-specific usage patterns change
+   - Breaking changes affect domain implementations
+
+## Domain Documentation
+
+When documenting domain usage of shared services:
+- Link to service: `docs/shared-services/<service>/README.md`
+- Link to contracts: `docs/shared-services/<service>/contracts.md`
+- Document domain-specific usage patterns only
+- Do not duplicate service contracts or runbooks
+
+## Examples
+
+- Auth service: `docs/shared-services/auth/README.md`
+- Data provider: `docs/shared-services/data-provider/README.md`
+- Guardrails: `docs/shared-services/guardrails/README.md`
+- Banner: `docs/shared-services/banner/README.md`

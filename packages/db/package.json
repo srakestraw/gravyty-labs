@@ -5,14 +5,17 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "scripts": {
-    "db:generate": "prisma generate",
+    "db:generate": "prisma generate && npm run db:copy-engine",
+    "db:copy-engine": "mkdir -p ../../node_modules/.prisma/client && cp node_modules/.prisma/client/libquery_engine-darwin-arm64.dylib.node ../../node_modules/.prisma/client/ 2>/dev/null || true",
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:affinity": "tsx prisma/seed-affinity.ts",
+    "db:seed:crm": "tsx prisma/seed-crm.ts",
     "db:reset": "prisma migrate reset",
-    "simulate:week": "tsx prisma/simulate-week.ts"
+    "simulate:week": "tsx prisma/simulate-week.ts",
+    "postinstall": "npm run db:copy-engine"
   },
   "dependencies": {
     "@prisma/client": "^5.19.1"

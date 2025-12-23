@@ -3,7 +3,7 @@
 /**
  * SIM Apps Page - Stub Implementation
  * 
- * TODO: Implement SIM Apps index and navigation (Banner/Colleague/Slate/Salesforce/Blackbaud/Canvas/Blackboard SIM).
+ * TODO: Implement SIM Apps index and navigation (Banner/Colleague/Slate/Canvas SIM).
  */
 
 export default function SimAppsPage() {
@@ -19,10 +19,11 @@ export default function SimAppsPage() {
         </p>
       </div>
 
-      {/* TODO: Implement SIM Apps index and navigation (Banner/Colleague/Slate/Salesforce/Blackbaud/Canvas/Blackboard SIM). */}
+      {/* TODO: Implement SIM Apps index and navigation (Banner/Colleague/Slate/Canvas SIM). */}
     </div>
   );
 }
+
 
 
 

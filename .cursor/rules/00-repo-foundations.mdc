@@ -1,0 +1,42 @@
+---
+description: Core repository rules that apply to all files
+globs:
+  - "**/*"
+---
+
+# Repository Foundations
+
+## Documentation as Source of Truth
+
+- **docs/** is the canonical source of truth for all product, design, and technical documentation
+- Never reference ad-hoc PRDs, design specs, or architecture notes outside of `docs/`
+- When in doubt, check `docs/README.md` for navigation and "Where do I put this?" guidance
+
+## Living Documentation Principle
+
+- Documentation must stay in sync with code changes
+- If code changes behavior, update the relevant docs in the same change
+- If full updates are not possible, add a temporary "Needs update" note in the correct doc with:
+  - What changed
+  - Where to fix it
+  - Not in random places or code comments
+
+## Shared Services Are Canonical
+
+- Shared service documentation lives only in `docs/shared-services/<service>/`
+- Domains must **link** to shared service docs, not copy contracts or runbooks
+- If a shared service changes, update its docs first; update domain docs only when dependency semantics change
+
+## Design Documentation is First-Class
+
+- Design docs live under `docs/design/` and must be updated when:
+  - UX flows change
+  - States change
+  - Interaction rules change
+  - Copy/voice changes
+
+## Never Delete, Always Archive
+
+- Never delete legacy documentation
+- Archive with `git mv` under `docs/archive/<YYYY-MM-DD>-pre-context-tree/`
+- Preserves history and prevents information loss

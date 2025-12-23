@@ -23,6 +23,7 @@ import { getAppNav as getDataNav } from '../data/_nav';
 import { getAppNav as getSimAppsNav } from '../sim-apps/_nav';
 import { getAppNav as getStudentLifecycleNav } from '../student-lifecycle/_nav';
 import { getAppNav as getAdmissionsNav } from '../admissions/_nav';
+import { getAppNav as getCrmNav } from '../crm/_nav';
 import { isValidWorkspace, getWorkspaceConfig, type WorkingMode } from '@/lib/student-lifecycle/workspaces';
 import { useWorkspaceMode } from '@/lib/hooks/useWorkspaceMode';
 
@@ -101,6 +102,8 @@ export function AppSidebar() {
   const isInStudentLifecycle = pathname?.startsWith('/student-lifecycle');
   // Check if we're in the Community/Engagement Hub app
   const isInCommunity = pathname?.startsWith('/community');
+  // Check if we're in the CRM Mock app
+  const isInCrm = pathname?.startsWith('/crm');
 
   // Check if we're in the Pipeline workspace
   const isInPipeline = pathname?.startsWith('/advancement/pipeline');
@@ -178,6 +181,9 @@ export function AppSidebar() {
 
       // Admissions area
       'admissions': getAdmissionsNav,
+
+      // CRM Mock area
+      'crm-unified': getCrmNav,
 
       // These exist but currently have no sidebar sub-nav; keep map for completeness.
       'engagement-hub': getCommunityNav,
@@ -321,7 +327,7 @@ type Navigation =
       >
         <nav className="flex flex-col gap-1 p-2 h-full overflow-hidden">
           <div className="flex-1 min-h-0 overflow-y-auto">
-          {(isInAIAssistants || isInAdmin || isInAdvancement || isInAdmissions || isInStudentLifecycle || isInCommunity) && !Array.isArray(navigation) ? (
+          {(isInAIAssistants || isInAdmin || isInAdvancement || isInAdmissions || isInStudentLifecycle || isInCommunity || isInCrm) && !Array.isArray(navigation) ? (
             <>
               {/* Top-level navigation items */}
               {navigation.topLevel.map((item) => {
@@ -349,7 +355,7 @@ type Navigation =
                           className={cn(
                             'flex items-center gap-3 flex-1 min-w-0 px-3 py-2 rounded-md text-sm transition-colors',
                             'hover:bg-gray-100 text-gray-700',
-                            isActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : isInAdvancement ? 'bg-red-50 text-red-700 font-medium' : 'bg-purple-50 text-purple-700 font-medium')
+                            isActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : isInAdvancement ? 'bg-red-50 text-red-700 font-medium' : isInCrm ? 'bg-blue-50 text-blue-700 font-medium' : 'bg-purple-50 text-purple-700 font-medium')
                           )}
                           onClick={(e) => {
                             // Don't navigate if clicking the chevron area
@@ -415,7 +421,7 @@ type Navigation =
                                 className={cn(
                                   'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
                                   'hover:bg-gray-100 text-gray-700',
-                                  isChildActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : isInAdvancement ? 'bg-red-50 text-red-700 font-medium' : 'bg-purple-50 text-purple-700 font-medium')
+                                  isChildActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : isInAdvancement ? 'bg-red-50 text-red-700 font-medium' : isInCrm ? 'bg-blue-50 text-blue-700 font-medium' : 'bg-purple-50 text-purple-700 font-medium')
                                 )}
                                 onClick={() => {
                                   // Close sidebar on mobile when navigating
@@ -443,7 +449,7 @@ type Navigation =
                     className={cn(
                       'flex items-center justify-between gap-2 px-3 py-2 rounded-md text-sm transition-colors',
                       'hover:bg-gray-100 text-gray-700',
-                      isActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : isInAdvancement ? 'bg-red-50 text-red-700 font-medium' : 'bg-purple-50 text-purple-700 font-medium')
+                      isActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : isInAdvancement ? 'bg-red-50 text-red-700 font-medium' : isInCrm ? 'bg-blue-50 text-blue-700 font-medium' : 'bg-purple-50 text-purple-700 font-medium')
                     )}
                     onClick={() => {
                       // Close sidebar on mobile when navigating
@@ -491,7 +497,7 @@ type Navigation =
                         className={cn(
                           'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
                           'hover:bg-gray-100 text-gray-700',
-                          isActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : isInAdvancement ? 'bg-red-50 text-red-700 font-medium' : 'bg-purple-50 text-purple-700 font-medium')
+                          isActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : isInAdvancement ? 'bg-red-50 text-red-700 font-medium' : isInCrm ? 'bg-blue-50 text-blue-700 font-medium' : 'bg-purple-50 text-purple-700 font-medium')
                         )}
                         onClick={() => {
                           // Close sidebar on mobile when navigating
@@ -522,7 +528,7 @@ type Navigation =
                 const linkClassName = cn(
                   'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
                   'hover:bg-gray-100 text-gray-700',
-                  isActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : 'bg-purple-50 text-purple-700 font-medium')
+                  isActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : isInAdvancement ? 'bg-red-50 text-red-700 font-medium' : isInCrm ? 'bg-blue-50 text-blue-700 font-medium' : 'bg-purple-50 text-purple-700 font-medium')
                 );
                 
                 // Handle external links

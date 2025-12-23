@@ -11,6 +11,7 @@ const MOCK_FEATURE_FLAGS: Record<string, boolean> = {
   ai_assistants: true, // Enable AI Assistants for v1
   queueReviewMode: true, // Enable Review Mode for Queue
   queueFocusWorkbenchV2: true, // Enable Superhuman-style Focus Mode workbench
+  advancementPipelineAssistantEnabled: false, // Phase 1: Advancement Pipeline Assistant (stub)
 };
 
 /**
@@ -37,4 +38,13 @@ export function useFeatureFlag(flag: string): boolean {
 export function getFeatureFlags(): Record<string, boolean> {
   return { ...MOCK_FEATURE_FLAGS };
 }
+
+/**
+ * Feature flags object for direct access (non-hook)
+ */
+export const features = {
+  get advancementPipelineAssistantEnabled(): boolean {
+    return MOCK_FEATURE_FLAGS.advancementPipelineAssistantEnabled ?? false;
+  },
+};
 
