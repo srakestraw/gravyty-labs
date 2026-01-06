@@ -1,0 +1,8 @@
+GitHub Connection Test
+=====================
+
+This is a test file to verify GitHub connectivity.
+Created: 2025-01-06
+
+If you can see this file in GitHub, the connection is working!
+
