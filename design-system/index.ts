@@ -7,8 +7,8 @@
 // Core
 export * from './core';
 
-// Foundations will be exported here
-// export * from './Foundations';
+// Foundations
+export * from './Foundations';
 
 // Components will be exported here
 // export * from './Components';
