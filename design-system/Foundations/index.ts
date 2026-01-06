@@ -21,7 +21,20 @@ export type { AvatarSize, AvatarProps, AvatarGroupProps } from './avatars';
 
 // Icons
 export * from './icons';
-export type { IconSize, IconColor, FAIconProps, MuiIconProps } from './icons';
+export type { 
+  IconProps, 
+  InlineIconProps,
+  IconName, 
+  IconCategory, 
+  IconWeight, 
+  IconSize, 
+  IconMetadata,
+  // Legacy types
+  IconSize as LegacyIconSize,
+  IconColor,
+  FAIconProps,
+  MuiIconProps,
+} from './icons';
 
 // Navigation
 export * from './navigation';

@@ -1,23 +1,46 @@
 /**
  * Icons Foundation
  * 
- * Icon system integration with Font Awesome Pro.
- * Provides consistent icon usage patterns following MUI guidelines.
+ * Unified icon system supporting both:
+ * 1. SVG icons from Figma design system (primary)
+ * 2. Font Awesome Pro (fallback/legacy support)
+ * 
+ * @module design-system/Foundations/icons
  */
 
 'use client';
+
+// Re-export new SVG icon system
+export {
+  Icon,
+  InlineIcon,
+  iconRegistry,
+  getIconPath,
+  iconHelpers,
+} from './icons/index';
+export type {
+  IconProps,
+  InlineIconProps,
+  IconName,
+  IconCategory,
+  IconWeight,
+  IconSize,
+  IconMetadata,
+} from './icons/index';
+
+// Legacy Font Awesome support (for backward compatibility)
 
 import React from 'react';
 import { SvgIcon, SvgIconProps } from '@mui/material';
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 
 /**
- * Icon size variants matching MUI standards
+ * @deprecated Use Icon from './icons' instead. This is kept for backward compatibility.
  */
 export type IconSize = 'small' | 'medium' | 'large' | 'inherit';
 
 /**
- * Icon color variants
+ * @deprecated Use Icon from './icons' instead. This is kept for backward compatibility.
  */
 export type IconColor = 
   | 'inherit' 
@@ -31,7 +54,7 @@ export type IconColor =
   | 'disabled';
 
 /**
- * FontAwesome Icon Props
+ * @deprecated Use Icon from './icons' instead. This is kept for backward compatibility.
  */
 export interface FAIconProps {
   icon: string;
@@ -41,9 +64,6 @@ export interface FAIconProps {
   style?: React.CSSProperties;
 }
 
-/**
- * Icon size mapping
- */
 const iconSizeMap: Record<IconSize, string> = {
   small: '0.875rem',   // 14px
   medium: '1.25rem',   // 20px
@@ -52,13 +72,9 @@ const iconSizeMap: Record<IconSize, string> = {
 };
 
 /**
- * Icon component wrapper for Font Awesome
- * 
- * @example
- * <Icon icon="fa-solid fa-house" size="medium" color="primary" />
- * <Icon icon="fa-regular fa-circle-check" size="large" />
+ * @deprecated Use Icon from './icons' instead. This is kept for backward compatibility.
  */
-export function Icon({ 
+export function FontAwesomeIconWrapper({ 
   icon, 
   size = 'medium', 
   color = 'inherit',
@@ -85,14 +101,16 @@ export function Icon({
 }
 
 /**
- * MUI-compatible Icon component
- * Wraps Font Awesome icons in MUI SvgIcon for consistency
+ * @deprecated Use Icon from './icons' instead. This is kept for backward compatibility.
  */
 export interface MuiIconProps extends Omit<SvgIconProps, 'children'> {
   icon: string;
   faSize?: IconSize | string;
 }
 
+/**
+ * @deprecated Use Icon from './icons' instead. This is kept for backward compatibility.
+ */
 export function MuiIcon({ icon, faSize = 'medium', ...props }: MuiIconProps) {
   return (
     <SvgIcon {...props}>
@@ -112,42 +130,43 @@ export function MuiIcon({ icon, faSize = 'medium', ...props }: MuiIconProps) {
 
 /**
  * Common icon set for quick reference
+ * Maps common icon names to Figma icon names
  */
 export const commonIcons = {
   // Navigation
-  home: 'fa-solid fa-house',
-  menu: 'fa-solid fa-bars',
-  close: 'fa-solid fa-xmark',
-  back: 'fa-solid fa-arrow-left',
-  forward: 'fa-solid fa-arrow-right',
-  up: 'fa-solid fa-chevron-up',
-  down: 'fa-solid fa-chevron-down',
+  home: 'arrow-left', // Map to Figma icon name
+  menu: 'menu',
+  close: 'cancel',
+  back: 'arrow-left',
+  forward: 'arrow-right',
+  up: 'arrow-up',
+  down: 'arrow-down',
   
   // Actions
-  add: 'fa-solid fa-plus',
-  edit: 'fa-solid fa-pencil',
-  delete: 'fa-solid fa-trash',
-  save: 'fa-solid fa-floppy-disk',
-  cancel: 'fa-solid fa-xmark',
-  search: 'fa-solid fa-magnifying-glass',
-  filter: 'fa-solid fa-filter',
+  add: 'add-square',
+  edit: 'edit',
+  delete: 'delete-circle',
+  save: 'save-action-floppy',
+  cancel: 'cancel',
+  search: 'search',
+  filter: 'filter',
   
   // Status
-  check: 'fa-solid fa-check',
-  error: 'fa-solid fa-circle-exclamation',
-  warning: 'fa-solid fa-triangle-exclamation',
-  info: 'fa-solid fa-circle-info',
-  success: 'fa-solid fa-circle-check',
+  check: 'check',
+  error: 'warning-triangle',
+  warning: 'warning-circle',
+  info: 'info-empty',
+  success: 'check-circle',
   
   // User
-  user: 'fa-solid fa-user',
-  users: 'fa-solid fa-users',
-  settings: 'fa-solid fa-gear',
+  user: 'user',
+  users: 'group',
+  settings: 'settings',
   
   // Data
-  download: 'fa-solid fa-download',
-  upload: 'fa-solid fa-upload',
-  export: 'fa-solid fa-file-export',
-  import: 'fa-solid fa-file-import',
+  download: 'download',
+  upload: 'upload',
+  export: 'download',
+  import: 'upload',
 } as const;
 
