@@ -15,6 +15,7 @@ export type { Theme } from '@mui/material/styles';
 export { ThemeProvider, useThemeContext } from './ThemeProvider';
 
 // Re-export commonly used MUI utilities
-export { useTheme, useMediaQuery } from '@mui/material';
+// Note: Import useTheme and useMediaQuery directly from @mui/material when needed
+// export { useTheme } from '@mui/material'; // Temporarily removed to fix MUI v7 compatibility
 export type { PaletteMode, Breakpoint } from '@mui/material';
 

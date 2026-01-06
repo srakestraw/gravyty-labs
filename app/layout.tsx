@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { AuthProvider } from "@/lib/firebase/auth-context";
+import { ThemeProvider } from "@/design-system/core";
+import EmotionCacheProvider from "@/lib/emotion-cache";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -58,9 +60,13 @@ export default function RootLayout({
           crossOrigin="anonymous"
           strategy="beforeInteractive"
         />
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <EmotionCacheProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              {children}
+            </AuthProvider>
+          </ThemeProvider>
+        </EmotionCacheProvider>
       </body>
     </html>
   );

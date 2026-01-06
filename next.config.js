@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  compiler: {
+    emotion: true,
+  },
   images: {
     domains: ['localhost', 'gravyty-labs.web.app'],
     unoptimized: true

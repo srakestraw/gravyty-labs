@@ -10,6 +10,7 @@ export type { BrandColors } from './colors';
 
 // Typography
 export * from './typography';
+export * from './typography-components';
 
 // Shadows
 export * from './shadows';
