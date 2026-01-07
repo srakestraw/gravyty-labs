@@ -189,7 +189,10 @@ fi
 for backup in .crm-mock-*-backup; do
   if [ -d "$backup" ]; then
     # Extract route path from backup name (e.g., .crm-mock-constituents-[id]-backup -> constituents/[id])
-    route_part=$(echo "$backup" | sed 's/\.crm-mock-\(.*\)-backup/\1/')
+    # Handle both bracket and hyphen formats, but restore as bracket format
+    route_part=$(echo "$backup" | sed 's/\.crm-mock-\(.*\)-backup/\1/' | sed 's/-\(\[id\]\)/\1/')
+    # Ensure we have the correct bracket format
+    route_part=$(echo "$route_part" | sed 's/-\[id\]/\/[id]/')
     route_path="app/(shell)/crm-mock/$route_part"
     echo "Restoring CRM Mock route: $route_path"
     mkdir -p "$(dirname "$route_path")"
