@@ -1,6 +1,18 @@
 import { NextResponse } from 'next/server';
+
+
+
+
+
 import { prisma } from '@/packages/db';
 
+
+
+
+
+
+// Force dynamic rendering - API routes cannot be statically generated
+export const dynamic = 'force-dynamic';
 // Using shared prisma instance from @/packages/db
 
 const CRM_MOCK_CTX = {
