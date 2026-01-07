@@ -167,8 +167,8 @@ export function Icon({
               key={`path-${index}`}
               d={child.getAttribute('d') || ''}
               fill={child.getAttribute('fill') || 'currentColor'}
-              stroke={child.getAttribute('stroke')}
-              strokeWidth={child.getAttribute('stroke-width')}
+              stroke={child.getAttribute('stroke') || undefined}
+              strokeWidth={child.getAttribute('stroke-width') || undefined}
             />
           );
         } else if (child.tagName === 'circle') {

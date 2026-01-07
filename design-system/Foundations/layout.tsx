@@ -49,7 +49,7 @@ export const ContentWrapper = styled(Box)(({ theme }) => ({
  */
 export const CardContainer = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
-  borderRadius: theme.shape.borderRadius * 1.5,
+  borderRadius: typeof theme.shape.borderRadius === 'number' ? theme.shape.borderRadius * 1.5 : 12,
   [theme.breakpoints.down('sm')]: {
     padding: theme.spacing(2),
   },

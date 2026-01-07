@@ -124,7 +124,7 @@ export function AvatarGroup({
             borderRadius: '50%',
           }}
         >
-          <Avatar size={size} sx={{ bgcolor: 'grey.400' }}>
+          <Avatar size={size} style={{ backgroundColor: 'grey.400' }}>
             +{remainingCount}
           </Avatar>
         </div>

@@ -120,6 +120,7 @@ export const createGravytyTheme = (mode: PaletteMode = 'light'): Theme => {
       '0px 76px 152px rgba(9, 30, 66, 0.44)',
       '0px 80px 160px rgba(9, 30, 66, 0.44)',
       '0px 84px 168px rgba(9, 30, 66, 0.48)',
+      '0px 88px 176px rgba(9, 30, 66, 0.52)', // Added 25th shadow for Material-UI v7
     ],
     transitions: {
       duration: {

@@ -24,9 +24,9 @@ export type {
   IconName,
   IconCategory,
   IconWeight,
-  IconSize,
   IconMetadata,
 } from './icons/index';
+// Note: IconSize is exported below as deprecated type for backward compatibility
 
 // Legacy Font Awesome support (for backward compatibility)
 

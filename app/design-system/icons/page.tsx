@@ -7,7 +7,7 @@
 'use client';
 
 import React from 'react';
-import { Box, Typography, Grid, Paper, Stack } from '@mui/material';
+import { Box, Typography, Paper, Stack } from '@mui/material';
 import { Icon } from '@/design-system/Foundations/icons';
 import { iconRegistry } from '@/design-system/Foundations/icons';
 
@@ -75,35 +75,45 @@ export default function IconsPage() {
             {category}
           </Typography>
           
-          <Grid container spacing={3} sx={{ mt: 1 }}>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: {
+                xs: 'repeat(2, 1fr)',
+                sm: 'repeat(3, 1fr)',
+                md: 'repeat(4, 1fr)',
+              },
+              gap: 3,
+              mt: 1,
+            }}
+          >
             {iconNames.map((iconName) => (
-              <Grid item xs={6} sm={4} md={3} key={iconName}>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    p: 2,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    borderRadius: 1,
-                    '&:hover': {
-                      bgcolor: 'action.hover',
-                    },
-                  }}
-                >
-                  <Icon
-                    name={iconName as any}
-                    size="large"
-                    sx={{ mb: 1 }}
-                  />
-                  <Typography variant="caption" align="center" sx={{ fontSize: '0.75rem' }}>
-                    {iconName}
-                  </Typography>
-                </Box>
-              </Grid>
+              <Box
+                key={iconName}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  p: 2,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 1,
+                  '&:hover': {
+                    bgcolor: 'action.hover',
+                  },
+                }}
+              >
+                <Icon
+                  name={iconName as any}
+                  size="large"
+                  sx={{ mb: 1 }}
+                />
+                <Typography variant="caption" align="center" sx={{ fontSize: '0.75rem' }}>
+                  {iconName}
+                </Typography>
+              </Box>
             ))}
-          </Grid>
+          </Box>
         </Paper>
       ))}
 

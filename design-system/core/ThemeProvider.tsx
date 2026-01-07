@@ -2,7 +2,8 @@
 
 import React, { createContext, useContext, useState, useMemo, ReactNode } from 'react';
 import { ThemeProvider as MuiThemeProvider, CssBaseline } from '@mui/material';
-import { createGravytyTheme, Theme } from './theme';
+import { createGravytyTheme } from './theme';
+import { Theme } from '@mui/material/styles';
 import { PaletteMode } from '@mui/material';
 
 interface ThemeContextType {

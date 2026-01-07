@@ -20,6 +20,9 @@ export type {
   IconMetadata,
 } from './icon-registry';
 
+// Import getIconPath for use in iconHelpers
+import { getIconPath, iconRegistry } from './icon-registry';
+
 /**
  * Icon helper functions
  */
