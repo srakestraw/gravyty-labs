@@ -406,6 +406,11 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
     return count;
   }, [filters]);
 
+  // Get splits for Review Mode (must be declared before filteredItems)
+  const splits = useMemo(() => {
+    return getDefaultSplits(workspaceId);
+  }, [workspaceId]);
+
   const filteredItems = useMemo(() => {
     let items = allItems;
 
@@ -506,11 +511,6 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
       [key]: key === 'search' ? '' : 'All',
     }));
   }, []);
-
-  // Get splits for Review Mode
-  const splits = useMemo(() => {
-    return getDefaultSplits(workspaceId);
-  }, [workspaceId]);
 
   // Unified action handler with optimistic updates and auto-advance
   // Defined early so it can be used in review controller
@@ -904,7 +904,7 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
           onExitFocusMode={handleExitReviewMode}
           onNext={reviewController.goToNext}
           onPrev={reviewController.goToPrev}
-          onAction={reviewController.handleAction}
+          onAction={(id, action) => reviewController.handleAction(action)}
           onNavigateToPerson={handleNavigateToPerson}
           onNavigateToAgent={handleNavigateToAgent}
         />

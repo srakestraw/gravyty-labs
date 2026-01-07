@@ -26,9 +26,9 @@ model Person {
   names             PersonName[]
   emails            EmailAddress[]
   phones            Phone[]
-  addresses        Address[]
+  addresses         Address[]
   student           Student?
-  sections          Section[] @relation("SectionInstructor")
+  sections          Section[]          @relation("SectionInstructor")
   doNotEngageGlobal DoNotEngageGlobal?
   doNotEngageAgents DoNotEngageAgent[]
 
@@ -41,7 +41,7 @@ model PersonName {
   given     String
   middle    String?
   family    String
-  type      String   // legal, preferred, nickname, etc.
+  type      String // legal, preferred, nickname, etc.
   preferred Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -56,7 +56,7 @@ model EmailAddress {
   id        String   @id @default(uuid())
   personId  String
   address   String
-  type      String   // personal, institutional, work, etc.
+  type      String // personal, institutional, work, etc.
   preferred Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -73,7 +73,7 @@ model Phone {
   personId  String
   number    String
   extension String?
-  type      String   // mobile, home, work, etc.
+  type      String // mobile, home, work, etc.
   preferred Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -87,7 +87,7 @@ model Phone {
 model Address {
   id         String   @id @default(uuid())
   personId   String
-  type       String   // home, mailing, billing, etc.
+  type       String // home, mailing, billing, etc.
   line1      String
   line2      String?
   city       String
@@ -95,7 +95,7 @@ model Address {
   postalCode String
   country    String   @default("USA")
   createdAt  DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt  DateTime @updatedAt
 
   // Relations
   person Person @relation(fields: [personId], references: [id], onDelete: Cascade)
@@ -114,22 +114,22 @@ model DoNotEngageGlobal {
   emailBlocked Boolean  @default(false)
   smsBlocked   Boolean  @default(false)
   phoneBlocked Boolean  @default(false)
-  source       String   // e.g. "user_opt_out", "admin", "import"
-  reason       String?  // free-text notes
+  source       String // e.g. "user_opt_out", "admin", "import"
+  reason       String? // free-text notes
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  updatedById  String?  // admin user id if available
+  updatedById  String? // admin user id if available
 
   @@map("do_not_engage_global")
 }
 
 model DoNotEngageAgent {
-  id         String   @id @default(uuid())
-  personId   String
-  person     Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
-  agentId    String   // Agent identifier (string ID, not FK since Agent model doesn't exist yet)
-  createdAt  DateTime @default(now())
-  createdById String?  // admin user id
+  id          String   @id @default(uuid())
+  personId    String
+  person      Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  agentId     String // Agent identifier (string ID, not FK since Agent model doesn't exist yet)
+  createdAt   DateTime @default(now())
+  createdById String? // admin user id
 
   @@unique([personId, agentId])
   @@map("do_not_engage_agents")
@@ -140,35 +140,35 @@ model DoNotEngageAgent {
 // ============================================================================
 
 model Student {
-  id                      String   @id @default(uuid())
-  personId                String   @unique
-  type                    String   // undergraduate, graduate, etc.
-  status                  String   // active, inactive, graduated, etc.
-  startOn                 DateTime @db.Date
-  entryAcademicPeriodId   String?
-  academicLevel           String?  // freshman, sophomore, etc.
-  residency               String?  // in-state, out-of-state, etc.
-  studentClassification   String?  // full-time, part-time, etc.
-  studentLoad             String?  // full-time, part-time
-  academicStandingCode    String?
-  studentNumber            String   @unique
+  id                    String   @id @default(uuid())
+  personId              String   @unique
+  type                  String // undergraduate, graduate, etc.
+  status                String // active, inactive, graduated, etc.
+  startOn               DateTime @db.Date
+  entryAcademicPeriodId String?
+  academicLevel         String? // freshman, sophomore, etc.
+  residency             String? // in-state, out-of-state, etc.
+  studentClassification String? // full-time, part-time, etc.
+  studentLoad           String? // full-time, part-time
+  academicStandingCode  String?
+  studentNumber         String   @unique
   // Risk & Behavior fields (Phase 05)
-  isFirstGen              Boolean  @default(false)
-  isPellEligible          Boolean  @default(false)
-  isInState              Boolean  @default(true)
-  workHoursPerWeek        Int      @default(0)
-  commuteMinutes          Int      @default(0)
-  hasHousingInstability    Boolean  @default(false)
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  isFirstGen            Boolean  @default(false)
+  isPellEligible        Boolean  @default(false)
+  isInState             Boolean  @default(true)
+  workHoursPerWeek      Int      @default(0)
+  commuteMinutes        Int      @default(0)
+  hasHousingInstability Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
   // Relations
-  person                  Person                    @relation(fields: [personId], references: [id], onDelete: Cascade)
-  entryAcademicPeriod     AcademicPeriod?           @relation("StudentEntryPeriod", fields: [entryAcademicPeriodId], references: [id])
+  person                  Person                   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  entryAcademicPeriod     AcademicPeriod?          @relation("StudentEntryPeriod", fields: [entryAcademicPeriodId], references: [id])
   sectionRegistrations    SectionRegistration[]
   studentAcademicPrograms StudentAcademicProgram[]
   academicCredentials     AcademicCredential[]
-  transcriptGrades         StudentTranscriptGrade[]
+  transcriptGrades        StudentTranscriptGrade[]
   studentRisks            StudentRisk[]
 
   @@map("students")
@@ -179,27 +179,27 @@ model Student {
 // ============================================================================
 
 model AcademicPeriod {
-  id                  String   @id @default(uuid())
-  code                String   @unique // e.g., "2024FA", "2025SP"
-  title               String   // e.g., "Fall 2024"
-  type                String   // term, year, etc.
-  startOn             DateTime @db.Date
-  endOn               DateTime @db.Date
+  id                  String    @id @default(uuid())
+  code                String    @unique // e.g., "2024FA", "2025SP"
+  title               String // e.g., "Fall 2024"
+  type                String // term, year, etc.
+  startOn             DateTime  @db.Date
+  endOn               DateTime  @db.Date
   censusOn            DateTime? @db.Date
   registrationStartOn DateTime? @db.Date
   registrationEndOn   DateTime? @db.Date
-  academicYear        String   // e.g., "2024-2025"
-  status              String   // active, closed, etc.
-  createdAt           DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  academicYear        String // e.g., "2024-2025"
+  status              String // active, closed, etc.
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   // Relations
-  sections            Section[]
+  sections             Section[]
   sectionRegistrations SectionRegistration[]
-  transcriptGrades    StudentTranscriptGrade[]
-  entryStudents       Student[]                @relation("StudentEntryPeriod")
-  credentialPeriods   AcademicCredential[]      @relation("CredentialPeriod")
-  studentRisks        StudentRisk[]            @relation("StudentRiskPeriod")
+  transcriptGrades     StudentTranscriptGrade[]
+  entryStudents        Student[]                @relation("StudentEntryPeriod")
+  credentialPeriods    AcademicCredential[]     @relation("CredentialPeriod")
+  studentRisks         StudentRisk[]            @relation("StudentRiskPeriod")
 
   @@map("academic_periods")
 }
@@ -209,65 +209,65 @@ model AcademicPeriod {
 // ============================================================================
 
 model Course {
-  id                String   @id @default(uuid())
-  subjectCode       String   // e.g., "CS", "MATH"
-  number            String   // e.g., "101", "201"
-  title             String
-  description       String?
-  creditType        String   // institutional, transfer, etc.
-  creditsMinimum    Decimal  @db.Decimal(5, 2)
-  creditsMaximum    Decimal  @db.Decimal(5, 2)
-  creditsIncrement  Decimal? @db.Decimal(5, 2)
-  courseLevel       String   // undergraduate, graduate
-  status            String   // active, inactive
+  id                 String    @id @default(uuid())
+  subjectCode        String // e.g., "CS", "MATH"
+  number             String // e.g., "101", "201"
+  title              String
+  description        String?
+  creditType         String // institutional, transfer, etc.
+  creditsMinimum     Decimal   @db.Decimal(5, 2)
+  creditsMaximum     Decimal   @db.Decimal(5, 2)
+  creditsIncrement   Decimal?  @db.Decimal(5, 2)
+  courseLevel        String // undergraduate, graduate
+  status             String // active, inactive
   effectiveStartDate DateTime? @db.Date
   effectiveEndDate   DateTime? @db.Date
-  catalogYear       String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  catalogYear        String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   // Relations
-  sections          Section[]
-  transcriptGrades  StudentTranscriptGrade[]
+  sections         Section[]
+  transcriptGrades StudentTranscriptGrade[]
 
   @@unique([subjectCode, number, catalogYear])
   @@map("courses")
 }
 
 model Section {
-  id                    String   @id @default(uuid())
-  courseId              String
-  academicPeriodId      String
-  number                String   // e.g., "001", "002"
-  title                 String?
-  crn                   String   // Course Reference Number
-  startOn               DateTime @db.Date
-  endOn                 DateTime @db.Date
-  status                String   // open, closed, cancelled
-  capacity              Int
-  enrolled              Int      @default(0)
-  available             Int      @default(0)
-  waitlistCapacity      Int?
-  waitlistEnrolled      Int?     @default(0)
+  id                      String   @id @default(uuid())
+  courseId                String
+  academicPeriodId        String
+  number                  String // e.g., "001", "002"
+  title                   String?
+  crn                     String // Course Reference Number
+  startOn                 DateTime @db.Date
+  endOn                   DateTime @db.Date
+  status                  String // open, closed, cancelled
+  capacity                Int
+  enrolled                Int      @default(0)
+  available               Int      @default(0)
+  waitlistCapacity        Int?
+  waitlistEnrolled        Int?     @default(0)
   instructionalMethodCode String?
-  daysOfWeek            String[] // Array of day names
-  startTime             String?
-  endTime               String?
-  building              String?
-  roomNumber            String?
-  creditType            String
-  creditsMinimum        Decimal  @db.Decimal(5, 2)
-  creditsMaximum        Decimal  @db.Decimal(5, 2)
-  instructorPersonId    String?  // Optional instructor (Person, not Student)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  daysOfWeek              String[] // Array of day names
+  startTime               String?
+  endTime                 String?
+  building                String?
+  roomNumber              String?
+  creditType              String
+  creditsMinimum          Decimal  @db.Decimal(5, 2)
+  creditsMaximum          Decimal  @db.Decimal(5, 2)
+  instructorPersonId      String? // Optional instructor (Person, not Student)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 
   // Relations
-  course                Course                 @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  academicPeriod        AcademicPeriod         @relation(fields: [academicPeriodId], references: [id], onDelete: Cascade)
-  instructor            Person?                 @relation("SectionInstructor", fields: [instructorPersonId], references: [id], onDelete: SetNull)
-  sectionRegistrations  SectionRegistration[]
-  transcriptGrades       StudentTranscriptGrade[]
+  course               Course                   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  academicPeriod       AcademicPeriod           @relation(fields: [academicPeriodId], references: [id], onDelete: Cascade)
+  instructor           Person?                  @relation("SectionInstructor", fields: [instructorPersonId], references: [id], onDelete: SetNull)
+  sectionRegistrations SectionRegistration[]
+  transcriptGrades     StudentTranscriptGrade[]
 
   @@unique([academicPeriodId, crn])
   @@map("sections")
@@ -278,61 +278,61 @@ model Section {
 // ============================================================================
 
 model SectionRegistration {
-  id                  String   @id @default(uuid())
-  studentId           String
-  sectionId           String
-  academicPeriodId    String
-  statusCode          String   // REG, DROP, WITHDRAW, etc.
-  registrationDate   DateTime
-  registeredOn        DateTime @db.Date
-  creditType          String
-  credits             Decimal  @db.Decimal(5, 2)
-  gradingOptionCode   String?
-  academicLoad        String?
-  residencyStatus     String?
+  id                String   @id @default(uuid())
+  studentId         String
+  sectionId         String
+  academicPeriodId  String
+  statusCode        String // REG, DROP, WITHDRAW, etc.
+  registrationDate  DateTime
+  registeredOn      DateTime @db.Date
+  creditType        String
+  credits           Decimal  @db.Decimal(5, 2)
+  gradingOptionCode String?
+  academicLoad      String?
+  residencyStatus   String?
   // Attendance & Grades (Phase 05)
-  attendanceRate      Float?   @default(1.0) // 0-1, percentage of classes attended
-  midtermGrade        String?  // A, B, C, D, F, W, or null
-  finalGrade          String?  // A, B, C, D, F, W, or null
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  attendanceRate    Float?   @default(1.0) // 0-1, percentage of classes attended
+  midtermGrade      String? // A, B, C, D, F, W, or null
+  finalGrade        String? // A, B, C, D, F, W, or null
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   // Relations
-  student             Student                 @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  section             Section                  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  academicPeriod      AcademicPeriod          @relation(fields: [academicPeriodId], references: [id], onDelete: Cascade)
-  transcriptGrade     StudentTranscriptGrade?
+  student         Student                 @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  section         Section                 @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  academicPeriod  AcademicPeriod          @relation(fields: [academicPeriodId], references: [id], onDelete: Cascade)
+  transcriptGrade StudentTranscriptGrade?
 
   @@unique([studentId, sectionId])
   @@map("section_registrations")
 }
 
 model StudentTranscriptGrade {
-  id                    String   @id @default(uuid())
+  id                    String    @id @default(uuid())
   studentId             String
-  sectionRegistrationId String   @unique
+  sectionRegistrationId String    @unique
   sectionId             String
   academicPeriodId      String
   courseId              String
   gradeSchemeCode       String?
-  gradeValue            String?  // A, B+, C, etc.
-  gradePoints           Decimal? @db.Decimal(3, 2)
-  qualityPoints         Decimal? @db.Decimal(6, 2)
-  creditsAttempted      Decimal  @db.Decimal(5, 2)
-  creditsEarned         Decimal  @db.Decimal(5, 2)
+  gradeValue            String? // A, B+, C, etc.
+  gradePoints           Decimal?  @db.Decimal(3, 2)
+  qualityPoints         Decimal?  @db.Decimal(6, 2)
+  creditsAttempted      Decimal   @db.Decimal(5, 2)
+  creditsEarned         Decimal   @db.Decimal(5, 2)
   finalGradeDate        DateTime? @db.Date
-  status                String   // final, in-progress, incomplete
-  incomplete            Boolean  @default(false)
-  repeat                Boolean  @default(false)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  status                String // final, in-progress, incomplete
+  incomplete            Boolean   @default(false)
+  repeat                Boolean   @default(false)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   // Relations
-  student               Student              @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  sectionRegistration   SectionRegistration @relation(fields: [sectionRegistrationId], references: [id], onDelete: Cascade)
-  section               Section              @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  academicPeriod        AcademicPeriod       @relation(fields: [academicPeriodId], references: [id], onDelete: Cascade)
-  course                Course               @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  student             Student             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  sectionRegistration SectionRegistration @relation(fields: [sectionRegistrationId], references: [id], onDelete: Cascade)
+  section             Section             @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  academicPeriod      AcademicPeriod      @relation(fields: [academicPeriodId], references: [id], onDelete: Cascade)
+  course              Course              @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@map("student_transcript_grades")
 }
@@ -342,43 +342,43 @@ model StudentTranscriptGrade {
 // ============================================================================
 
 model AcademicProgram {
-  id                String   @id @default(uuid())
-  code              String   @unique // e.g., "CS-BS", "MATH-BS"
+  id                String    @id @default(uuid())
+  code              String    @unique // e.g., "CS-BS", "MATH-BS"
   title             String
-  type              String   // major, minor, certificate
-  level             String   // undergraduate, graduate
-  degreeCode        String?  // BS, BA, MS, etc.
-  status            String   // active, inactive
+  type              String // major, minor, certificate
+  level             String // undergraduate, graduate
+  degreeCode        String? // BS, BA, MS, etc.
+  status            String // active, inactive
   startOn           DateTime? @db.Date
   endOn             DateTime? @db.Date
   accreditationCode String?
   creditsRequired   Int
   description       String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   // Relations
-  studentPrograms   StudentAcademicProgram[]
-  credentials       AcademicCredential[]
+  studentPrograms StudentAcademicProgram[]
+  credentials     AcademicCredential[]
 
   @@map("academic_programs")
 }
 
 model StudentAcademicProgram {
-  id                String   @id @default(uuid())
+  id                String    @id @default(uuid())
   studentId         String
   academicProgramId String
-  startOn           DateTime @db.Date
+  startOn           DateTime  @db.Date
   endOn             DateTime? @db.Date
-  status            String   // active, completed, withdrawn
+  status            String // active, completed, withdrawn
   catalogYear       String?
-  primary           Boolean  @default(false)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  primary           Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   // Relations
-  student           Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  academicProgram   AcademicProgram @relation(fields: [academicProgramId], references: [id], onDelete: Cascade)
+  student         Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  academicProgram AcademicProgram @relation(fields: [academicProgramId], references: [id], onDelete: Cascade)
 
   @@map("student_academic_programs")
 }
@@ -386,18 +386,18 @@ model StudentAcademicProgram {
 model AcademicCredential {
   id                String   @id @default(uuid())
   studentId         String
-  credentialCode    String   // BS, BA, MS, etc.
+  credentialCode    String // BS, BA, MS, etc.
   academicProgramId String?
   awardedOn         DateTime @db.Date
-  status            String   // awarded, pending, revoked
+  status            String // awarded, pending, revoked
   academicPeriodId  String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
   // Relations
-  student           Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  academicProgram   AcademicProgram? @relation(fields: [academicProgramId], references: [id], onDelete: SetNull)
-  academicPeriod    AcademicPeriod?  @relation("CredentialPeriod", fields: [academicPeriodId], references: [id], onDelete: SetNull)
+  student         Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  academicProgram AcademicProgram? @relation(fields: [academicProgramId], references: [id], onDelete: SetNull)
+  academicPeriod  AcademicPeriod?  @relation("CredentialPeriod", fields: [academicPeriodId], references: [id], onDelete: SetNull)
 
   @@map("academic_credentials")
 }
@@ -413,29 +413,29 @@ enum RiskBucket {
 }
 
 model StudentRisk {
-  id                      String     @id @default(uuid())
-  studentId               String
-  academicPeriodId        String
-  attendanceRiskScore     Float      // 0-1, higher = more risk
-  academicSupportRiskScore Float     // 0-1, higher = more risk
-  overallRiskBucket       RiskBucket
-  updatedAt               DateTime   @updatedAt
-  createdAt               DateTime   @default(now())
+  id                       String     @id @default(uuid())
+  studentId                String
+  academicPeriodId         String
+  attendanceRiskScore      Float // 0-1, higher = more risk
+  academicSupportRiskScore Float // 0-1, higher = more risk
+  overallRiskBucket        RiskBucket
+  updatedAt                DateTime   @updatedAt
+  createdAt                DateTime   @default(now())
 
   // Relations
-  student                 Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  academicPeriod          AcademicPeriod  @relation("StudentRiskPeriod", fields: [academicPeriodId], references: [id], onDelete: Cascade)
+  student        Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  academicPeriod AcademicPeriod @relation("StudentRiskPeriod", fields: [academicPeriodId], references: [id], onDelete: Cascade)
 
   @@unique([studentId, academicPeriodId])
   @@map("student_risks")
 }
 
 model SimulationState {
-  id                String   @id @default(uuid())
-  currentSimDate    DateTime @db.Date
-  lastTickDate       DateTime?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id             String    @id @default(uuid())
+  currentSimDate DateTime  @db.Date
+  lastTickDate   DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   @@map("simulation_state")
 }
@@ -445,80 +445,119 @@ model SimulationState {
 // ============================================================================
 
 model CrmConstituent {
-  id        String   @id @default(uuid())
-  workspace String
-  app       String
-  name      String
-  type      String   // 'person' | 'organization'
-  email     String?
-  phone     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String   @id @default(uuid())
+  workspace       String
+  app             String
+  name            String
+  type            String // 'person' | 'organization'
+  email           String?
+  phone           String?
+  householdId     String? // For persons, link to household
+  sourceSystemRef Json? // { system: string, externalId: string, lastSyncedAt?: string }
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   // Relations
-  opportunities CrmOpportunity[]
-  interactions CrmInteraction[]
+  opportunities       CrmOpportunity[]
+  interactions        CrmInteraction[]
+  household           CrmHousehold?              @relation("HouseholdPrimary")
+  householdMembers    CrmHouseholdMember[]
+  gifts               CrmGift[]
+  pledges             CrmPledge[]
+  recurringGifts      CrmRecurringGiftSchedule[]
+  preferences         CrmPreferences?
+  consents            CrmConsent[]
+  customFieldValues   CrmCustomFieldValue[]
+  segmentMembers      CrmSegmentMember[]
+  softCredits         CrmSoftCredit[]
+  // Phase C
+  movePlans           CrmMovePlan[]
+  addresses           CrmAddress[]
+  emails              CrmEmail[]
+  phones              CrmPhone[]
+  constituentTags     CrmConstituentTag[]
+  eventParticipations CrmEventParticipation[]
+  prospectProfile     CrmProspectProfile?
+  ratings             CrmRating[]
+  assignments         CrmAssignment[]
+  relationships1      CrmRelationship[]          @relation("Relationship1")
+  relationships2      CrmRelationship[]          @relation("Relationship2")
 
   @@index([workspace, app])
+  @@index([householdId])
   @@map("crm_constituents")
 }
 
 model CrmOrganization {
-  id        String   @id @default(uuid())
-  workspace String
-  app       String
-  name      String
-  type      String   // 'household' | 'corporation' | 'foundation' | 'nonprofit'
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String   @id @default(uuid())
+  workspace       String
+  app             String
+  name            String
+  type            String // 'household' | 'corporation' | 'foundation' | 'nonprofit'
+  sourceSystemRef Json? // { system: string, externalId: string, lastSyncedAt?: string }
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   // Relations
   opportunities CrmOpportunity[]
-  interactions CrmInteraction[]
+  interactions  CrmInteraction[]
 
   @@index([workspace, app])
   @@map("crm_organizations")
 }
 
 model CrmOpportunity {
-  id        String   @id @default(uuid())
-  workspace String
-  app       String
-  name      String
-  stage     String   // 'prospecting' | 'cultivation' | 'solicitation' | 'stewardship' | 'closed'
-  status    String   // 'open' | 'won' | 'lost' | 'closed'
-  constituentId String?
-  organizationId String?
-  amount    Decimal? @db.Decimal(15, 2)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                String    @id @default(uuid())
+  workspace         String
+  app               String
+  name              String
+  stage             String // 'prospecting' | 'cultivation' | 'solicitation' | 'stewardship' | 'closed'
+  status            String // 'open' | 'won' | 'lost' | 'closed'
+  constituentId     String?
+  organizationId    String?
+  amount            Decimal?  @db.Decimal(15, 2)
+  expectedAmount    Decimal?  @db.Decimal(15, 2) // Forecast expected amount
+  expectedCloseDate DateTime? @db.Date
+  probability       Int? // 0-100 percentage
+  fundId            String? // Fund/Designation
+  appealId          String?
+  campaignId        String?
+  closeDate         DateTime? @db.Date
+  closeReason       String? // If lost/closed
+  notes             String?
+  sourceSystemRef   Json? // { system: string, externalId: string, lastSyncedAt?: string }
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   // Relations
-  constituent CrmConstituent? @relation(fields: [constituentId], references: [id], onDelete: Cascade)
-  organization CrmOrganization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  constituent  CrmConstituent?              @relation(fields: [constituentId], references: [id], onDelete: Cascade)
+  organization CrmOrganization?             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   interactions CrmInteraction[]
+  stageHistory CrmOpportunityStageHistory[]
 
   @@index([workspace, app])
   @@index([constituentId])
   @@index([organizationId])
+  @@index([stage, status])
+  @@index([expectedCloseDate])
   @@map("crm_opportunities")
 }
 
 model CrmInteraction {
-  id            String   @id @default(uuid())
-  workspace     String
-  app           String
-  type          String   // 'call' | 'email' | 'meeting' | 'note' | 'task'
-  subject       String
-  constituentId String?
+  id             String   @id @default(uuid())
+  workspace      String
+  app            String
+  type           String // 'call' | 'email' | 'meeting' | 'note' | 'task'
+  subject        String
+  constituentId  String?
   organizationId String?
-  opportunityId String?
-  createdAt     DateTime @default(now())
+  opportunityId  String?
+  createdAt      DateTime @default(now())
 
   // Relations
-  constituent CrmConstituent?     @relation(fields: [constituentId], references: [id], onDelete: Cascade)
-  organization CrmOrganization?     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  opportunity CrmOpportunity? @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  constituent  CrmConstituent?  @relation(fields: [constituentId], references: [id], onDelete: Cascade)
+  organization CrmOrganization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  opportunity  CrmOpportunity?  @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
 
   @@index([workspace, app])
   @@index([constituentId])
@@ -527,3 +566,820 @@ model CrmInteraction {
   @@map("crm_interactions")
 }
 
+// ============================================================================
+// CRM Mock - Phase A P0 Entities (Full CRM Core)
+// ============================================================================
+
+model CrmHousehold {
+  id                   String   @id @default(uuid())
+  workspace            String
+  app                  String
+  name                 String // Household name (e.g., "Smith Family")
+  primaryConstituentId String?  @unique
+  sourceSystemRef      Json? // { system: string, externalId: string, lastSyncedAt?: string }
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  // Relations
+  members            CrmHouseholdMember[]
+  primaryConstituent CrmConstituent?      @relation("HouseholdPrimary", fields: [primaryConstituentId], references: [id], onDelete: SetNull)
+  addresses          CrmAddress[]
+
+  @@index([workspace, app])
+  @@map("crm_households")
+}
+
+model CrmHouseholdMember {
+  id            String   @id @default(uuid())
+  householdId   String
+  constituentId String
+  role          String // 'primary' | 'spouse' | 'child' | 'other'
+  createdAt     DateTime @default(now())
+
+  // Relations
+  household   CrmHousehold   @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  constituent CrmConstituent @relation(fields: [constituentId], references: [id], onDelete: Cascade)
+
+  @@unique([householdId, constituentId])
+  @@index([householdId])
+  @@index([constituentId])
+  @@map("crm_household_members")
+}
+
+model CrmOpportunityStageHistory {
+  id            String   @id @default(uuid())
+  opportunityId String
+  stage         String // Stage name
+  status        String // Status at this stage
+  changedAt     DateTime @default(now())
+  changedBy     String? // User ID
+  notes         String?
+
+  // Relations
+  opportunity CrmOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  @@index([opportunityId])
+  @@index([changedAt])
+  @@map("crm_opportunity_stage_history")
+}
+
+model CrmCampaign {
+  id              String    @id @default(uuid())
+  workspace       String
+  app             String
+  name            String
+  description     String?
+  startDate       DateTime  @db.Date
+  endDate         DateTime? @db.Date
+  fiscalYear      String // e.g., 'FY2024'
+  goal            Decimal?  @db.Decimal(15, 2)
+  amountRaised    Decimal?  @db.Decimal(15, 2)
+  status          String // 'planning' | 'active' | 'completed' | 'cancelled'
+  sourceSystemRef Json? // { system: string, externalId: string, lastSyncedAt?: string }
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  appeals CrmAppeal[]
+  gifts   CrmGift[]
+
+  @@index([workspace, app])
+  @@index([fiscalYear])
+  @@map("crm_campaigns")
+}
+
+model CrmAppeal {
+  id           String    @id @default(uuid())
+  workspace    String
+  app          String
+  name         String
+  description  String?
+  campaignId   String?
+  fundId       String? // Default fund for appeal
+  startDate    DateTime  @db.Date
+  endDate      DateTime? @db.Date
+  fiscalYear   String
+  goal         Decimal?  @db.Decimal(15, 2)
+  amountRaised Decimal?  @db.Decimal(15, 2)
+  status       String // 'planning' | 'active' | 'completed' | 'cancelled'
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  campaign CrmCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  fund     CrmFund?     @relation("AppealDefaultFund", fields: [fundId], references: [id], onDelete: SetNull)
+  gifts    CrmGift[]
+
+  @@index([workspace, app])
+  @@index([campaignId])
+  @@index([fiscalYear])
+  @@map("crm_appeals")
+}
+
+model CrmFund {
+  id           String   @id @default(uuid())
+  workspace    String
+  app          String
+  name         String
+  code         String?
+  description  String?
+  type         String // 'unrestricted' | 'restricted' | 'endowment' | 'scholarship' | 'other'
+  isActive     Boolean  @default(true)
+  parentFundId String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  parentFund      CrmFund?            @relation("FundHierarchy", fields: [parentFundId], references: [id], onDelete: SetNull)
+  childFunds      CrmFund[]           @relation("FundHierarchy")
+  designations    CrmDesignation[]
+  appeals         CrmAppeal[]         @relation("AppealDefaultFund")
+  giftAllocations CrmGiftAllocation[]
+  gifts           CrmGift[]
+
+  @@index([workspace, app])
+  @@index([parentFundId])
+  @@map("crm_funds")
+}
+
+model CrmDesignation {
+  id          String   @id @default(uuid())
+  fundId      String
+  workspace   String
+  app         String
+  name        String
+  code        String?
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  fund            CrmFund             @relation(fields: [fundId], references: [id], onDelete: Cascade)
+  giftAllocations CrmGiftAllocation[]
+
+  @@index([fundId])
+  @@index([workspace, app])
+  @@map("crm_designations")
+}
+
+model CrmGift {
+  id               String   @id @default(uuid())
+  workspace        String
+  app              String
+  constituentId    String
+  amount           Decimal  @db.Decimal(15, 2)
+  date             DateTime @db.Date
+  fiscalYear       String // e.g., 'FY2024'
+  fundId           String? // Primary fund
+  appealId         String?
+  campaignId       String?
+  paymentMethod    String // 'check' | 'credit-card' | 'wire' | 'stock' | 'other'
+  paymentReference String? // Check number, transaction ID, etc.
+  isAnonymous      Boolean  @default(false)
+  isTribute        Boolean  @default(false)
+  isMatchingGift   Boolean  @default(false)
+  receiptId        String? // Link to receipt (future)
+  sourceSystemRef  Json? // { system: string, externalId: string, lastSyncedAt?: string }
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  constituent   CrmConstituent      @relation(fields: [constituentId], references: [id], onDelete: Cascade)
+  fund          CrmFund?            @relation(fields: [fundId], references: [id], onDelete: SetNull)
+  appeal        CrmAppeal?          @relation(fields: [appealId], references: [id], onDelete: SetNull)
+  campaign      CrmCampaign?        @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  allocations   CrmGiftAllocation[]
+  receipt       CrmReceipt?
+  payments      CrmPayment[]
+  softCredits   CrmSoftCredit[]
+  matchingGifts CrmMatchingGift[]
+  tributes      CrmTribute[]
+
+  @@index([workspace, app])
+  @@index([constituentId])
+  @@index([fiscalYear])
+  @@index([date])
+  @@map("crm_gifts")
+}
+
+model CrmGiftAllocation {
+  id            String   @id @default(uuid())
+  giftId        String
+  fundId        String
+  designationId String?
+  amount        Decimal  @db.Decimal(15, 2)
+  createdAt     DateTime @default(now())
+
+  // Relations
+  gift        CrmGift         @relation(fields: [giftId], references: [id], onDelete: Cascade)
+  fund        CrmFund         @relation(fields: [fundId], references: [id], onDelete: Cascade)
+  designation CrmDesignation? @relation(fields: [designationId], references: [id], onDelete: SetNull)
+
+  @@index([giftId])
+  @@index([fundId])
+  @@map("crm_gift_allocations")
+}
+
+model CrmPledge {
+  id              String    @id @default(uuid())
+  workspace       String
+  app             String
+  constituentId   String
+  totalAmount     Decimal   @db.Decimal(15, 2)
+  amountPaid      Decimal   @default(0) @db.Decimal(15, 2)
+  amountRemaining Decimal   @db.Decimal(15, 2)
+  pledgeDate      DateTime  @db.Date
+  dueDate         DateTime? @db.Date
+  fundId          String?
+  appealId        String?
+  campaignId      String?
+  status          String // 'active' | 'fulfilled' | 'cancelled' | 'overdue'
+  paymentSchedule String? // 'one-time' | 'installments' | 'recurring'
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  constituent  CrmConstituent         @relation(fields: [constituentId], references: [id], onDelete: Cascade)
+  installments CrmPledgeInstallment[]
+
+  @@index([workspace, app])
+  @@index([constituentId])
+  @@index([status])
+  @@map("crm_pledges")
+}
+
+model CrmPledgeInstallment {
+  id        String    @id @default(uuid())
+  pledgeId  String
+  amount    Decimal   @db.Decimal(15, 2)
+  dueDate   DateTime  @db.Date
+  paidDate  DateTime? @db.Date
+  giftId    String? // Link to gift if paid
+  status    String // 'pending' | 'paid' | 'overdue' | 'cancelled'
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relations
+  pledge CrmPledge @relation(fields: [pledgeId], references: [id], onDelete: Cascade)
+
+  @@index([pledgeId])
+  @@index([dueDate])
+  @@index([status])
+  @@map("crm_pledge_installments")
+}
+
+model CrmRecurringGiftSchedule {
+  id            String    @id @default(uuid())
+  workspace     String
+  app           String
+  constituentId String
+  amount        Decimal   @db.Decimal(15, 2)
+  frequency     String // 'monthly' | 'quarterly' | 'annually'
+  startDate     DateTime  @db.Date
+  endDate       DateTime? @db.Date
+  fundId        String?
+  paymentMethod String // 'credit-card' | 'ach' | 'check'
+  status        String // 'active' | 'paused' | 'cancelled' | 'completed'
+  nextGiftDate  DateTime? @db.Date
+  lastGiftDate  DateTime? @db.Date
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  constituent CrmConstituent @relation(fields: [constituentId], references: [id], onDelete: Cascade)
+
+  @@index([workspace, app])
+  @@index([constituentId])
+  @@index([status])
+  @@index([nextGiftDate])
+  @@map("crm_recurring_gift_schedules")
+}
+
+model CrmAuditLog {
+  id         String   @id @default(uuid())
+  workspace  String
+  app        String
+  entityType String // Entity type (e.g., 'Constituent', 'Gift')
+  entityId   String
+  action     String // 'create' | 'update' | 'delete'
+  userId     String?
+  changes    Json? // { field: { old: any, new: any } }
+  createdAt  DateTime @default(now())
+
+  @@index([workspace, app])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("crm_audit_logs")
+}
+
+// ============================================================================
+// CRM Mock - Phase B P1 Entities (Preferences, Custom Fields, Segments, Advanced Giving)
+// ============================================================================
+
+model CrmPreferences {
+  id                     String   @id @default(uuid())
+  workspace              String
+  app                    String
+  constituentId          String   @unique
+  preferredContactMethod String // 'email' | 'phone' | 'mail' | 'none'
+  preferredContactTime   String?
+  preferredLanguage      String?
+  doNotCall              Boolean  @default(false)
+  doNotEmail             Boolean  @default(false)
+  doNotMail              Boolean  @default(false)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  // Relations
+  constituent CrmConstituent @relation(fields: [constituentId], references: [id], onDelete: Cascade)
+
+  @@index([workspace, app])
+  @@map("crm_preferences")
+}
+
+model CrmConsent {
+  id            String    @id @default(uuid())
+  workspace     String
+  app           String
+  constituentId String
+  type          String // 'marketing' | 'research' | 'sharing' | 'other'
+  status        String // 'granted' | 'denied' | 'pending'
+  grantedAt     DateTime?
+  revokedAt     DateTime?
+  expiresAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  constituent CrmConstituent @relation(fields: [constituentId], references: [id], onDelete: Cascade)
+
+  @@index([workspace, app])
+  @@index([constituentId])
+  @@index([type, status])
+  @@map("crm_consents")
+}
+
+model CrmCustomFieldDefinition {
+  id         String   @id @default(uuid())
+  workspace  String
+  app        String
+  name       String   @unique // Internal name (e.g., 'alumni_year')
+  label      String // Display label (e.g., 'Alumni Year')
+  type       String // 'text' | 'number' | 'date' | 'boolean' | 'select' | 'multi-select'
+  category   String?
+  options    Json? // Array of options for select/multi-select
+  isRequired Boolean  @default(false)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  values CrmCustomFieldValue[]
+
+  @@index([workspace, app])
+  @@index([isActive])
+  @@map("crm_custom_field_definitions")
+}
+
+model CrmCustomFieldValue {
+  id                String   @id @default(uuid())
+  fieldDefinitionId String
+  constituentId     String
+  value             Json // JSON value (string, number, boolean, or array)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  fieldDefinition CrmCustomFieldDefinition @relation(fields: [fieldDefinitionId], references: [id], onDelete: Cascade)
+  constituent     CrmConstituent           @relation(fields: [constituentId], references: [id], onDelete: Cascade)
+
+  @@unique([fieldDefinitionId, constituentId])
+  @@index([constituentId])
+  @@index([fieldDefinitionId])
+  @@map("crm_custom_field_values")
+}
+
+model CrmSegment {
+  id          String   @id @default(uuid())
+  workspace   String
+  app         String
+  name        String
+  description String?
+  criteria    Json // JSON criteria for segment definition
+  memberCount Int? // Cached member count
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  members CrmSegmentMember[]
+
+  @@index([workspace, app])
+  @@map("crm_segments")
+}
+
+model CrmSegmentMember {
+  id            String   @id @default(uuid())
+  segmentId     String
+  constituentId String
+  addedAt       DateTime @default(now())
+
+  // Relations
+  segment     CrmSegment     @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  constituent CrmConstituent @relation(fields: [constituentId], references: [id], onDelete: Cascade)
+
+  @@unique([segmentId, constituentId])
+  @@index([segmentId])
+  @@index([constituentId])
+  @@map("crm_segment_members")
+}
+
+model CrmSoftCredit {
+  id            String   @id @default(uuid())
+  giftId        String
+  constituentId String // Constituent receiving soft credit
+  amount        Decimal  @db.Decimal(15, 2)
+  reason        String // 'spouse' | 'board-member' | 'influencer' | 'other'
+  createdAt     DateTime @default(now())
+
+  // Relations
+  gift        CrmGift        @relation(fields: [giftId], references: [id], onDelete: Cascade)
+  constituent CrmConstituent @relation(fields: [constituentId], references: [id], onDelete: Cascade)
+
+  @@index([giftId])
+  @@index([constituentId])
+  @@map("crm_soft_credits")
+}
+
+model CrmMatchingGift {
+  id                  String    @id @default(uuid())
+  giftId              String
+  matchingCompanyId   String? // Company providing match
+  matchingCompanyName String
+  matchAmount         Decimal   @db.Decimal(15, 2)
+  matchRatio          Decimal   @db.Decimal(5, 2) // e.g., 1.0 for 1:1 match, 2.0 for 2:1 match
+  status              String // 'pending' | 'approved' | 'received' | 'denied'
+  submittedAt         DateTime?
+  receivedAt          DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  // Relations
+  gift CrmGift @relation(fields: [giftId], references: [id], onDelete: Cascade)
+
+  @@index([giftId])
+  @@index([status])
+  @@map("crm_matching_gifts")
+}
+
+model CrmTribute {
+  id                   String    @id @default(uuid())
+  giftId               String
+  type                 String // 'memorial' | 'honor'
+  honoreeName          String
+  honoreeConstituentId String? // If honoree is a constituent
+  notificationSent     Boolean   @default(false)
+  notificationSentAt   DateTime?
+  createdAt            DateTime  @default(now())
+
+  // Relations
+  gift CrmGift @relation(fields: [giftId], references: [id], onDelete: Cascade)
+
+  @@index([giftId])
+  @@map("crm_tributes")
+}
+
+model CrmReceipt {
+  id            String    @id @default(uuid())
+  giftId        String    @unique
+  receiptNumber String    @unique
+  receiptDate   DateTime  @db.Date
+  amount        Decimal   @db.Decimal(15, 2)
+  fiscalYear    String
+  method        String // 'email' | 'mail' | 'none'
+  sentAt        DateTime?
+  createdAt     DateTime  @default(now())
+
+  // Relations
+  gift CrmGift @relation(fields: [giftId], references: [id], onDelete: Cascade)
+
+  @@index([giftId])
+  @@index([receiptNumber])
+  @@index([fiscalYear])
+  @@map("crm_receipts")
+}
+
+model CrmPayment {
+  id               String    @id @default(uuid())
+  giftId           String
+  amount           Decimal   @db.Decimal(15, 2)
+  paymentDate      DateTime  @db.Date
+  paymentMethod    String // 'check' | 'credit-card' | 'wire' | 'ach' | 'stock' | 'other'
+  paymentReference String? // Check number, transaction ID, etc.
+  processedAt      DateTime?
+  status           String // 'pending' | 'processed' | 'failed' | 'refunded'
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // Relations
+  gift CrmGift @relation(fields: [giftId], references: [id], onDelete: Cascade)
+
+  @@index([giftId])
+  @@index([paymentDate])
+  @@index([status])
+  @@map("crm_payments")
+}
+
+// ============================================================================
+// CRM Mock - Phase C P2 Entities (Move Plans, Contact Methods, Tags, Events, Prospecting, Relationships)
+// ============================================================================
+
+model CrmMovePlan {
+  id            String    @id @default(uuid())
+  workspace     String
+  app           String
+  constituentId String
+  name          String
+  description   String?
+  status        String // 'draft' | 'active' | 'completed' | 'cancelled'
+  startDate     DateTime  @db.Date
+  targetDate    DateTime? @db.Date
+  completedDate DateTime? @db.Date
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  constituent CrmConstituent @relation(fields: [constituentId], references: [id], onDelete: Cascade)
+  steps       CrmMoveStep[]
+
+  @@index([workspace, app])
+  @@index([constituentId])
+  @@index([status])
+  @@map("crm_move_plans")
+}
+
+model CrmMoveStep {
+  id            String    @id @default(uuid())
+  movePlanId    String
+  name          String
+  description   String?
+  stepType      String // 'research' | 'outreach' | 'proposal' | 'follow-up' | 'stewardship' | 'other'
+  status        String // 'pending' | 'in-progress' | 'completed' | 'skipped'
+  dueDate       DateTime? @db.Date
+  completedDate DateTime? @db.Date
+  notes         String?
+  order         Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  movePlan CrmMovePlan @relation(fields: [movePlanId], references: [id], onDelete: Cascade)
+
+  @@index([movePlanId])
+  @@index([status])
+  @@map("crm_move_steps")
+}
+
+model CrmAddress {
+  id            String   @id @default(uuid())
+  workspace     String
+  app           String
+  constituentId String?
+  householdId   String?
+  type          String // 'home' | 'work' | 'mailing' | 'other'
+  street1       String
+  street2       String?
+  city          String
+  state         String
+  postalCode    String
+  country       String   @default("US")
+  isPrimary     Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  constituent CrmConstituent? @relation(fields: [constituentId], references: [id], onDelete: Cascade)
+  household   CrmHousehold?   @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  @@index([workspace, app])
+  @@index([constituentId])
+  @@index([householdId])
+  @@map("crm_addresses")
+}
+
+model CrmEmail {
+  id            String   @id @default(uuid())
+  workspace     String
+  app           String
+  constituentId String
+  email         String
+  type          String // 'personal' | 'work' | 'other'
+  isPrimary     Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  constituent CrmConstituent @relation(fields: [constituentId], references: [id], onDelete: Cascade)
+
+  @@unique([constituentId, email])
+  @@index([workspace, app])
+  @@index([constituentId])
+  @@index([email])
+  @@map("crm_emails")
+}
+
+model CrmPhone {
+  id            String   @id @default(uuid())
+  workspace     String
+  app           String
+  constituentId String
+  phone         String
+  type          String // 'mobile' | 'home' | 'work' | 'other'
+  isPrimary     Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  constituent CrmConstituent @relation(fields: [constituentId], references: [id], onDelete: Cascade)
+
+  @@unique([constituentId, phone])
+  @@index([workspace, app])
+  @@index([constituentId])
+  @@map("crm_phones")
+}
+
+model CrmTag {
+  id          String   @id @default(uuid())
+  workspace   String
+  app         String
+  name        String
+  category    String?
+  color       String? // Hex color code
+  description String?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  constituentTags CrmConstituentTag[]
+
+  @@unique([workspace, app, name])
+  @@index([workspace, app])
+  @@index([category])
+  @@map("crm_tags")
+}
+
+model CrmConstituentTag {
+  id            String   @id @default(uuid())
+  tagId         String
+  constituentId String
+  createdAt     DateTime @default(now())
+
+  // Relations
+  tag         CrmTag         @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  constituent CrmConstituent @relation(fields: [constituentId], references: [id], onDelete: Cascade)
+
+  @@unique([tagId, constituentId])
+  @@index([tagId])
+  @@index([constituentId])
+  @@map("crm_constituent_tags")
+}
+
+model CrmEvent {
+  id          String    @id @default(uuid())
+  workspace   String
+  app         String
+  name        String
+  description String?
+  type        String // 'reunion' | 'networking' | 'fundraiser' | 'athletic' | 'cultural' | 'other'
+  startDate   DateTime
+  endDate     DateTime?
+  location    String?
+  capacity    Int?
+  status      String // 'draft' | 'published' | 'cancelled' | 'completed'
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  participations CrmEventParticipation[]
+
+  @@index([workspace, app])
+  @@index([startDate])
+  @@index([status])
+  @@map("crm_events")
+}
+
+model CrmEventParticipation {
+  id            String    @id @default(uuid())
+  eventId       String
+  constituentId String
+  status        String // 'registered' | 'attended' | 'cancelled' | 'no-show'
+  registeredAt  DateTime?
+  attendedAt    DateTime?
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  event       CrmEvent       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  constituent CrmConstituent @relation(fields: [constituentId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, constituentId])
+  @@index([eventId])
+  @@index([constituentId])
+  @@index([status])
+  @@map("crm_event_participations")
+}
+
+model CrmProspectProfile {
+  id               String    @id @default(uuid())
+  workspace        String
+  app              String
+  constituentId    String    @unique
+  capacity         Decimal?  @db.Decimal(15, 2) // Estimated giving capacity (dollars)
+  inclination      Int? // 0-100 score
+  interests        Json? // Array of interest areas
+  researchNotes    String?
+  lastResearchedAt DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // Relations
+  constituent CrmConstituent @relation(fields: [constituentId], references: [id], onDelete: Cascade)
+
+  @@index([workspace, app])
+  @@index([constituentId])
+  @@map("crm_prospect_profiles")
+}
+
+model CrmRating {
+  id            String   @id @default(uuid())
+  workspace     String
+  app           String
+  constituentId String
+  type          String // 'wealth' | 'affinity' | 'engagement'
+  score         Int // 0-100
+  ratedBy       String? // User ID
+  ratedAt       DateTime @default(now())
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  // Relations
+  constituent CrmConstituent @relation(fields: [constituentId], references: [id], onDelete: Cascade)
+
+  @@index([workspace, app])
+  @@index([constituentId])
+  @@index([type])
+  @@map("crm_ratings")
+}
+
+model CrmAssignment {
+  id            String    @id @default(uuid())
+  workspace     String
+  app           String
+  constituentId String
+  officerId     String // User ID of assigned officer
+  role          String // 'primary' | 'secondary' | 'support'
+  assignedAt    DateTime  @default(now())
+  assignedBy    String? // User ID
+  unassignedAt  DateTime?
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  constituent CrmConstituent @relation(fields: [constituentId], references: [id], onDelete: Cascade)
+
+  @@index([workspace, app])
+  @@index([constituentId])
+  @@index([officerId])
+  @@index([role])
+  @@map("crm_assignments")
+}
+
+model CrmRelationship {
+  id             String    @id @default(uuid())
+  workspace      String
+  app            String
+  constituentId1 String // First constituent in relationship
+  constituentId2 String // Second constituent in relationship
+  type           String // 'spouse' | 'parent' | 'child' | 'sibling' | 'colleague' | 'friend' | 'other'
+  reciprocalType String? // Reverse relationship type (e.g., if type='parent', reciprocalType='child')
+  startDate      DateTime? @db.Date
+  endDate        DateTime? @db.Date
+  isActive       Boolean   @default(true)
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  constituent1 CrmConstituent @relation("Relationship1", fields: [constituentId1], references: [id], onDelete: Cascade)
+  constituent2 CrmConstituent @relation("Relationship2", fields: [constituentId2], references: [id], onDelete: Cascade)
+
+  @@index([workspace, app])
+  @@index([constituentId1])
+  @@index([constituentId2])
+  @@index([type])
+  @@map("crm_relationships")
+}

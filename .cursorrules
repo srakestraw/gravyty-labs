@@ -60,6 +60,20 @@ import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 ### NEVER Import Mock Data Directly
 **CRITICAL**: All data access MUST go through the unified data provider (`@/lib/data`). Never import mock data files directly.
 
+**EXCEPTION - CRM Mock Module:**
+The CRM Mock module (`/crm-mock`) is a standalone mock/demo module and uses its own provider (`@/lib/crm-mock`). Do NOT use the unified data provider (`@/lib/data`) for CRM Mock. Always use `crmMockProvider` from `@/lib/crm-mock` for all CRM Mock data access.
+
+**CRM Mock Usage:**
+```typescript
+// ✅ CORRECT for CRM Mock
+import { crmMockProvider } from '@/lib/crm-mock';
+const portfolios = crmMockProvider.listPortfolios({});
+const constituents = crmMockProvider.listConstituents({});
+
+// ❌ WRONG - Do not use unified data provider for CRM Mock
+import { dataClient } from '@/lib/data';
+```
+
 **FORBIDDEN:**
 ```typescript
 // ❌ NEVER DO THIS

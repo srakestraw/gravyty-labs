@@ -10,13 +10,6 @@ const nextConfig = {
     domains: ['localhost', 'gravyty-labs.web.app'],
     unoptimized: true
   },
-  // Only use static export for production builds, not development
-  ...(process.env.NODE_ENV === 'production' && {
-    output: 'export',
-    distDir: 'out',
-    // Skip API routes during static export (they're handled by Cloud Functions)
-    pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
-  }),
   trailingSlash: true,
   assetPrefix: '',
   transpilePackages: ['@gravyty-labs/contracts', '@gravyty-labs/db', 'recharts'],
@@ -45,13 +38,6 @@ const nextConfig = {
     
     return config;
   },
-  
-  // Custom export path map to exclude API routes during static export
-  ...(process.env.NODE_ENV === 'production' && {
-    async generateBuildId() {
-      return 'static-export';
-    },
-  }),
 };
 
 module.exports = nextConfig;

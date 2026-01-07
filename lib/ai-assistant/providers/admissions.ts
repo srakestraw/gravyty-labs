@@ -71,15 +71,16 @@ export class AdmissionsDataProviderImpl implements AdmissionsDataProvider {
         });
       }
 
-      // Filter to applicants only
-      if (contact.role !== 'applicant' && contact.role !== 'prospect') {
+      // Filter to applicants only (using type assertion as role may be custom)
+      const contactWithRole = contact as any;
+      if (contactWithRole.role !== 'applicant' && contactWithRole.role !== 'prospect') {
         return errorResponse({
           code: 'INVALID_TYPE',
           message: `Contact ${applicantId} is not an applicant`,
         });
       }
 
-      const summary = contactToApplicantSummary(contact);
+      const summary = contactToApplicantSummary(contact as any);
 
       return successResponse(summary, {
         sources: [{
@@ -113,16 +114,16 @@ export class AdmissionsDataProviderImpl implements AdmissionsDataProvider {
 
       const allContacts = await dataClient.listContacts(ctx);
       
-      // Filter to applicants/prospects
+      // Filter to applicants/prospects (using type assertion as role may be custom)
       let applicants = allContacts.filter(
-        c => c.role === 'applicant' || c.role === 'prospect'
+        (c: any) => c.role === 'applicant' || c.role === 'prospect'
       );
 
       // Apply text search
       if (query.trim()) {
         const queryLower = query.toLowerCase();
         applicants = applicants.filter(
-          c =>
+          (c: any) =>
             c.firstName.toLowerCase().includes(queryLower) ||
             c.lastName.toLowerCase().includes(queryLower) ||
             c.email?.toLowerCase().includes(queryLower) ||
@@ -132,11 +133,11 @@ export class AdmissionsDataProviderImpl implements AdmissionsDataProvider {
 
       // Apply filters
       if (filters?.status?.length) {
-        applicants = applicants.filter(c => filters.status!.includes(c.role));
+        applicants = applicants.filter((c: any) => filters.status!.includes(c.role));
       }
       if (filters?.program?.length) {
         applicants = applicants.filter(
-          c => c.primaryProgram && filters.program!.includes(c.primaryProgram)
+          (c: any) => c.primaryProgram && filters.program!.includes(c.primaryProgram)
         );
       }
 
@@ -150,7 +151,7 @@ export class AdmissionsDataProviderImpl implements AdmissionsDataProvider {
       const paginatedApplicants = applicants.slice(start, end);
 
       const result: ApplicantSearchResult = {
-        applicants: paginatedApplicants.map(contactToApplicantSummary),
+        applicants: paginatedApplicants.map((c: any) => contactToApplicantSummary(c)),
         total,
         page,
         pageSize,
@@ -181,7 +182,7 @@ export class AdmissionsDataProviderImpl implements AdmissionsDataProvider {
 
       const contact = await dataClient.getContact(ctx, applicantId);
       
-      if (!contact || (contact.role !== 'applicant' && contact.role !== 'prospect')) {
+      if (!contact || ((contact as any).role !== 'applicant' && (contact as any).role !== 'prospect')) {
         return errorResponse({
           code: 'NOT_FOUND',
           message: `Applicant with ID ${applicantId} not found`,
@@ -238,7 +239,7 @@ export class AdmissionsDataProviderImpl implements AdmissionsDataProvider {
       const ctx = {
         workspace: 'admissions',
         app: 'student-lifecycle',
-        mode: 'operator',
+        mode: 'operator' as const,
         userId: userContext.userId,
       };
 
@@ -285,7 +286,7 @@ export class AdmissionsDataProviderImpl implements AdmissionsDataProvider {
       const ctx = {
         workspace: 'admissions',
         app: 'student-lifecycle',
-        mode: 'operator',
+        mode: 'operator' as const,
         userId: userContext.userId,
       };
 

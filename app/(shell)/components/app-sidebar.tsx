@@ -23,7 +23,7 @@ import { getAppNav as getDataNav } from '../data/_nav';
 import { getAppNav as getSimAppsNav } from '../sim-apps/_nav';
 import { getAppNav as getStudentLifecycleNav } from '../student-lifecycle/_nav';
 import { getAppNav as getAdmissionsNav } from '../admissions/_nav';
-import { getAppNav as getCrmNav } from '../crm/_nav';
+import { getAppNav as getCrmMockNav } from '../crm-mock/_nav';
 import { isValidWorkspace, getWorkspaceConfig, type WorkingMode } from '@/lib/student-lifecycle/workspaces';
 import { useWorkspaceMode } from '@/lib/hooks/useWorkspaceMode';
 
@@ -103,7 +103,7 @@ export function AppSidebar() {
   // Check if we're in the Community/Engagement Hub app
   const isInCommunity = pathname?.startsWith('/community');
   // Check if we're in the CRM Mock app
-  const isInCrm = pathname?.startsWith('/crm');
+  const isInCrmMock = pathname?.startsWith('/crm-mock');
 
   // Check if we're in the Pipeline workspace
   const isInPipeline = pathname?.startsWith('/advancement/pipeline');
@@ -183,7 +183,7 @@ export function AppSidebar() {
       'admissions': getAdmissionsNav,
 
       // CRM Mock area
-      'crm-unified': getCrmNav,
+      'crm-mock': getCrmMockNav,
 
       // These exist but currently have no sidebar sub-nav; keep map for completeness.
       'engagement-hub': getCommunityNav,
@@ -209,7 +209,7 @@ const dataAndAudiencesNav: NavItem[] = [
 ];
 
 type Navigation = 
-  | { topLevel: NavItem[]; dataAndAudiences?: NavItem[]; adminTools: NavItem[] }
+  | { topLevel: NavItem[] | NavSection[]; dataAndAudiences?: NavItem[]; adminTools: NavItem[] }
   | NavItem[];
 
   // Build navigation items - use useMemo to prevent recreation on every render
@@ -220,6 +220,16 @@ type Navigation =
     const hasContractItems = contractSections.some((s) => s.items && s.items.length > 0);
 
     if (hasContractItems) {
+      // Special handling for CRM Mock which uses multiple sections with titles
+      if (isInCrmMock) {
+        // Return sections structure for CRM Mock to preserve section titles
+        return {
+          topLevel: contractSections,
+          dataAndAudiences: undefined,
+          adminTools: [],
+        };
+      }
+
       const getItems = (id: string) => contractSections.find((s) => s.id === id)?.items ?? [];
       const aiPlatform = getItems('aiPlatform');
       const topLevel = getItems('topLevel');
@@ -327,10 +337,154 @@ type Navigation =
       >
         <nav className="flex flex-col gap-1 p-2 h-full overflow-hidden">
           <div className="flex-1 min-h-0 overflow-y-auto">
-          {(isInAIAssistants || isInAdmin || isInAdvancement || isInAdmissions || isInStudentLifecycle || isInCommunity || isInCrm) && !Array.isArray(navigation) ? (
+          {(isInAIAssistants || isInAdmin || isInAdvancement || isInAdmissions || isInStudentLifecycle || isInCommunity || isInCrmMock) && !Array.isArray(navigation) ? (
             <>
               {/* Top-level navigation items */}
-              {navigation.topLevel.map((item) => {
+              {/* For CRM Mock, navigation.topLevel contains sections; for others, it contains items */}
+              {isInCrmMock ? (
+                // CRM Mock: render sections with titles
+                (navigation.topLevel as NavSection[]).map((section) => (
+                  <div key={section.id}>
+                    {/* Section title */}
+                    {(sidebarOpen || isMobile) && section.title && (
+                      <div className="mt-4 px-3 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                        {section.title}
+                      </div>
+                    )}
+                    {/* Section items */}
+                    {section.items.map((item) => {
+                      const hasChildren = item.children && item.children.length > 0;
+                      const isExpanded = hasChildren && expandedGroups.has(item.id || '');
+                      
+                      const isParentActive = pathname === item.href || pathname?.startsWith(item.href + '/');
+                      const isChildActive = hasChildren && item.children?.some(child => 
+                        pathname === child.href || pathname?.startsWith(child.href + '/')
+                      );
+                      const isActive = isParentActive || isChildActive;
+
+                      // Handle expandable groups
+                      if (hasChildren) {
+                        return (
+                          <div key={item.id || item.name} className="flex flex-col">
+                            <div className="flex items-center gap-2">
+                              <Link
+                                href={item.href}
+                                className={cn(
+                                  'flex items-center gap-3 flex-1 min-w-0 px-3 py-2 rounded-md text-sm transition-colors',
+                                  'hover:bg-gray-100 text-gray-700',
+                                  isActive && 'bg-blue-50 text-blue-700 font-medium'
+                                )}
+                                onClick={(e) => {
+                                  if ((e.target as HTMLElement).closest('button')) {
+                                    e.preventDefault();
+                                    return;
+                                  }
+                                  if (isMobile) {
+                                    usePlatformStore.getState().toggleSidebar();
+                                  }
+                                }}
+                              >
+                                <FontAwesomeIcon icon={item.icon} className="h-5 w-5 flex-shrink-0" />
+                                {(sidebarOpen || isMobile) && (
+                                  <span className="truncate">{item.name}</span>
+                                )}
+                              </Link>
+                              {(sidebarOpen || isMobile) && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setExpandedGroups(prev => {
+                                      const next = new Set(prev);
+                                      if (next.has(item.id || '')) {
+                                        next.delete(item.id || '');
+                                      } else {
+                                        next.add(item.id || '');
+                                      }
+                                      return next;
+                                    });
+                                  }}
+                                  className={cn(
+                                    'px-2 py-2 rounded-md text-sm transition-colors',
+                                    'hover:bg-gray-100 text-gray-700',
+                                    'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1'
+                                  )}
+                                  aria-expanded={isExpanded}
+                                  aria-controls={`nav-group-${item.id || item.name}`}
+                                  aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${item.name}`}
+                                >
+                                  <FontAwesomeIcon 
+                                    icon="fa-solid fa-chevron-right" 
+                                    className={cn(
+                                      'h-4 w-4 transition-transform',
+                                      isExpanded && 'rotate-90'
+                                    )} 
+                                  />
+                                </button>
+                              )}
+                            </div>
+                            {/* Children */}
+                            {isExpanded && (sidebarOpen || isMobile) && item.children && (
+                              <div id={`nav-group-${item.id || item.name}`} className="ml-4 mt-1 space-y-1">
+                                {item.children.map((child) => {
+                                  const isChildActive = pathname === child.href || pathname?.startsWith(child.href + '/');
+                                  return (
+                                    <Link
+                                      key={child.id || child.name}
+                                      href={child.href}
+                                      className={cn(
+                                        'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
+                                        'hover:bg-gray-100 text-gray-700',
+                                        isChildActive && 'bg-blue-50 text-blue-700 font-medium'
+                                      )}
+                                      onClick={() => {
+                                        if (isMobile) {
+                                          usePlatformStore.getState().toggleSidebar();
+                                        }
+                                      }}
+                                    >
+                                      <FontAwesomeIcon icon={child.icon} className="h-4 w-4 flex-shrink-0" />
+                                      <span className="truncate text-xs">{child.name}</span>
+                                    </Link>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }
+
+                      // Regular navigation item (no children)
+                      return (
+                        <Link
+                          key={item.id || item.name}
+                          href={item.href}
+                          className={cn(
+                            'flex items-center justify-between gap-2 px-3 py-2 rounded-md text-sm transition-colors',
+                            'hover:bg-gray-100 text-gray-700',
+                            isActive && 'bg-blue-50 text-blue-700 font-medium'
+                          )}
+                          onClick={() => {
+                            if (isMobile) {
+                              usePlatformStore.getState().toggleSidebar();
+                            }
+                          }}
+                        >
+                          <span className="flex items-center gap-3 flex-1 min-w-0">
+                            <FontAwesomeIcon icon={item.icon} className="h-5 w-5 flex-shrink-0" />
+                            {(sidebarOpen || isMobile) && (
+                              <span className="truncate">{item.name}</span>
+                            )}
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ))
+              ) : (
+                // Other apps: render items directly
+                (navigation.topLevel as NavItem[]).map((item) => {
                 const hasChildren = item.children && item.children.length > 0;
                 const isExpanded = hasChildren && expandedGroups.has(item.id || '');
                 
@@ -355,7 +509,7 @@ type Navigation =
                           className={cn(
                             'flex items-center gap-3 flex-1 min-w-0 px-3 py-2 rounded-md text-sm transition-colors',
                             'hover:bg-gray-100 text-gray-700',
-                            isActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : isInAdvancement ? 'bg-red-50 text-red-700 font-medium' : isInCrm ? 'bg-blue-50 text-blue-700 font-medium' : 'bg-purple-50 text-purple-700 font-medium')
+                            isActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : isInAdvancement ? 'bg-red-50 text-red-700 font-medium' : isInCrmMock ? 'bg-blue-50 text-blue-700 font-medium' : 'bg-purple-50 text-purple-700 font-medium')
                           )}
                           onClick={(e) => {
                             // Don't navigate if clicking the chevron area
@@ -421,7 +575,7 @@ type Navigation =
                                 className={cn(
                                   'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
                                   'hover:bg-gray-100 text-gray-700',
-                                  isChildActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : isInAdvancement ? 'bg-red-50 text-red-700 font-medium' : isInCrm ? 'bg-blue-50 text-blue-700 font-medium' : 'bg-purple-50 text-purple-700 font-medium')
+                                  isChildActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : isInAdvancement ? 'bg-red-50 text-red-700 font-medium' : isInCrmMock ? 'bg-blue-50 text-blue-700 font-medium' : 'bg-purple-50 text-purple-700 font-medium')
                                 )}
                                 onClick={() => {
                                   // Close sidebar on mobile when navigating
@@ -449,7 +603,7 @@ type Navigation =
                     className={cn(
                       'flex items-center justify-between gap-2 px-3 py-2 rounded-md text-sm transition-colors',
                       'hover:bg-gray-100 text-gray-700',
-                      isActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : isInAdvancement ? 'bg-red-50 text-red-700 font-medium' : isInCrm ? 'bg-blue-50 text-blue-700 font-medium' : 'bg-purple-50 text-purple-700 font-medium')
+                      isActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : isInAdvancement ? 'bg-red-50 text-red-700 font-medium' : isInCrmMock ? 'bg-blue-50 text-blue-700 font-medium' : 'bg-purple-50 text-purple-700 font-medium')
                     )}
                     onClick={() => {
                       // Close sidebar on mobile when navigating
@@ -478,7 +632,7 @@ type Navigation =
                     )}
                   </Link>
                 );
-              })}
+              }))}
               
               {/* Data and audiences section - shown in Student Lifecycle AI and Advancement workspaces */}
               {navigation.dataAndAudiences && navigation.dataAndAudiences.length > 0 && (
@@ -497,7 +651,7 @@ type Navigation =
                         className={cn(
                           'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
                           'hover:bg-gray-100 text-gray-700',
-                          isActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : isInAdvancement ? 'bg-red-50 text-red-700 font-medium' : isInCrm ? 'bg-blue-50 text-blue-700 font-medium' : 'bg-purple-50 text-purple-700 font-medium')
+                          isActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : isInAdvancement ? 'bg-red-50 text-red-700 font-medium' : isInCrmMock ? 'bg-blue-50 text-blue-700 font-medium' : 'bg-purple-50 text-purple-700 font-medium')
                         )}
                         onClick={() => {
                           // Close sidebar on mobile when navigating
@@ -528,7 +682,7 @@ type Navigation =
                 const linkClassName = cn(
                   'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
                   'hover:bg-gray-100 text-gray-700',
-                  isActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : isInAdvancement ? 'bg-red-50 text-red-700 font-medium' : isInCrm ? 'bg-blue-50 text-blue-700 font-medium' : 'bg-purple-50 text-purple-700 font-medium')
+                  isActive && (isInAdmin ? 'bg-blue-50 text-primary font-medium' : isInAdvancement ? 'bg-red-50 text-red-700 font-medium' : isInCrmMock ? 'bg-blue-50 text-blue-700 font-medium' : 'bg-purple-50 text-purple-700 font-medium')
                 );
                 
                 // Handle external links

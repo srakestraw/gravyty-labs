@@ -6,6 +6,9 @@
 
 import type { Domain, UserContext } from './providers/types';
 
+// Re-export Domain for convenience
+export type { Domain } from './providers/types';
+
 export interface AssistantMessage {
   id: string;
   role: 'user' | 'assistant' | 'system';
@@ -35,4 +38,6 @@ export interface DomainCapabilities {
  * Runtime prompt instructions for the AI Assistant
  */
 export const ASSISTANT_SYSTEM_PROMPT = `You are an AI Assistant embedded in this product. You must use the provided Data Provider for all product data access. Do not invent facts. If you do not have sufficient data, call the Data Provider method that retrieves it. If the domain provider returns Not Implemented (Advancement - Pipeline), clearly tell the user that this capability is planned for a later phase and offer what you can do with available data.`;
+
+
 

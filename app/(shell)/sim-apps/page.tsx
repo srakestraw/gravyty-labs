@@ -19,7 +19,18 @@ export default function SimAppsPage() {
         </p>
       </div>
 
-      {/* TODO: Implement SIM Apps index and navigation (Banner/Colleague/Slate/Canvas SIM). */}
+      {/* SIM Apps List */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <a
+          href="/crm-mock"
+          className="bg-white rounded-lg border border-gray-200 p-6 hover:border-blue-500 hover:shadow-md transition-all"
+        >
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">CRM Mock</h3>
+          <p className="text-sm text-gray-600">
+            Mock Advancement CRM for testing, demos, and AI training.
+          </p>
+        </a>
+      </div>
     </div>
   );
 }

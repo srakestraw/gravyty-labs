@@ -165,13 +165,14 @@ export function getAppRegistry(params?: { persona?: 'higher-ed' | 'nonprofit' })
       group: 'sim',
     },
     {
-      id: 'crm-unified',
-      label: 'CRM Unified',
-      icon: 'fa-solid fa-address-book',
-      href: '/crm',
+      id: 'crm-mock',
+      label: 'CRM Mock',
+      icon: 'fa-solid fa-database',
+      href: '/crm-mock',
       color: '#00A1E0',
       poweredBy: 'Simulation',
       group: 'sim',
+      description: 'Mock Advancement CRM for testing, demos, and AI training.',
     },
   ];
 
