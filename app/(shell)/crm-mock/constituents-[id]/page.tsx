@@ -22,6 +22,12 @@ import type {
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+// Required for static export - return empty array to skip static generation
+// Routes will still work via client-side routing
+export async function generateStaticParams() {
+  return [];
+}
+
 export default function ConstituentDetailPage() {
   const params = useParams();
   const id = params.id as string;

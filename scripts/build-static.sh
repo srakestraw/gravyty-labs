@@ -18,7 +18,7 @@ echo "NODE_ENV: ${NODE_ENV:-not set}"
 echo "=========================================="
 
 API_DIR="app/api"
-API_BACKUP="app/.api-backup"
+API_BACKUP=".api-backup"
 WIDGETS_DIR="app/widgets"
 WIDGETS_BACKUP=".widgets-backup"
 
@@ -28,6 +28,22 @@ if [ -d "$WIDGETS_DIR" ]; then
   mv "$WIDGETS_DIR" "$WIDGETS_BACKUP"
   echo "✓ Widgets moved to backup"
 fi
+
+# Move CRM Mock dynamic routes (has [id] routes that can't be statically generated)
+# Keep _nav.ts and other files that are needed for imports
+CRM_MOCK_DYNAMIC_ROUTES=(
+  "app/(shell)/crm-mock/constituents/[id]"
+  "app/(shell)/crm-mock/opportunities/[id]"
+  "app/(shell)/crm-mock/gifts/[id]"
+  "app/(shell)/crm-mock/move-plans/[id]"
+)
+
+for route in "${CRM_MOCK_DYNAMIC_ROUTES[@]}"; do
+  if [ -d "$route" ]; then
+    echo "Moving CRM Mock dynamic route: $route"
+    mv "$route" ".crm-mock-$(basename $(dirname $route))-$(basename $route)-backup" 2>/dev/null || true
+  fi
+done
 
 # Ensure workspace packages have dependencies installed and built
 echo ""
@@ -56,7 +72,8 @@ else
   echo "⚠ packages/db directory not found, skipping..."
 fi
 
-# Move API routes and widgets out of the way BEFORE cleaning (prevents Next.js from scanning them)
+# Move API routes out of the way BEFORE cleaning (prevents Next.js from scanning them)
+# Widgets and CRM Mock already moved at the start of script
 echo ""
 echo "=========================================="
 echo "Step 2: Preparing routes for static export"
@@ -112,6 +129,14 @@ else
     echo "Restoring widgets after build failure..."
     mv "$WIDGETS_BACKUP" "$WIDGETS_DIR"
   fi
+  # Restore CRM Mock dynamic routes
+  for backup in .crm-mock-*-backup; do
+    if [ -d "$backup" ]; then
+      route_name=$(echo "$backup" | sed 's/\.crm-mock-\(.*\)-backup/\1/' | sed 's/-/\//g')
+      echo "Restoring CRM Mock route: $route_name"
+      mv "$backup" "app/(shell)/crm-mock/$route_name" 2>/dev/null || true
+    fi
+  done
   exit 1
 fi
 
@@ -127,11 +152,19 @@ if [ ! -d "out" ]; then
     echo "Restoring widgets after build failure..."
     mv "$WIDGETS_BACKUP" "$WIDGETS_DIR"
   fi
+  # Restore CRM Mock dynamic routes
+  for backup in .crm-mock-*-backup; do
+    if [ -d "$backup" ]; then
+      route_name=$(echo "$backup" | sed 's/\.crm-mock-\(.*\)-backup/\1/' | sed 's/-/\//g')
+      echo "Restoring CRM Mock route: $route_name"
+      mv "$backup" "app/(shell)/crm-mock/$route_name" 2>/dev/null || true
+    fi
+  done
   exit 1
 fi
 echo "✓ Next.js build completed successfully"
 
-# Restore API routes and widgets immediately after build
+# Restore API routes, widgets, and CRM Mock immediately after build
 echo ""
 echo "=========================================="
 echo "Step 5: Restoring routes"
@@ -151,6 +184,19 @@ if [ -d "$WIDGETS_BACKUP" ]; then
 else
   echo "⚠ No widgets backup found to restore"
 fi
+
+# Restore CRM Mock dynamic routes
+for backup in .crm-mock-*-backup; do
+  if [ -d "$backup" ]; then
+    # Extract route path from backup name (e.g., .crm-mock-constituents-[id]-backup -> constituents/[id])
+    route_part=$(echo "$backup" | sed 's/\.crm-mock-\(.*\)-backup/\1/')
+    route_path="app/(shell)/crm-mock/$route_part"
+    echo "Restoring CRM Mock route: $route_path"
+    mkdir -p "$(dirname "$route_path")"
+    mv "$backup" "$route_path"
+    echo "✓ CRM Mock route restored: $route_part"
+  fi
+done
 
 # Ensure _redirects file is copied to out directory for Netlify
 echo ""

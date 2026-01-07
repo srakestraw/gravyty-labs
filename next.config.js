@@ -10,6 +10,12 @@ const nextConfig = {
     domains: ['localhost', 'gravyty-labs.web.app'],
     unoptimized: true
   },
+  // Enable static export when building for Netlify (when API routes are moved)
+  // Check if API directory doesn't exist (moved to .api-backup) to enable export
+  ...(process.env.NODE_ENV === 'production' && !require('fs').existsSync('app/api') && {
+    output: 'export',
+    distDir: 'out',
+  }),
   trailingSlash: true,
   assetPrefix: '',
   transpilePackages: ['@gravyty-labs/contracts', '@gravyty-labs/db', 'recharts'],

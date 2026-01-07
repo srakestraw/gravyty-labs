@@ -7,6 +7,12 @@ import type { MovePlan, MoveStep } from '@/lib/crm-mock';
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 import { Button } from '@/components/ui/button';
 
+// Required for static export - return empty array to skip static generation
+// Routes will still work via client-side routing
+export async function generateStaticParams() {
+  return [];
+}
+
 export default function MovePlanDetailPage() {
   const params = useParams();
   const router = useRouter();

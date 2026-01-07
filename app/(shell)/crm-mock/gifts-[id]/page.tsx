@@ -8,6 +8,12 @@ import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+// Required for static export - return empty array to skip static generation
+// Routes will still work via client-side routing
+export async function generateStaticParams() {
+  return [];
+}
+
 export default function GiftDetailPage() {
   const params = useParams();
   const router = useRouter();
