@@ -40,8 +40,12 @@ CRM_MOCK_DYNAMIC_ROUTES=(
 
 for route in "${CRM_MOCK_DYNAMIC_ROUTES[@]}"; do
   if [ -d "$route" ]; then
-    echo "Moving CRM Mock dynamic route: $route"
-    mv "$route" ".crm-mock-$(basename $(dirname $route))-$(basename $route)-backup" 2>/dev/null || true
+    # Create backup name preserving bracket format: constituents/[id] -> .crm-mock-constituents-[id]-backup
+    parent_dir=$(basename $(dirname "$route"))
+    route_dir=$(basename "$route")
+    backup_name=".crm-mock-${parent_dir}-${route_dir}-backup"
+    echo "Moving CRM Mock dynamic route: $route -> $backup_name"
+    mv "$route" "$backup_name" 2>/dev/null || true
   fi
 done
 
@@ -189,15 +193,15 @@ fi
 for backup in .crm-mock-*-backup; do
   if [ -d "$backup" ]; then
     # Extract route path from backup name (e.g., .crm-mock-constituents-[id]-backup -> constituents/[id])
-    # Handle both bracket and hyphen formats, but restore as bracket format
-    route_part=$(echo "$backup" | sed 's/\.crm-mock-\(.*\)-backup/\1/' | sed 's/-\(\[id\]\)/\1/')
-    # Ensure we have the correct bracket format
-    route_part=$(echo "$route_part" | sed 's/-\[id\]/\/[id]/')
-    route_path="app/(shell)/crm-mock/$route_part"
+    # Backup format: .crm-mock-{parent}-{route}-backup
+    route_part=$(echo "$backup" | sed 's/\.crm-mock-\(.*\)-backup/\1/')
+    # Split on last hyphen to separate parent and [id]
+    parent_dir=$(echo "$route_part" | sed 's/-\[id\]$//')
+    route_path="app/(shell)/crm-mock/${parent_dir}/[id]"
     echo "Restoring CRM Mock route: $route_path"
     mkdir -p "$(dirname "$route_path")"
     mv "$backup" "$route_path"
-    echo "✓ CRM Mock route restored: $route_part"
+    echo "✓ CRM Mock route restored: ${parent_dir}/[id]"
   fi
 done
 
