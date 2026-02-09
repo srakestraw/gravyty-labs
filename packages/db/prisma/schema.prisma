@@ -1383,3 +1383,110 @@ model CrmRelationship {
   @@index([type])
   @@map("crm_relationships")
 }
+
+// ============================================================================
+// Narrative Platform (Phase 0)
+// ============================================================================
+
+model NarrativeAsset {
+  id                   String   @id @default(uuid())
+  workspace            String
+  domainScope          String   // student_lifecycle | advancement_giving
+  subDomainScope       String   // admissions | registrar | etc.
+  outcome              String
+  moment               String
+  messageIntent        String   // nudge | reminder | explain | etc.
+  channelFit           String[] // email | sms | in_app | etc.
+  voice                String   // advisor | bursar | gift_officer | etc.
+  complianceRiskLevel  String   // low | medium | high
+  piiTier              String   // none | standard | sensitive
+  approvalState        String   // draft | in_review | approved | rejected
+  relationshipType     String?  // institution_to_person | staff_to_person | peer_to_person
+  contentRef           String?
+  embedding            Float[]  @default([])
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  createdById          String?
+  approvedById         String?
+
+  // Relations
+  modules   NarrativeModule[]
+  proofLinks NarrativeProofLink[]
+
+  @@index([workspace])
+  @@index([domainScope, subDomainScope])
+  @@index([approvalState])
+  @@index([outcome, moment])
+  @@map("narrative_assets")
+}
+
+model NarrativeModule {
+  id             String   @id @default(uuid())
+  narrativeAssetId String
+  type           String   // opening | body | proof_slot | cta | closing
+  contentRef     String?
+  order          Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  narrativeAsset NarrativeAsset @relation(fields: [narrativeAssetId], references: [id], onDelete: Cascade)
+
+  @@index([narrativeAssetId])
+  @@map("narrative_modules")
+}
+
+model ProofBlock {
+  id                String   @id @default(uuid())
+  workspace         String
+  proofType         String   // impact | stat | testimonial | policy | deadline | benefit
+  claimSupportLevel String   // verified | internally_reported | anecdotal
+  claimClass        String   // financial | academic | operational | etc.
+  freshnessWindow   String   // 90d | 365d | evergreen
+  allowedVoice     String[] // advisor | bursar | etc.
+  content           String
+  restrictedChannels String[] @default([])
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  narrativeLinks NarrativeProofLink[]
+
+  @@index([workspace])
+  @@index([claimClass])
+  @@map("proof_blocks")
+}
+
+model NarrativeProofLink {
+  id              String   @id @default(uuid())
+  narrativeAssetId String
+  proofBlockId    String
+  createdAt       DateTime @default(now())
+
+  // Relations
+  narrativeAsset NarrativeAsset @relation(fields: [narrativeAssetId], references: [id], onDelete: Cascade)
+  proofBlock     ProofBlock     @relation(fields: [proofBlockId], references: [id], onDelete: Cascade)
+
+  @@unique([narrativeAssetId, proofBlockId])
+  @@index([narrativeAssetId])
+  @@index([proofBlockId])
+  @@map("narrative_proof_links")
+}
+
+model DeliveryPlay {
+  id                 String   @id @default(uuid())
+  workspace          String
+  subWorkspace       String
+  playCategory       String   // lifecycle_automation | staff_assist | portfolio_recommendation
+  triggerType        String   // event | threshold | schedule | model_signal
+  cadencePolicy      String   // single | sequence | recurring
+  suppressionPolicyId String?
+  eligibilityJson    Json?    // { narrativeIds, outcome, moment, segmentIds }
+  successEventsJson   Json?    // [{ type, metric, threshold }]
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([workspace, subWorkspace])
+  @@index([playCategory])
+  @@map("delivery_plays")
+}

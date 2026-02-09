@@ -828,6 +828,15 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
     return actions;
   }, [reviewController]);
 
+  // Navigation handlers for review mode (must be at top level to satisfy rules of hooks)
+  const handleReviewNavigateNext = useCallback(() => {
+    reviewController.goToNext();
+  }, [reviewController]);
+
+  const handleReviewNavigatePrev = useCallback(() => {
+    reviewController.goToPrev();
+  }, [reviewController]);
+
   // Render Review Mode content
   const renderReviewMode = () => {
     const currentItem = reviewController.currentItem;
@@ -879,15 +888,6 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
         </div>
       </div>
     );
-
-    // Navigation handlers (route sync happens via useEffect above)
-    const handleReviewNavigateNext = useCallback(() => {
-      reviewController.goToNext();
-    }, [reviewController]);
-
-    const handleReviewNavigatePrev = useCallback(() => {
-      reviewController.goToPrev();
-    }, [reviewController]);
 
     return (
       <ReviewModeShell

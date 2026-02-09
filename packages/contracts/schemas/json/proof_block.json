@@ -1,0 +1,106 @@
+{
+  "$ref": "#/definitions/ProofBlock",
+  "definitions": {
+    "ProofBlock": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "workspace": {
+          "type": "string",
+          "minLength": 1
+        },
+        "proof_type": {
+          "type": "string",
+          "enum": [
+            "impact",
+            "stat",
+            "testimonial",
+            "policy",
+            "deadline",
+            "benefit"
+          ]
+        },
+        "claim_support_level": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "internally_reported",
+            "anecdotal"
+          ]
+        },
+        "claim_class": {
+          "type": "string",
+          "enum": [
+            "financial",
+            "academic",
+            "operational",
+            "testimonial",
+            "policy",
+            "impact",
+            "other"
+          ]
+        },
+        "freshness_window": {
+          "type": "string",
+          "pattern": "^(\\d+d|evergreen)$"
+        },
+        "allowed_voice": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "institutional",
+              "advisor",
+              "bursar",
+              "financial_aid_counselor",
+              "gift_officer",
+              "student_ambassador"
+            ]
+          },
+          "minItems": 1
+        },
+        "content": {
+          "type": "string",
+          "minLength": 1
+        },
+        "restricted_channels": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "email",
+              "sms",
+              "in_app",
+              "chat",
+              "call_script",
+              "portal_content"
+            ]
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "workspace",
+        "proof_type",
+        "claim_support_level",
+        "claim_class",
+        "freshness_window",
+        "allowed_voice",
+        "content"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

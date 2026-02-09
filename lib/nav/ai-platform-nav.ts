@@ -19,6 +19,7 @@ export function buildAiPlatformNav(params: {
     },
     { name: 'Queue', href: `${basePath}/agent-ops/queue`, icon: 'fa-solid fa-list', id: 'queue' },
     ...(includeSegments ? [{ name: 'Segments', href: `${basePath}/segments`, icon: 'fa-solid fa-filter', id: 'segments' }] : []),
+    { name: 'Narrative Messaging', href: `${basePath}/narrative-messaging`, icon: 'fa-solid fa-message-lines', id: 'narrative-messaging', title: 'Storytelling content library for personalized messaging.' },
     { name: 'Agents', href: `${basePath}/agents`, icon: 'fa-solid fa-bolt', id: 'agents' },
   ];
 

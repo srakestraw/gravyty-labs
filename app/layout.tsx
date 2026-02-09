@@ -40,19 +40,7 @@ export default function RootLayout({
           id="preconnect-fontawesome"
           strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                var link = document.createElement('link');
-                link.rel = 'preconnect';
-                link.href = 'https://kit.fontawesome.com';
-                link.crossOrigin = 'anonymous';
-                document.head.appendChild(link);
-                var dnsLink = document.createElement('link');
-                dnsLink.rel = 'dns-prefetch';
-                dnsLink.href = 'https://kit.fontawesome.com';
-                document.head.appendChild(dnsLink);
-              })();
-            `,
+            __html: "(function(){var link=document.createElement('link');link.rel='preconnect';link.href='https://kit.fontawesome.com';link.crossOrigin='anonymous';document.head.appendChild(link);var dnsLink=document.createElement('link');dnsLink.rel='dns-prefetch';dnsLink.href='https://kit.fontawesome.com';document.head.appendChild(dnsLink);})();",
           }}
         />
         <Script

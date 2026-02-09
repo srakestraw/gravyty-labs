@@ -40,6 +40,9 @@ export {
   type StudentTranscriptGrade,
 } from './schemas/student-transcript-grade';
 
+// Narrative Platform schemas (Phase 0)
+export * from './schemas/narrative';
+
 // Export mappers
 export * from './mappers';
 

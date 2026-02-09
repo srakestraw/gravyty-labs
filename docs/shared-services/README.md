@@ -43,6 +43,7 @@
 - **[Command Center](command-center/README.md)** - Working modes
 - **[Assignments](assignments/README.md)** - Assignment management
 - **[Features](features/README.md)** - Feature flags
+- **[Narrative](narrative/README.md)** - Storytelling content library and personalization
 
 ---
 

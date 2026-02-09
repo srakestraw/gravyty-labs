@@ -24,13 +24,14 @@ export type AppDefinition = {
   poweredBy?: string | string[];
 };
 
-export type NavItem = { 
-  name: string; 
-  href: string; 
-  icon: string; 
-  id?: string; 
+export type NavItem = {
+  name: string;
+  href: string;
+  icon: string;
+  id?: string;
   external?: boolean;
   children?: NavItem[]; // For expandable groups
+  title?: string; // Tooltip (e.g. "Storytelling content library for personalized messaging.")
 };
 
 export type NavSection = {

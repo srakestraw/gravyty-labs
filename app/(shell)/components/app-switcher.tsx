@@ -31,10 +31,18 @@ function MainAppCard({
   activePillId?: string | null;
   onPillSelect?: (e: React.MouseEvent, pill: { id: string; label: string; href: string }) => void;
 }) {
+  const useTwoColumnPills = item.id === 'student-lifecycle';
+
   return (
     <div
       onClick={onSelect}
-      className="flex flex-col gap-3 p-4 rounded-lg border border-gray-200 bg-white cursor-pointer hover:border-gray-300 hover:shadow-sm transition-all"
+      className={cn(
+        'group flex flex-col gap-3 p-4 rounded-lg border bg-white cursor-pointer transition-all',
+        'hover:border-gray-300 hover:shadow-sm',
+        isActive
+          ? 'border-primary/40 ring-1 ring-primary/30 bg-primary/[0.04]'
+          : 'border-gray-200'
+      )}
     >
       <div className="flex items-start gap-3">
         <div 
@@ -48,48 +56,52 @@ function MainAppCard({
           />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between">
-            <h3 className="text-base font-semibold text-gray-900">
-              {item.label}
-            </h3>
-            {isActive && (
-              <FontAwesomeIcon 
-                icon="fa-solid fa-check" 
-                className="h-4 w-4 text-primary flex-shrink-0" 
-              />
-            )}
-          </div>
+          <h3 className="text-base font-semibold text-gray-900">
+            {item.label}
+          </h3>
           {item.description && (
-            <p className="mt-1 text-sm text-gray-600">
+            <p className="mt-0.5 text-sm text-gray-600 truncate" title={item.description}>
               {item.description}
             </p>
           )}
         </div>
       </div>
       {item.pills && item.pills.length > 0 && (
-        <div className="flex flex-col gap-1 pt-2 border-t border-gray-100">
-          {item.pills.map((pill) => {
-            const isPillActive = !!activePillId && activePillId === pill.id;
-            return (
-              <button
-                key={pill.id}
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onPillSelect?.(e, pill);
-                }}
-                className={cn(
-                  'flex items-center justify-between w-full px-0 py-1.5 text-sm text-gray-700 hover:text-gray-900',
-                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 transition-colors',
-                  isPillActive && 'font-semibold text-gray-900'
-                )}
-              >
-                <span>{pill.label}</span>
-                <FontAwesomeIcon icon="fa-solid fa-chevron-right" className="h-3 w-3" />
-              </button>
-            );
-          })}
+        <div className="mt-1.5 pt-2">
+          <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1.5">
+            Workspaces
+          </p>
+          <div
+            className={cn(
+              useTwoColumnPills
+                ? 'grid grid-cols-2 gap-x-4 gap-y-0 items-start'
+                : 'flex flex-col gap-0'
+            )}
+          >
+            {item.pills.map((pill) => {
+              const isPillActive = !!activePillId && activePillId === pill.id;
+              return (
+                <button
+                  key={pill.id}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onPillSelect?.(e, pill);
+                  }}
+                  className={cn(
+                    'group/pill flex items-center justify-between w-full min-h-[2rem] py-1.5 text-sm text-gray-700 rounded-md -mx-0.5 px-0.5 text-left',
+                    'hover:bg-gray-100/80 hover:text-gray-900 transition-colors',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1',
+                    isPillActive && 'font-semibold text-gray-900'
+                  )}
+                >
+                  <span className="truncate whitespace-nowrap">{pill.label}</span>
+                  <FontAwesomeIcon icon="fa-solid fa-chevron-right" className="h-3 w-3 flex-shrink-0 opacity-0 group-hover/pill:opacity-100 group-hover:opacity-100 transition-opacity ml-1" />
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>
@@ -153,19 +165,19 @@ export function AppSwitcher() {
     });
   }, [mainApps, aiAssistantsEnabled, user?.email, user?.uid]);
 
-  // Split apps into two columns as specified
+  // Split apps into two columns: Column 1 task order, Column 2 alphabetical
   const column1Apps = useMemo(() => {
-    const order = ['home', 'insights', 'student-lifecycle'];
+    const order = ['home', 'insights', 'ai-chatbots-messaging', 'student-lifecycle'];
     return visibleMainApps
       .filter(item => order.includes(item.id))
       .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
   }, [visibleMainApps]);
 
   const column2Apps = useMemo(() => {
-    const order = ['ai-chatbots-messaging', 'career-services', 'engagement-hub', 'advancement-philanthropy'];
+    const column2Ids = ['advancement-philanthropy', 'career-services', 'engagement-hub'];
     return visibleMainApps
-      .filter(item => order.includes(item.id))
-      .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+      .filter(item => column2Ids.includes(item.id))
+      .sort((a, b) => a.label.localeCompare(b.label));
   }, [visibleMainApps]);
 
   // SIM Apps don't need filtering
@@ -305,65 +317,54 @@ export function AppSwitcher() {
             </Button>
           </div>
 
-          {/* Main content */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="flex flex-col lg:flex-row gap-6 p-4 lg:p-6">
-              {/* Left: Main apps in two explicit columns */}
-              <div className="flex-1">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Column 1 */}
-                  <div className="flex flex-col gap-4">
-                    {column1Apps.map((item) => (
-                      <MainAppCard
-                        key={item.id}
-                        item={item}
-                        isActive={getIsActive(item)}
-                        onSelect={handleAppSelect(item)}
-                        activePillId={getActivePillId(item, pathname || '')}
-                        onPillSelect={(e, pill) => handlePillSelect(item, pill)(e)}
-                      />
-                    ))}
-                  </div>
-                  {/* Column 2 */}
-                  <div className="flex flex-col gap-4">
-                    {column2Apps.map((item) => (
-                      <MainAppCard
-                        key={item.id}
-                        item={item}
-                        isActive={getIsActive(item)}
-                        onSelect={handleAppSelect(item)}
-                        activePillId={getActivePillId(item, pathname || '')}
-                        onPillSelect={(e, pill) => handlePillSelect(item, pill)(e)}
-                      />
-                    ))}
-                  </div>
+          {/* Main content — no scroll at 1280x800 / 1440x900 */}
+          <div className="flex-1 overflow-y-auto min-h-0">
+            <div className="p-4 lg:p-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {/* Column 1 */}
+                <div className="flex flex-col gap-3 min-w-0">
+                  {column1Apps.map((item) => (
+                    <MainAppCard
+                      key={item.id}
+                      item={item}
+                      isActive={getIsActive(item)}
+                      onSelect={handleAppSelect(item)}
+                      activePillId={getActivePillId(item, pathname || '')}
+                      onPillSelect={(e, pill) => handlePillSelect(item, pill)(e)}
+                    />
+                  ))}
                 </div>
-              </div>
-
-              {/* Right: SIM Apps sidebar */}
-              <div className="w-full lg:w-64 flex-shrink-0">
-                <div className="lg:sticky lg:top-0">
-                  <h3 className="text-sm font-semibold text-gray-900 mb-4">
-                    Explore SIM Apps
-                  </h3>
-                  <div className="grid grid-cols-2 lg:grid-cols-2 gap-3">
-                    {visibleSimApps.map((item) => (
-                      <SimAppCard
-                        key={item.id}
-                        item={item}
-                        isActive={getIsActive(item)}
-                        onSelect={handleAppSelect(item)}
-                      />
-                    ))}
-                  </div>
+                {/* Column 2 */}
+                <div className="flex flex-col gap-3 min-w-0">
+                  {column2Apps.map((item) => (
+                    <MainAppCard
+                      key={item.id}
+                      item={item}
+                      isActive={getIsActive(item)}
+                      onSelect={handleAppSelect(item)}
+                      activePillId={getActivePillId(item, pathname || '')}
+                      onPillSelect={(e, pill) => handlePillSelect(item, pill)(e)}
+                    />
+                  ))}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Footer: Admin & Settings */}
-          {adminApp && (
-            <div className="border-t border-gray-200 px-6 py-4 flex justify-end">
+          {/* Footer: SIM Apps (left) and Admin & Settings (right) */}
+          <div className="border-t border-gray-200 px-6 py-4 flex justify-between items-center">
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                router.push('/sim-apps');
+              }}
+              className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+            >
+              <FontAwesomeIcon icon="fa-solid fa-grid-2" className="h-4 w-4" />
+              <span>SIM Apps</span>
+            </button>
+            {adminApp && (
               <button
                 onClick={handleAppSelect(adminApp)}
                 className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
@@ -371,8 +372,8 @@ export function AppSwitcher() {
                 <FontAwesomeIcon icon="fa-solid fa-gear" className="h-4 w-4" />
                 <span>{adminApp.label}</span>
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </>

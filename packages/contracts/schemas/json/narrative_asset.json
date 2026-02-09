@@ -1,0 +1,190 @@
+{
+  "$ref": "#/definitions/NarrativeAsset",
+  "definitions": {
+    "NarrativeAsset": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "workspace": {
+          "type": "string",
+          "minLength": 1
+        },
+        "domain_scope": {
+          "type": "string",
+          "enum": [
+            "student_lifecycle",
+            "advancement_giving"
+          ]
+        },
+        "sub_domain_scope": {
+          "type": "string",
+          "enum": [
+            "admissions",
+            "registrar",
+            "financial_aid",
+            "bursar",
+            "housing",
+            "student_success",
+            "pipeline_intelligence",
+            "giving_intelligence",
+            "stewardship"
+          ]
+        },
+        "outcome": {
+          "type": "string",
+          "minLength": 1
+        },
+        "moment": {
+          "type": "string",
+          "minLength": 1
+        },
+        "message_intent": {
+          "type": "string",
+          "enum": [
+            "nudge",
+            "reminder",
+            "explain",
+            "resolve",
+            "ask",
+            "thank",
+            "update",
+            "confirm"
+          ]
+        },
+        "channel_fit": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "email",
+              "sms",
+              "in_app",
+              "chat",
+              "call_script",
+              "portal_content"
+            ]
+          },
+          "minItems": 1
+        },
+        "voice": {
+          "type": "string",
+          "enum": [
+            "institutional",
+            "advisor",
+            "bursar",
+            "financial_aid_counselor",
+            "gift_officer",
+            "student_ambassador"
+          ]
+        },
+        "compliance_risk_level": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "pii_tier": {
+          "type": "string",
+          "enum": [
+            "none",
+            "standard",
+            "sensitive"
+          ]
+        },
+        "approval_state": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "in_review",
+            "approved",
+            "rejected"
+          ]
+        },
+        "relationship_type": {
+          "type": "string",
+          "enum": [
+            "institution_to_person",
+            "staff_to_person",
+            "peer_to_person"
+          ]
+        },
+        "modules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "opening",
+                  "body",
+                  "proof_slot",
+                  "cta",
+                  "closing"
+                ]
+              },
+              "contentRef": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "type"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "contentRef": {
+          "type": "string"
+        },
+        "embedding": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "createdById": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "approvedById": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id",
+        "workspace",
+        "domain_scope",
+        "sub_domain_scope",
+        "outcome",
+        "moment",
+        "message_intent",
+        "channel_fit",
+        "voice",
+        "compliance_risk_level",
+        "pii_tier",
+        "approval_state"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

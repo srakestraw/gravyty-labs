@@ -1,0 +1,116 @@
+{
+  "$ref": "#/definitions/DeliveryPlay",
+  "definitions": {
+    "DeliveryPlay": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "workspace": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sub_workspace": {
+          "type": "string",
+          "minLength": 1
+        },
+        "play_category": {
+          "type": "string",
+          "enum": [
+            "lifecycle_automation",
+            "staff_assist",
+            "portfolio_recommendation"
+          ]
+        },
+        "trigger_type": {
+          "type": "string",
+          "enum": [
+            "event",
+            "threshold",
+            "schedule",
+            "model_signal"
+          ]
+        },
+        "cadence_policy": {
+          "type": "string",
+          "enum": [
+            "single",
+            "sequence",
+            "recurring"
+          ]
+        },
+        "eligibility": {
+          "type": "object",
+          "properties": {
+            "narrativeIds": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "outcome": {
+              "type": "string"
+            },
+            "moment": {
+              "type": "string"
+            },
+            "segmentIds": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "success_events": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "metric": {
+                "type": "string"
+              },
+              "threshold": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "suppression_policy_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "workspace",
+        "sub_workspace",
+        "play_category",
+        "trigger_type",
+        "cadence_policy",
+        "eligibility"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

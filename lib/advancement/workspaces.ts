@@ -13,7 +13,7 @@ export type AdvancementWorkspaceConfig = {
 export const ADVANCEMENT_WORKSPACES: AdvancementWorkspaceConfig[] = [
   {
     id: 'pipeline',
-    label: 'Pipeline',
+    label: 'Pipeline & Portfolio',
   },
   {
     id: 'giving',

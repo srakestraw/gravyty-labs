@@ -30,12 +30,14 @@ export function getAppNav(params: { pathname: string }): { sections: NavSection[
         { name: 'Command Center', href: '/advancement/pipeline', icon: 'fa-solid fa-compass', id: 'command-center' },
         { name: 'AI Assistant', href: '/advancement/pipeline/assistant', icon: 'fa-solid fa-comments', id: 'assistant' },
         { name: 'Queue', href: '/advancement/pipeline/agent-ops/queue', icon: 'fa-solid fa-list', id: 'queue' },
+        { name: 'Narrative Messaging', href: '/advancement/pipeline/narrative-messaging', icon: 'fa-solid fa-message-lines', id: 'narrative-messaging' },
         { name: 'Agents', href: '/advancement/pipeline/agents', icon: 'fa-solid fa-bolt', id: 'agents' },
       ];
       // Pipeline doesn't show workspace switcher in sidebar (only in header)
     } else if (workspace === 'giving') {
       workspaceSpecificItems = [
         { name: 'Overview', href: '/advancement/giving', icon: 'fa-solid fa-hand-holding-heart', id: 'overview' },
+        { name: 'Narrative Messaging', href: '/advancement/giving/narrative-messaging', icon: 'fa-solid fa-message-lines', id: 'narrative-messaging' },
         { name: 'Campaigns', href: '/advancement/giving/campaigns', icon: 'fa-solid fa-bullhorn', id: 'campaigns' },
         { name: 'Donors', href: '/advancement/giving/donors', icon: 'fa-solid fa-users', id: 'donors' },
       ];

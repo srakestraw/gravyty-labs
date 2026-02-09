@@ -13,7 +13,7 @@ export function getAppRegistry(params?: { persona?: 'higher-ed' | 'nonprofit' })
       href: '/dashboard',
       color: '#3B82F6',
       poweredBy: 'Platform',
-      description: 'Your unified dashboard with insights, alerts, and shortcuts across your programs.',
+      description: 'Dashboard with insights, alerts, and shortcuts across your programs.',
       group: 'main',
     },
     {
@@ -24,8 +24,8 @@ export function getAppRegistry(params?: { persona?: 'higher-ed' | 'nonprofit' })
       color: '#8B5CF6',
       requiresRole: true,
       description: isHigherEd
-        ? '24/7 student-facing chatbot and messaging powered by Ivy & Ocelot.'
-        : '24/7 supporter-facing chatbot and messaging powered by Ivy & Ocelot.',
+        ? '24/7 student-facing chatbot and messaging (Ivy & Ocelot).'
+        : '24/7 supporter-facing chatbot and messaging (Ivy & Ocelot).',
       group: 'main',
     },
     {
@@ -35,7 +35,7 @@ export function getAppRegistry(params?: { persona?: 'higher-ed' | 'nonprofit' })
       href: '/data',
       color: '#059669',
       poweredBy: 'Platform',
-      description: 'Reporting and data across all products.',
+      description: 'Reporting and data across products.',
       group: 'main',
     },
     {
@@ -46,8 +46,8 @@ export function getAppRegistry(params?: { persona?: 'higher-ed' | 'nonprofit' })
       color: '#00B8D9',
       poweredBy: ['AI Career Hub', 'Graduway', 'Athlete Network'],
       description: isHigherEd
-        ? 'Career Hub for students and alumni – jobs, internships, and employer recruiting.'
-        : 'Career Hub for supporters, alumni, or program participants — jobs, internships, and employer recruiting.',
+        ? 'Jobs, internships, and employer recruiting for students and alumni.'
+        : 'Jobs, internships, and recruiting for supporters and alumni.',
       group: 'main',
     },
     {
@@ -59,13 +59,14 @@ export function getAppRegistry(params?: { persona?: 'higher-ed' | 'nonprofit' })
       requiresRole: true,
       description: isHigherEd
         ? 'AI assistants across the student lifecycle.'
-        : 'AI assistants for supporter onboarding, donations, renewals, stewardship workflows, and service interactions.',
+        : 'Assistants for supporter onboarding, donations, renewals, stewardship, and service.',
       pills: isHigherEd
         ? [
+            // Row order for 2-col grid: left = Admissions, Financial Aid, Housing; right = Bursar, Registrar, Student Success
             { id: 'admissions', label: 'Admissions', href: '/student-lifecycle/admissions' },
-            { id: 'registrar', label: 'Registrar', href: '/student-lifecycle/registrar' },
-            { id: 'financial-aid', label: 'Financial Aid', href: '/student-lifecycle/financial-aid' },
             { id: 'bursar', label: 'Bursar', href: '/student-lifecycle/bursar' },
+            { id: 'financial-aid', label: 'Financial Aid', href: '/student-lifecycle/financial-aid' },
+            { id: 'registrar', label: 'Registrar', href: '/student-lifecycle/registrar' },
             { id: 'housing', label: 'Housing', href: '/student-lifecycle/housing' },
             { id: 'student-success', label: 'Student Success', href: '/student-lifecycle/student-success' },
           ]
@@ -80,23 +81,23 @@ export function getAppRegistry(params?: { persona?: 'higher-ed' | 'nonprofit' })
       color: '#7C3AED',
       poweredBy: 'Platform',
       description: isHigherEd
-        ? 'Community and alumni engagement — events, volunteering, mentoring, groups, and messaging. Includes: Graduway & Athlete Network.'
-        : 'Constituent and community engagement — events, volunteering, peer programs, groups, and messaging.',
+        ? 'Events, volunteering, mentoring, groups, and messaging. Graduway & Athlete Network.'
+        : 'Events, volunteering, peer programs, groups, and messaging.',
       group: 'main',
     },
     {
       id: 'advancement-philanthropy',
-      label: isHigherEd ? 'Advancement & Philanthropy' : 'Development & Fundraising',
+      label: isHigherEd ? 'Advancement & Giving Intelligence' : 'Development & Fundraising',
       icon: 'fa-solid fa-hand-holding-heart',
       href: '/advancement',
       color: '#DC2626',
       poweredBy: 'Platform',
       description: isHigherEd
-        ? 'Build stronger donor relationships with human-centered AI'
+        ? 'Pipeline, giving, and payments powered by AI.'
         : 'Donor development and fundraising — campaigns, appeals, recurring giving, stewardship, and ambassadors.',
       pills: isHigherEd
         ? [
-            { id: 'pipeline', label: 'Pipeline', href: '/advancement/pipeline' },
+            { id: 'pipeline', label: 'Pipeline & Portfolio', href: '/advancement/pipeline' },
             { id: 'giving', label: 'Giving', href: '/advancement/giving' },
             { id: 'payments', label: 'Payments & Processing', href: '/advancement/payments' },
           ]

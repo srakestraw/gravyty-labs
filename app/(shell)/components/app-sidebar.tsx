@@ -460,6 +460,7 @@ type Navigation =
                         <Link
                           key={item.id || item.name}
                           href={item.href}
+                          title={item.title}
                           className={cn(
                             'flex items-center justify-between gap-2 px-3 py-2 rounded-md text-sm transition-colors',
                             'hover:bg-gray-100 text-gray-700',
@@ -600,6 +601,7 @@ type Navigation =
                   <Link
                     key={item.id || item.name}
                     href={item.href}
+                    title={item.title}
                     className={cn(
                       'flex items-center justify-between gap-2 px-3 py-2 rounded-md text-sm transition-colors',
                       'hover:bg-gray-100 text-gray-700',

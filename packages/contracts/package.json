@@ -6,13 +6,16 @@
   "types": "./src/index.ts",
   "scripts": {
     "build": "tsc",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "generate-json-schemas": "tsx scripts/generate-json-schemas.ts"
   },
   "dependencies": {
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "typescript": "^5"
+    "typescript": "^5",
+    "tsx": "^4",
+    "zod-to-json-schema": "^3"
   }
 }
 
