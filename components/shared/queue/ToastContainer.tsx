@@ -27,7 +27,8 @@ export function ToastContainer({ toasts, onDismiss }: ToastContainerProps) {
             'bg-white text-gray-900',
             toast.type === 'success' && 'border-green-200 bg-green-50',
             toast.type === 'error' && 'border-red-200 bg-red-50',
-            toast.type === 'info' && 'border-blue-200 bg-blue-50'
+            toast.type === 'info' && 'border-blue-200 bg-blue-50',
+            toast.type === 'warning' && 'border-amber-200 bg-amber-50'
           )}
         >
           {toast.type === 'success' && (
@@ -38,6 +39,9 @@ export function ToastContainer({ toasts, onDismiss }: ToastContainerProps) {
           )}
           {toast.type === 'info' && (
             <FontAwesomeIcon icon="fa-solid fa-circle-info" className="h-5 w-5 text-blue-600" />
+          )}
+          {toast.type === 'warning' && (
+            <FontAwesomeIcon icon="fa-solid fa-triangle-exclamation" className="h-5 w-5 text-amber-600" />
           )}
           <p className="flex-1 text-sm font-medium">{toast.message}</p>
           <button

@@ -18,6 +18,8 @@ import { GamePlanPanel } from '@/components/shared/ai-platform/GamePlanPanel';
 import { GamePlanItemsLane } from '@/components/shared/ai-platform/GamePlanItemsLane';
 import { FocusModePage } from '@/components/shared/ai-platform/FocusModePage';
 import { useFeatureFlag } from '@/lib/features';
+import { useAgentOpsStream } from './useAgentOpsStream';
+import type { AgentOpsStreamEvent } from '@/lib/agent-ops/events/types';
 import { ReviewModeShell } from './ReviewModeShell';
 import { SplitTabs } from './SplitTabs';
 import { ReviewActionBar, type ReviewAction } from './ReviewActionBar';
@@ -39,22 +41,37 @@ interface QueuePageClientProps {
   workspaceId?: string;
 }
 
-function applyActionToItem(item: AgentOpsItem, action: QueueAction): AgentOpsItem {
+export interface QueueActionPayload {
+  until?: string;       // ISO date for snooze
+  assigneeId?: string | null;
+}
+
+function applyActionToItem(
+  item: AgentOpsItem,
+  action: QueueAction,
+  payload?: QueueActionPayload
+): AgentOpsItem {
   switch (action) {
     case 'resolve':
       return { ...item, status: 'Resolved' };
     case 'snooze':
-      return { ...item, status: 'Snoozed' };
+      return {
+        ...item,
+        status: 'Snoozed',
+        ...(payload?.until && { slaDueAt: payload.until }),
+      };
     case 'hold':
       return { ...item, status: 'InProgress' };
     case 'unsnooze':
-      return { ...item, status: 'Open' };
+      return { ...item, status: 'Open', slaDueAt: undefined };
     case 'reopen':
       return { ...item, status: 'Open' };
+    case 'approve':
+    case 'reject':
+      return { ...item, status: 'Resolved', tags: [...(item.tags || []), action === 'approve' ? 'approved' : 'rejected'] };
     case 'send-email':
     case 'send-gratavid':
     case 'skip':
-      // These actions resolve the item and add tags
       return {
         ...item,
         status: 'Resolved',
@@ -62,11 +79,10 @@ function applyActionToItem(item: AgentOpsItem, action: QueueAction): AgentOpsIte
       };
     case 'call':
     case 'sms':
-      // These actions don't change status, just log
       return item;
     case 'assign':
+      return { ...item, assignedTo: payload?.assigneeId ?? undefined };
     case 'extendSnooze':
-      // These actions don't change status directly
       return item;
     default:
       return item;
@@ -145,6 +161,12 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
   // Feature flags
   const reviewModeEnabled = useFeatureFlag('queueReviewMode');
   const workbenchV2Enabled = useFeatureFlag('queueFocusWorkbenchV2');
+  const bulkActionsEnabled = useFeatureFlag('queueBulkActions');
+  const queueRealtimeEnabled = useFeatureFlag('queueRealtime');
+
+  const toast = useToast();
+
+  const [bulkSelectedIds, setBulkSelectedIds] = useState<string[]>([]);
 
   // Review Mode state management - use mode=review&itemId=123
   const isReviewMode = useMemo(() => {
@@ -188,28 +210,99 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
     return getSegmentFromSearchParams(Object.fromEntries(searchParams.entries()));
   }, [activeSegment, activeSegmentId, searchParams]);
   
-  // Load queue items
-  useEffect(() => {
-    const loadItems = async () => {
-      setIsLoadingItems(true);
+  const dataContext = useMemo(
+    () => ({
+      workspace: workspaceId || undefined,
+      app: workspaceId === 'admissions' ? 'student-lifecycle' : 'advancement',
+      mode: 'team' as const,
+    }),
+    [workspaceId]
+  );
+
+  const fetchQueueItems = useCallback(
+    async (options?: { showLoading?: boolean; preserveSelection?: boolean }) => {
+      const { showLoading = false, preserveSelection = true } = options ?? {};
+      if (showLoading) setIsLoadingItems(true);
       try {
-        const ctx = {
-          workspace: workspaceId || undefined,
-          app: workspaceId === 'admissions' ? 'student-lifecycle' : 'advancement',
-          mode: 'team' as const,
-        };
-        const items = await dataClient.listQueueItems(ctx);
+        const items = await dataClient.listQueueItems(dataContext);
         setAllItems(items);
+        const currentId = selectedItemIdRef.current;
+        if (preserveSelection && currentId && !items.some((i) => i.id === currentId)) {
+          setSelectedItemId(items.length > 0 ? items[0].id : null);
+        }
       } catch (error) {
         console.error('Failed to load queue items:', error);
       } finally {
-        setIsLoadingItems(false);
+        if (showLoading) setIsLoadingItems(false);
       }
-    };
-    
-    loadItems();
-  }, [workspaceId]);
-  
+    },
+    [dataContext]
+  );
+
+  // Initial load
+  useEffect(() => {
+    fetchQueueItems({ showLoading: true, preserveSelection: false });
+  }, [fetchQueueItems]);
+
+  // Real-time stream: subscribe when enabled and workspace set; patch or count events
+  const handleStreamEvent = useCallback(
+    (ev: AgentOpsStreamEvent) => {
+      const { event, payload } = ev;
+      if (isReviewMode) {
+        // Defer apply: only toasts, no list patch; hook already incremented newEventsCount
+        if (event === 'sla.breached') toast.warning('SLA breached on 1 item');
+        if (event === 'approval.created') toast.info(`New approvals added (${payload.count ?? 1})`);
+        return;
+      }
+      if (event === 'item.updated' || event === 'item.resolved') {
+        const id = payload.itemId;
+        if (!id) return;
+        setAllItems((prev) =>
+          prev.map((i) =>
+            i.id !== id
+              ? i
+              : {
+                  ...i,
+                  ...(payload.status && { status: payload.status as AgentOpsItem['status'] }),
+                  ...(payload.assigneeId !== undefined && { assignedTo: payload.assigneeId ?? undefined }),
+                  ...(payload.agentSeverity && { agentSeverity: payload.agentSeverity }),
+                  ...(payload.updatedAt && { updatedAt: payload.updatedAt }),
+                }
+          )
+        );
+      } else if (event === 'item.created') {
+        fetchQueueItems({ showLoading: false, preserveSelection: true });
+      } else if (event === 'approval.created') {
+        toast.info(`New approvals added (${payload.count ?? 1})`);
+      } else if (event === 'sla.breached') {
+        toast.warning('SLA breached on 1 item');
+      }
+    },
+    [isReviewMode, fetchQueueItems, toast]
+  );
+
+  const {
+    connected: streamConnected,
+    newEventsCount,
+    clearNewEventsCount,
+  } = useAgentOpsStream({
+    enabled: queueRealtimeEnabled && !!workspaceId,
+    workspaceId: workspaceId ?? undefined,
+    onEvent: handleStreamEvent,
+    deferApply: isReviewMode,
+  });
+
+  // Polling: every 30s when page visible; skip when realtime connected. Pause in Review Mode and Focus Mode
+  useEffect(() => {
+    if (isReviewMode || isFocusMode || (queueRealtimeEnabled && streamConnected)) return;
+    const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        fetchQueueItems({ showLoading: false, preserveSelection: true });
+      }
+    }, 30_000);
+    return () => clearInterval(interval);
+  }, [isReviewMode, isFocusMode, queueRealtimeEnabled, streamConnected, fetchQueueItems]);
+
   // Load game plan data (for admissions and advancement workspaces)
   const [objectiveCompletionStatus, setObjectiveCompletionStatus] = useState<Record<string, boolean>>({});
   
@@ -372,7 +465,11 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
   
   const [filters, setFilters] = useState<AgentOpsFilters>(getInitialFilters);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const selectedItemIdRef = useRef<string | null>(null);
   const defaultsAppliedRef = useRef(false);
+  useEffect(() => {
+    selectedItemIdRef.current = selectedItemId;
+  }, [selectedItemId]);
 
   // Filters drawer state (for workbench mode)
   const [filtersDrawerOpen, setFiltersDrawerOpen] = useState(false);
@@ -498,6 +595,20 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
     });
   }, [allItems, filters, activeObjectiveId, workspaceId, isFocusMode, workbenchV2Enabled, workbenchSplitId, splits]);
 
+  const bulkSelectMode = workbenchV2Enabled && bulkActionsEnabled && isFocusMode;
+  const handleBulkToggle = useCallback((id: string) => {
+    setBulkSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  }, []);
+  const handleBulkSelectAll = useCallback((checked: boolean) => {
+    if (checked) {
+      setBulkSelectedIds(filteredItems.map((i) => i.id));
+    } else {
+      setBulkSelectedIds([]);
+    }
+  }, [filteredItems]);
+
   // Handle split change in workbench mode
   const handleWorkbenchSplitChange = useCallback((splitId: string | null) => {
     setWorkbenchSplitId(splitId);
@@ -512,51 +623,104 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
     }));
   }, []);
 
-  // Unified action handler with optimistic updates and auto-advance
-  // Defined early so it can be used in review controller
-  const handleItemAction = useCallback(async (id: string, action: QueueAction) => {
-    // Find current index before update
-    const currentIndex = filteredItems.findIndex((i) => i.id === id);
-    const item = filteredItems[currentIndex];
+  // Unified action handler: optimistic update, persist via API, revert + toast on error
+  const handleItemAction = useCallback(
+    async (id: string, action: QueueAction, payload?: QueueActionPayload) => {
+      const currentIndex = filteredItems.findIndex((i) => i.id === id);
+      const item = filteredItems[currentIndex];
+      const previousItem = item ? { ...item } : null;
 
-    // Optimistic UI update
-    setAllItems((current) =>
-      current.map((item) => (item.id === id ? applyActionToItem(item, action) : item))
-    );
-
-    // Handle action-specific logic
-    if (action === 'call' || action === 'sms') {
-      // Show toast notification for call/sms actions
-      const actionLabel = action === 'call' ? 'Call' : 'SMS';
-      const personName = item?.person?.name || 'the donor';
-      // Using alert for now - TODO: Replace with proper toast component
-      console.log(`${actionLabel} action initiated for ${personName}`);
-      // In a real implementation, this would trigger the actual call/SMS
-      return; // Don't auto-advance for call/sms
-    }
-
-    // TODO: Call API to persist the action
-    console.log(`Action ${action} on item:`, id);
-
-    // Auto-advance to next item after resolve, snooze, hold, send-email, send-gratavid, or skip
-    if (action === 'resolve' || action === 'snooze' || action === 'hold' || 
-        action === 'send-email' || action === 'send-gratavid' || action === 'skip') {
-      setTimeout(() => {
-        // After state update, find next item in filtered list
-        // Note: filteredItems will update on next render, so we advance based on current index
-        if (currentIndex >= 0 && filteredItems.length > 0) {
-          const nextIndex = (currentIndex + 1) % filteredItems.length;
-          const next = filteredItems[nextIndex];
-          if (next) {
-            setSelectedItemId(next.id);
-          } else if (filteredItems.length > 0) {
-            // If we were at the last item, wrap to first
-            setSelectedItemId(filteredItems[0].id);
-          }
+      const revert = () => {
+        if (previousItem) {
+          setAllItems((current) =>
+            current.map((i) => (i.id === id ? previousItem : i))
+          );
         }
-      }, 100);
-    }
-  }, [filteredItems]);
+      };
+
+      // Optimistic update
+      setAllItems((current) =>
+        current.map((i) =>
+          i.id === id ? applyActionToItem(i, action, payload) : i
+        )
+      );
+
+      if (action === 'call' || action === 'sms') {
+        const actionLabel = action === 'call' ? 'Call' : 'SMS';
+        const personName = item?.person?.name || 'the donor';
+        console.log(`${actionLabel} action initiated for ${personName}`);
+        return;
+      }
+
+      // Persist queue actions via API (resolve, snooze, hold, unsnooze, reopen, assign)
+      const persistActions: Record<string, { path: string; body?: object } | null> = {
+        resolve: { path: 'resolve' },
+        snooze: {
+          path: 'snooze',
+          body: { until: payload?.until ?? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() },
+        },
+        hold: { path: 'hold' },
+        unsnooze: { path: 'unsnooze' },
+        reopen: { path: 'reopen' },
+        assign: { path: 'assign', body: { assigneeId: payload?.assigneeId ?? null } },
+      };
+      const persist = persistActions[action];
+      if (persist) {
+        try {
+          const qs = workspaceId ? `?workspaceId=${encodeURIComponent(workspaceId)}` : '';
+          const res = await fetch(`/api/agent-ops/items/${id}/${persist.path}${qs}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            ...(persist.body && { body: JSON.stringify(persist.body) }),
+          });
+          if (!res.ok) {
+            revert();
+            toast.error(`Failed to ${action} item`);
+            return;
+          }
+        } catch (e) {
+          revert();
+          toast.error(`Failed to ${action} item`);
+          return;
+        }
+      }
+
+      // Agent approval/reject: approval-requests API
+      if (action === 'approve' || action === 'reject') {
+        const approvalId = (item?.payload as { approvalRequestId?: string } | undefined)?.approvalRequestId ?? id;
+        const path = action === 'approve' ? 'approve' : 'reject';
+        try {
+          const res = await fetch(`/api/approval-requests/${approvalId}/${path}`, { method: 'POST' });
+          if (!res.ok) {
+            revert();
+            toast.error(`Failed to ${action} request`);
+            return;
+          }
+        } catch (e) {
+          revert();
+          toast.error(`Failed to ${action} request`);
+          return;
+        }
+      }
+
+      // Auto-advance after completing actions (not for unsnooze/reopen — item stays in view)
+      if (
+        action === 'resolve' || action === 'snooze' || action === 'hold' ||
+        action === 'send-email' || action === 'send-gratavid' || action === 'skip' ||
+        action === 'approve' || action === 'reject'
+      ) {
+        setTimeout(() => {
+          if (currentIndex >= 0 && filteredItems.length > 0) {
+            const nextIndex = (currentIndex + 1) % filteredItems.length;
+            const next = filteredItems[nextIndex];
+            if (next) setSelectedItemId(next.id);
+            else if (filteredItems.length > 0) setSelectedItemId(filteredItems[0].id);
+          }
+        }, 100);
+      }
+    },
+    [filteredItems, toast]
+  );
 
   // Review Mode controller
   const reviewController = useQueueReviewController({
@@ -616,9 +780,6 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
     router.push(`${basePath}/agents/${agentId}`);
   };
 
-  // Toast for notifications
-  const toast = useToast();
-
   // Review Mode handlers
   const handleEnterReviewMode = (itemId?: string) => {
     const targetItemId = itemId || selectedItemId;
@@ -646,6 +807,7 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
   };
 
   const handleExitReviewMode = () => {
+    clearNewEventsCount();
     const params = new URLSearchParams(searchParams.toString());
     params.delete('mode');
     params.delete('itemId');
@@ -659,6 +821,7 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
     if (listStateRef.current.filters) {
       setFilters(listStateRef.current.filters);
     }
+    fetchQueueItems({ showLoading: false, preserveSelection: true });
   };
 
   // Undo handler
@@ -742,6 +905,13 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
           handleUndo();
         }
       },
+      r: () => {
+        if (isReviewMode && reviewController.currentItem) {
+          const item = reviewController.currentItem;
+          const isApproval = item.type === 'AGENT_APPROVAL_REQUIRED' || item.type === 'AGENT_DRAFT_MESSAGE';
+          if (isApproval) reviewController.handleAction('reject');
+        }
+      },
     },
     true
   );
@@ -752,8 +922,28 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
     if (!item) return [];
 
     const actions: ReviewAction[] = [];
+    const isAgentApprovalType = item.type === 'AGENT_APPROVAL_REQUIRED' || item.type === 'AGENT_DRAFT_MESSAGE';
 
     if (item.status === 'Open') {
+      if (isAgentApprovalType) {
+        actions.push(
+          {
+            id: 'approve',
+            label: 'Approve',
+            icon: 'fa-solid fa-check',
+            keyHint: 'E',
+            variant: 'default',
+            onClick: () => reviewController.handleAction('approve'),
+          },
+          {
+            id: 'reject',
+            label: 'Reject',
+            icon: 'fa-solid fa-times',
+            keyHint: 'R',
+            onClick: () => reviewController.handleAction('reject'),
+          }
+        );
+      }
       actions.push(
         {
           id: 'snooze',
@@ -790,14 +980,14 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
           keyHint: '',
           onClick: () => reviewController.handleAction('sms'),
         },
-        {
+        ...(isAgentApprovalType ? [] : [{
           id: 'resolve',
           label: 'Resolve',
           icon: 'fa-solid fa-check',
           keyHint: 'E',
-          variant: 'default',
+          variant: 'default' as const,
           onClick: () => reviewController.handleAction('resolve'),
-        }
+        }])
       );
     } else if (item.status === 'Snoozed') {
       actions.push(
@@ -875,6 +1065,11 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
         </div>
         <div className="flex items-center gap-4">
           <span className="text-sm font-medium text-indigo-900">Review</span>
+          {newEventsCount > 0 && (
+            <span className="text-xs font-medium text-amber-700 bg-amber-100 px-2 py-1 rounded" title="New updates in queue">
+              +{newEventsCount} new
+            </span>
+          )}
           {splits.length > 0 && (
             <SplitTabs
               splits={splits}
@@ -907,6 +1102,7 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
           onAction={(id, action) => reviewController.handleAction(action)}
           onNavigateToPerson={handleNavigateToPerson}
           onNavigateToAgent={handleNavigateToAgent}
+          basePath={basePath}
         />
       </ReviewModeShell>
     );
@@ -942,6 +1138,37 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
               </div>
             )}
             
+            {/* Bulk action bar (feature-flagged) */}
+            {bulkSelectMode && bulkSelectedIds.length > 0 && (
+              <div className="flex items-center gap-3 px-3 py-2 border-b border-gray-200 bg-indigo-50 text-sm">
+                <span className="font-medium text-gray-700">{bulkSelectedIds.length} selected</span>
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={() => {
+                    bulkSelectedIds.forEach((id) => handleItemAction(id, 'resolve'));
+                    setBulkSelectedIds([]);
+                  }}
+                >
+                  Resolve
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const until = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+                    bulkSelectedIds.forEach((id) => handleItemAction(id, 'snooze', { until }));
+                    setBulkSelectedIds([]);
+                  }}
+                >
+                  Snooze
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setBulkSelectedIds([])}>
+                  Clear
+                </Button>
+              </div>
+            )}
+
             {/* Main Queue List */}
             <QueueList
               items={filteredItems}
@@ -951,6 +1178,10 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
               }}
               onEnterFocusMode={reviewModeEnabled ? () => handleEnterReviewMode() : handleEnterFocusMode}
               onItemAction={handleItemAction}
+              bulkSelectMode={bulkSelectMode}
+              bulkSelectedIds={bulkSelectedIds}
+              onBulkToggle={handleBulkToggle}
+              onBulkSelectAll={handleBulkSelectAll}
             />
           </div>
         </section>
@@ -995,6 +1226,7 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
               onAction={handleItemAction}
               onNavigateToPerson={handleNavigateToPerson}
               onNavigateToAgent={handleNavigateToAgent}
+              basePath={basePath}
             />
           </>
         ) : (
@@ -1030,6 +1262,8 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
         activeFilterCount={activeFilterCount}
         onReviewNext={reviewModeEnabled && selectedItem ? () => handleEnterReviewMode() : undefined}
         showReviewNext={reviewModeEnabled && !!selectedItem && !isReviewMode}
+        onRefresh={() => fetchQueueItems({ showLoading: false, preserveSelection: true })}
+        liveConnected={queueRealtimeEnabled && streamConnected}
       />
 
       {/* Active Filter Chips */}
@@ -1102,9 +1336,16 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
                 All items that require attention across your agent ecosystem. Filter, triage, and resolve issues in real time.
               </p>
             </div>
-            {/* Action Buttons (Admissions and Advancement) */}
-            {(workspaceId === 'admissions' || workspaceId === 'advancement') && (
-              <div className="flex items-center gap-2">
+            {/* Live indicator + Action Buttons (Admissions and Advancement) */}
+            <div className="flex items-center gap-2">
+              {queueRealtimeEnabled && streamConnected && (
+                <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-1 rounded" title="Real-time updates connected">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden />
+                  Live
+                </span>
+              )}
+              {(workspaceId === 'admissions' || workspaceId === 'advancement') && (
+                <>
                 {/* Focus Mode Toggle Button */}
                 <Button
                   variant={isFocusMode ? "default" : "outline"}
@@ -1121,8 +1362,9 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
                   />
                   Focus mode
                 </Button>
-              </div>
-            )}
+                </>
+              )}
+            </div>
           </div>
           
           {/* Game Plan Panel (Admissions and Advancement) - hidden in workbench mode */}

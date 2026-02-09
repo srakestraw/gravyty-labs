@@ -17,6 +17,9 @@ interface WorkbenchToolbarProps {
   activeFilterCount: number;
   onReviewNext?: () => void;
   showReviewNext?: boolean;
+  onRefresh?: () => void;
+  /** When true, show a "Live" indicator (real-time stream connected) */
+  liveConnected?: boolean;
   className?: string;
 }
 
@@ -34,10 +37,18 @@ export function WorkbenchToolbar({
   activeFilterCount,
   onReviewNext,
   showReviewNext = false,
+  onRefresh,
+  liveConnected = false,
   className,
 }: WorkbenchToolbarProps) {
   return (
     <div className={cn('flex items-center gap-3 px-4 py-2 border-b bg-white', className)}>
+      {liveConnected && (
+        <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-1 rounded" title="Real-time updates connected">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden />
+          Live
+        </span>
+      )}
       {/* SplitTabs - Primary navigation */}
       {splits.length > 0 && (
         <div className="flex-shrink-0">
@@ -65,6 +76,13 @@ export function WorkbenchToolbar({
           />
         </div>
       </div>
+
+      {onRefresh && (
+        <Button variant="outline" size="sm" onClick={onRefresh} className="h-8 text-sm" title="Refresh queue">
+          <FontAwesomeIcon icon="fa-solid fa-arrows-rotate" className="h-3 w-3 mr-1.5" />
+          Refresh
+        </Button>
+      )}
 
       {/* Filters Button */}
       <Button

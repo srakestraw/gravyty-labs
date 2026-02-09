@@ -5,7 +5,7 @@ import { useState, useCallback } from 'react';
 export interface Toast {
   id: string;
   message: string;
-  type: 'success' | 'error' | 'info';
+  type: 'success' | 'error' | 'info' | 'warning';
   duration?: number;
 }
 
@@ -16,7 +16,7 @@ export interface Toast {
 export function useToast() {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const showToast = useCallback((message: string, type: Toast['type'] = 'info', duration = 3000) => {
+  const showToast = useCallback((message: string, type: Toast['type'] = 'info', duration: number = 3000) => {
     const id = Math.random().toString(36).substring(7);
     const toast: Toast = { id, message, type, duration };
 
@@ -45,7 +45,11 @@ export function useToast() {
   }, [showToast]);
 
   const info = useCallback((message: string, duration?: number) => {
-    return showToast(message, 'info', duration);
+    return showToast(message, 'info', duration ?? 3000);
+  }, [showToast]);
+
+  const warning = useCallback((message: string, duration?: number) => {
+    return showToast(message, 'warning', duration ?? 3000);
   }, [showToast]);
 
   return {
@@ -55,6 +59,7 @@ export function useToast() {
     success,
     error,
     info,
+    warning,
   };
 }
 
