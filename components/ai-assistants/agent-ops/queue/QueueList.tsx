@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { AgentOpsItem } from '@/lib/agent-ops/types';
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 import { cn } from '@/lib/utils';
@@ -15,6 +15,10 @@ const TYPE_LABELS: Record<string, string> = {
   FrequencyCap: 'Frequency Cap',
   Task: 'Task',
   OnHold: 'On Hold',
+  AGENT_DRAFT_MESSAGE: 'Draft message',
+  AGENT_APPROVAL_REQUIRED: 'Approval required',
+  AGENT_BLOCKED_ACTION: 'Blocked action',
+  AGENT_FLOW_EXCEPTION: 'Flow exception',
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -84,7 +88,7 @@ function formatDate(dateString: string) {
   }
 }
 
-export type QueueAction = 'resolve' | 'snooze' | 'assign' | 'hold' | 'unsnooze' | 'extendSnooze' | 'reopen' | 'send-email' | 'send-gratavid' | 'call' | 'sms' | 'skip';
+export type QueueAction = 'resolve' | 'snooze' | 'assign' | 'hold' | 'unsnooze' | 'extendSnooze' | 'reopen' | 'send-email' | 'send-gratavid' | 'call' | 'sms' | 'skip' | 'approve' | 'reject';
 
 interface QueueListProps {
   items: AgentOpsItem[];
@@ -92,6 +96,11 @@ interface QueueListProps {
   onSelectItem: (id: string) => void;
   onEnterFocusMode: () => void;
   onItemAction: (id: string, action: QueueAction) => void;
+  /** Bulk select (feature-flagged): show checkboxes and allow multi-select */
+  bulkSelectMode?: boolean;
+  bulkSelectedIds?: string[];
+  onBulkToggle?: (id: string) => void;
+  onBulkSelectAll?: (checked: boolean) => void;
 }
 
 function InlineActionButton({
@@ -124,8 +133,13 @@ export function QueueList({
   onSelectItem,
   onEnterFocusMode,
   onItemAction,
+  bulkSelectMode = false,
+  bulkSelectedIds = [],
+  onBulkToggle,
+  onBulkSelectAll,
 }: QueueListProps) {
-  // Keyboard shortcuts are handled at the page level
+  const bulkSet = useMemo(() => new Set(bulkSelectedIds), [bulkSelectedIds]);
+  const allSelected = items.length > 0 && items.every((i) => bulkSet.has(i.id));
 
   if (items.length === 0) {
     return (
@@ -144,9 +158,23 @@ export function QueueList({
 
   return (
     <div className="h-full overflow-y-auto">
+      {bulkSelectMode && items.length > 0 && onBulkSelectAll && (
+        <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-100 bg-gray-50 text-xs">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={allSelected}
+              onChange={(e) => onBulkSelectAll(e.target.checked)}
+              className="rounded border-gray-300"
+            />
+            Select all
+          </label>
+        </div>
+      )}
       <ul className="divide-y divide-gray-100">
           {items.map((item) => {
             const isSelected = item.id === selectedItemId;
+            const isBulkSelected = bulkSelectMode && bulkSet.has(item.id);
             return (
               <li
                 key={item.id}
@@ -158,9 +186,19 @@ export function QueueList({
                     : 'hover:bg-gray-50 border-l-2 border-l-transparent'
                 )}
               >
+                {bulkSelectMode && onBulkToggle && (
+                  <div className="flex-shrink-0 pr-2" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      checked={isBulkSelected}
+                      onChange={() => onBulkToggle(item.id)}
+                      className="rounded border-gray-300"
+                    />
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
-                  {/* Top line: Severity, Type, Status */}
-                  <div className="flex items-center gap-1.5 mb-1">
+                  {/* Top line: Severity, Type, Status, SLA */}
+                  <div className="flex items-center gap-1.5 mb-1 flex-wrap">
                     <span
                       className={cn(
                         'px-1.5 py-0.5 rounded text-[10px] font-medium border',
@@ -180,13 +218,23 @@ export function QueueList({
                     >
                       {formatStatusLabel(item.status)}
                     </span>
+                    {item.slaStatus === 'BREACHED' && (
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-800 border border-red-200">
+                        SLA Breached
+                      </span>
+                    )}
+                    {item.slaStatus === 'AT_RISK' && (
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-800 border border-amber-200">
+                        At risk
+                      </span>
+                    )}
                   </div>
                   {/* Main line: Title */}
                   <div className="text-xs font-medium text-gray-900 truncate mb-0.5" title={item.title}>
                     {item.title}
                   </div>
-                  {/* Sub-line: Person • Agent • Created */}
-                  <div className="flex items-center gap-2 text-[10px] text-gray-500 truncate">
+                  {/* Sub-line: Person • Agent (type badge) • Created */}
+                  <div className="flex items-center gap-2 text-[10px] text-gray-500 truncate flex-wrap">
                     {item.person && (
                       <span className="truncate" title={item.person.name}>
                         {item.person.name}
@@ -196,6 +244,11 @@ export function QueueList({
                     {item.agentName && (
                       <span className="truncate" title={item.agentName}>
                         {item.agentName}
+                      </span>
+                    )}
+                    {(item.type === 'AGENT_DRAFT_MESSAGE' || item.type === 'AGENT_APPROVAL_REQUIRED' || item.type === 'AGENT_BLOCKED_ACTION' || item.type === 'AGENT_FLOW_EXCEPTION') && (
+                      <span className="shrink-0 px-1 py-0.5 rounded bg-indigo-50 text-indigo-600 text-[9px] font-medium" title="Generated by AI Agent">
+                        AI Agent
                       </span>
                     )}
                     {(item.person || item.agentName) && <span>•</span>}
@@ -223,7 +276,27 @@ export function QueueList({
                     "hidden gap-1 md:flex",
                     isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100 transition-opacity"
                   )}>
-                    {item.status === 'Open' && (
+                    {item.status === 'Open' && (item.type === 'AGENT_APPROVAL_REQUIRED' || item.type === 'AGENT_DRAFT_MESSAGE') && (
+                      <>
+                        <InlineActionButton
+                          label="Approve"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onItemAction(item.id, 'approve');
+                          }}
+                          icon="fa-solid fa-check"
+                        />
+                        <InlineActionButton
+                          label="Reject"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onItemAction(item.id, 'reject');
+                          }}
+                          icon="fa-solid fa-times"
+                        />
+                      </>
+                    )}
+                    {item.status === 'Open' && item.type !== 'AGENT_APPROVAL_REQUIRED' && item.type !== 'AGENT_DRAFT_MESSAGE' && (
                       <>
                         <InlineActionButton
                           label="Resolve"
