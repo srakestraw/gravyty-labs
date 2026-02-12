@@ -21,6 +21,16 @@ API_DIR="app/api"
 API_BACKUP=".api-backup"
 WIDGETS_DIR="app/widgets"
 WIDGETS_BACKUP=".widgets-backup"
+NARRATIVE_ACTIONS="lib/narrative/actions.ts"
+NARRATIVE_ACTIONS_BACKUP=".narrative-actions-backup"
+
+# Remove 'use server' from narrative actions (static export doesn't support Server Actions)
+if [ -f "$NARRATIVE_ACTIONS" ]; then
+  echo "Temporarily removing 'use server' from narrative actions for static export..."
+  cp "$NARRATIVE_ACTIONS" "$NARRATIVE_ACTIONS_BACKUP"
+  sed "s/^'use server';$//" "$NARRATIVE_ACTIONS" > "${NARRATIVE_ACTIONS}.tmp" && mv "${NARRATIVE_ACTIONS}.tmp" "$NARRATIVE_ACTIONS"
+  echo "✓ Narrative actions prepared for static export"
+fi
 
 # Move widgets FIRST (before anything else) to prevent Next.js from scanning them during build
 if [ -d "$WIDGETS_DIR" ]; then
@@ -29,22 +39,34 @@ if [ -d "$WIDGETS_DIR" ]; then
   echo "✓ Widgets moved to backup"
 fi
 
-# Move CRM Mock dynamic routes (has [id] routes that can't be statically generated)
-# Keep _nav.ts and other files that are needed for imports
-CRM_MOCK_DYNAMIC_ROUTES=(
+# Dynamic page routes that can't be statically generated (require generateStaticParams or server)
+# These are moved out before build and restored after. API routes are moved separately.
+DYNAMIC_PAGE_ROUTES=(
   "app/(shell)/crm-mock/constituents/[id]"
   "app/(shell)/crm-mock/opportunities/[id]"
   "app/(shell)/crm-mock/gifts/[id]"
   "app/(shell)/crm-mock/move-plans/[id]"
+  "app/(shell)/ai-assistants/agent-ops/people/[personId]"
+  "app/(shell)/ai-assistants/evals/[id]"
+  "app/(shell)/ai-assistants/agents/[id]"
+  "app/(shell)/ai-assistants/voice-and-tone/profiles/[profileId]"
+  "app/(shell)/ai-assistants/segments/[segmentId]"
+  "app/(shell)/ai-assistants/[assistantId]"
+  "app/(shell)/sis/sections/[id]"
+  "app/(shell)/sis/instructors/[id]"
+  "app/(shell)/sis/students/[id]"
+  "app/(shell)/admin/voice-and-tone/profiles/[profileId]"
+  "app/(shell)/student-lifecycle/[workspace]"
+  "app/(shell)/advancement/pipeline/agents/[id]"
+  "app/(shell)/advancement/giving/narrative-messaging"
+  "app/(shell)/advancement/pipeline/narrative-messaging"
 )
 
-for route in "${CRM_MOCK_DYNAMIC_ROUTES[@]}"; do
+for route in "${DYNAMIC_PAGE_ROUTES[@]}"; do
   if [ -d "$route" ]; then
-    # Create backup name preserving bracket format: constituents/[id] -> .crm-mock-constituents-[id]-backup
-    parent_dir=$(basename $(dirname "$route"))
-    route_dir=$(basename "$route")
-    backup_name=".crm-mock-${parent_dir}-${route_dir}-backup"
-    echo "Moving CRM Mock dynamic route: $route -> $backup_name"
+    # Backup name: .static-exclude-<path with / replaced by __> (avoids ambiguity with hyphens in segment names)
+    backup_name=".static-exclude-$(echo "$route" | sed 's|/|__|g')"
+    echo "Moving dynamic route for static export: $route -> $backup_name"
     mv "$route" "$backup_name" 2>/dev/null || true
   fi
 done
@@ -133,14 +155,20 @@ else
     echo "Restoring widgets after build failure..."
     mv "$WIDGETS_BACKUP" "$WIDGETS_DIR"
   fi
-  # Restore CRM Mock dynamic routes
-  for backup in .crm-mock-*-backup; do
+  # Restore dynamic page routes
+  for backup in .static-exclude-*; do
     if [ -d "$backup" ]; then
-      route_name=$(echo "$backup" | sed 's/\.crm-mock-\(.*\)-backup/\1/' | sed 's/-/\//g')
-      echo "Restoring CRM Mock route: $route_name"
-      mv "$backup" "app/(shell)/crm-mock/$route_name" 2>/dev/null || true
+      route_path=$(echo "$backup" | sed 's/^\.static-exclude-//' | sed 's|__|/|g')
+      echo "Restoring dynamic route: $route_path"
+      mkdir -p "$(dirname "$route_path")"
+      mv "$backup" "$route_path" 2>/dev/null || true
     fi
   done
+  # Restore narrative actions
+  if [ -f "$NARRATIVE_ACTIONS_BACKUP" ]; then
+    mv "$NARRATIVE_ACTIONS_BACKUP" "$NARRATIVE_ACTIONS"
+    echo "Restored narrative actions"
+  fi
   exit 1
 fi
 
@@ -156,14 +184,20 @@ if [ ! -d "out" ]; then
     echo "Restoring widgets after build failure..."
     mv "$WIDGETS_BACKUP" "$WIDGETS_DIR"
   fi
-  # Restore CRM Mock dynamic routes
-  for backup in .crm-mock-*-backup; do
+  # Restore dynamic page routes
+  for backup in .static-exclude-*; do
     if [ -d "$backup" ]; then
-      route_name=$(echo "$backup" | sed 's/\.crm-mock-\(.*\)-backup/\1/' | sed 's/-/\//g')
-      echo "Restoring CRM Mock route: $route_name"
-      mv "$backup" "app/(shell)/crm-mock/$route_name" 2>/dev/null || true
+      route_path=$(echo "$backup" | sed 's/^\.static-exclude-//' | sed 's|__|/|g')
+      echo "Restoring dynamic route: $route_path"
+      mkdir -p "$(dirname "$route_path")"
+      mv "$backup" "$route_path" 2>/dev/null || true
     fi
   done
+  # Restore narrative actions
+  if [ -f "$NARRATIVE_ACTIONS_BACKUP" ]; then
+    mv "$NARRATIVE_ACTIONS_BACKUP" "$NARRATIVE_ACTIONS"
+    echo "Restored narrative actions"
+  fi
   exit 1
 fi
 echo "✓ Next.js build completed successfully"
@@ -189,26 +223,27 @@ else
   echo "⚠ No widgets backup found to restore"
 fi
 
-# Restore CRM Mock dynamic routes
-for backup in .crm-mock-*-backup; do
+# Restore dynamic page routes
+for backup in .static-exclude-*; do
   if [ -d "$backup" ]; then
-    # Extract route path from backup name (e.g., .crm-mock-constituents-[id]-backup -> constituents/[id])
-    # Backup format: .crm-mock-{parent}-{route}-backup
-    route_part=$(echo "$backup" | sed 's/\.crm-mock-\(.*\)-backup/\1/')
-    # Split on last hyphen to separate parent and [id]
-    parent_dir=$(echo "$route_part" | sed 's/-\[id\]$//')
-    route_path="app/(shell)/crm-mock/${parent_dir}/[id]"
-    echo "Restoring CRM Mock route: $route_path"
+    route_path=$(echo "$backup" | sed 's/^\.static-exclude-//' | sed 's|__|/|g')
+    echo "Restoring dynamic route: $route_path"
     mkdir -p "$(dirname "$route_path")"
     mv "$backup" "$route_path"
-    echo "✓ CRM Mock route restored: ${parent_dir}/[id]"
+    echo "✓ Dynamic route restored: $route_path"
   fi
 done
 
-# Ensure _redirects file is copied to out directory for Netlify
+# Restore narrative actions
+if [ -f "$NARRATIVE_ACTIONS_BACKUP" ]; then
+  mv "$NARRATIVE_ACTIONS_BACKUP" "$NARRATIVE_ACTIONS"
+  echo "✓ Narrative actions restored"
+fi
+
+# Ensure _redirects file is copied to out directory (Netlify/Firebase)
 echo ""
 echo "=========================================="
-echo "Step 6: Copying Netlify configuration files"
+echo "Step 6: Copying deployment configuration files"
 echo "=========================================="
 if [ -f "public/_redirects" ]; then
   echo "Copying _redirects file to out directory..."

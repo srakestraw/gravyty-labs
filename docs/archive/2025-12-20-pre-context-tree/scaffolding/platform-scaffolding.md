@@ -81,7 +81,7 @@ import { initializeApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD6yQWA0tC_ypa-XYPyff9G6y6XqoKCqJ4",
+  apiKey: "YOUR_FIREBASE_API_KEY",
   authDomain: "gravyty-labs.firebaseapp.com",
   projectId: "gravyty-labs",
   storageBucket: "gravyty-labs.firebasestorage.app",
@@ -1369,7 +1369,7 @@ module.exports = nextConfig
 
 ```bash
 # Firebase Configuration
-NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyD6yQWA0tC_ypa-XYPyff9G6y6XqoKCqJ4
+NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=gravyty-labs.firebaseapp.com
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=gravyty-labs
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=gravyty-labs.firebasestorage.app

@@ -3,11 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "npm run copy-prisma-engine && next dev",
+    "dev": "npm run copy-prisma-engine && next dev -p 3000",
     "copy-prisma-engine": "mkdir -p .next/server && cp node_modules/.prisma/client/libquery_engine-darwin-arm64.dylib.node .next/server/ 2>/dev/null || cp packages/db/node_modules/.prisma/client/libquery_engine-darwin-arm64.dylib.node .next/server/ 2>/dev/null || true",
     "build": "next build",
     "build:next": "next build",
     "build:static": "/bin/bash scripts/build-static.sh",
+    "deploy": "npm run build:static && firebase deploy",
     "start": "next start",
     "lint": "next lint"
   },
