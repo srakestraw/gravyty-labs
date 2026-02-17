@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useClientSearchParams } from '@/lib/hooks/useClientSearchParams';
-import { AgentOpsFilters, AgentOpsItem } from '@/lib/agent-ops/types';
+import { AgentOpsFilters, AgentOpsItem, AgentOpsAgentSeverity } from '@/lib/agent-ops/types';
 import { dataClient } from '@/lib/data';
 import { AgentOpsFiltersBar } from '@/components/ai-assistants/agent-ops/AgentOpsFiltersBar';
 import { QueueList, type QueueAction } from '@/components/ai-assistants/agent-ops/queue/QueueList';
@@ -258,14 +258,16 @@ export function QueuePageClient({ basePath = '/ai-assistants', defaultFilters, a
         const id = payload.itemId;
         if (!id) return;
         setAllItems((prev) =>
-          prev.map((i) =>
+          prev.map((i): AgentOpsItem =>
             i.id !== id
               ? i
               : {
                   ...i,
                   ...(payload.status && { status: payload.status as AgentOpsItem['status'] }),
                   ...(payload.assigneeId !== undefined && { assignedTo: payload.assigneeId ?? undefined }),
-                  ...(payload.agentSeverity && { agentSeverity: payload.agentSeverity }),
+                  ...(payload.agentSeverity && {
+                    agentSeverity: payload.agentSeverity as AgentOpsAgentSeverity,
+                  }),
                   ...(payload.updatedAt && { updatedAt: payload.updatedAt }),
                 }
           )
