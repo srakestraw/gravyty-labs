@@ -10,17 +10,11 @@
     "generate-json-schemas": "tsx scripts/generate-json-schemas.ts"
   },
   "dependencies": {
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "zod-to-json-schema": "^3"
   },
   "devDependencies": {
-    "typescript": "^5",
     "tsx": "^4",
-    "zod-to-json-schema": "^3"
+    "typescript": "^5"
   }
 }
-
-
-
-
-
-
