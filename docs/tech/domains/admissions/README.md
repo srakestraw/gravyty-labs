@@ -31,6 +31,8 @@
 - [Data Models](data.md) - Data structures and ownership
 - [APIs](apis.md) - API contracts
 - [Runbooks](runbooks.md) - Operational procedures
+- [Program Match Brief](program-match-brief.md) - Business and technical overview for Program Match
+- [Admissions AI Assistant Brief](admissions-ai-assistant-brief.md) - Business and technical overview for Admissions AI Assistant
 
 ---
 

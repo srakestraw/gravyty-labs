@@ -27,6 +27,7 @@ Queue is a shared triage interface for managing agent operations items across wo
 
 ## Quick Links
 
+- **[Technical Brief](technical-brief.md)** - Consolidated technical summary: file inventory, data flow, integration
 - [Product Requirements](product.md) - User outcomes, success metrics, feature requirements
 - [Design Documentation](design.md) - UX flows, states, interaction rules, accessibility
 - [Technical Documentation](tech.md) - Architecture, component boundaries, data contracts

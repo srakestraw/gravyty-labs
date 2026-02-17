@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { dataClient } from '@/lib/data';
 import type {
   ProgramMatchHubSummary,
@@ -35,7 +35,10 @@ import { AnalyticsSection } from './AnalyticsSection';
 import { TemplateGallery } from './TemplateGallery';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
+import { ProgramMatchPreviewPanel } from './ProgramMatchPreviewPanel';
+import { publishProgramMatchAction } from './actions';
 
 interface ProgramMatchHubClientProps {
   hubSummary: ProgramMatchHubSummary | null;
@@ -75,6 +78,41 @@ export function ProgramMatchHubClient({
   previewLinks,
 }: ProgramMatchHubClientProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  type Step = 'basics' | 'match_model' | 'launch';
+  const STEP_SECTIONS: Record<Step, string[]> = {
+    basics: ['voice-tone', 'lead-capture'],
+    match_model: ['libraries', 'program-icp'],
+    launch: ['quiz', 'preview-deploy'],
+  };
+  const SECTION_TO_STEP: Record<string, Step> = {
+    'voice-tone': 'basics',
+    'lead-capture': 'basics',
+    libraries: 'match_model',
+    'program-icp': 'match_model',
+    quiz: 'launch',
+    'preview-deploy': 'launch',
+  };
+
+  const [activeStep, setActiveStep] = useState<Step>('basics');
+  const [openPanels, setOpenPanels] = useState<Set<string>>(() => new Set(STEP_SECTIONS.basics));
+  const [previewPanelCollapsed, setPreviewPanelCollapsed] = useState(false);
+
+  useEffect(() => {
+    const p = searchParams.get('step');
+    const step: Step = p === 'match-model' ? 'match_model' : (p === 'launch' ? 'launch' : 'basics');
+    setActiveStep(step);
+    setOpenPanels(new Set(STEP_SECTIONS[step]));
+  }, [searchParams]);
+
+  const updateStepParam = useCallback((step: Step) => {
+    const param = step === 'match_model' ? 'match-model' : step;
+    const url = new URL(window.location.href);
+    url.searchParams.set('step', param);
+    router.replace(url.pathname + url.search);
+  }, [router]);
+
   const [activeLibraryTab, setActiveLibraryTab] = useState<'traits' | 'skills' | 'outcomes'>('traits');
   const [isSavingVoiceTone, setIsSavingVoiceTone] = useState(false);
   const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
@@ -129,26 +167,21 @@ export function ProgramMatchHubClient({
     setOptimisticHubSummary(hubSummary);
   }, [hubSummary]);
 
-  const scrollToSection = (sectionId: string) => {
-    console.log('[scrollToSection] Called with sectionId:', sectionId);
-    
-    // Find the element
-    const element = document.getElementById(sectionId);
-    
-    if (!element) {
-      console.warn(`[scrollToSection] Section with id "${sectionId}" not found.`);
-      const allSections = Array.from(document.querySelectorAll('section[id]'));
-      console.log('[scrollToSection] Available sections:', allSections.map(s => s.id));
-      return;
+  const goToSection = useCallback((sectionId: string) => {
+    const step = SECTION_TO_STEP[sectionId];
+    if (step) {
+      setActiveStep(step);
+      updateStepParam(step);
+      setOpenPanels((prev) => new Set([...prev, sectionId]));
     }
+    scrollToSection(sectionId);
+  }, [updateStepParam]);
 
-    console.log('[scrollToSection] Element found:', element);
-    
-    // Find the scroll container (the div with overflow-auto in the layout)
-    // It should be the parent div that contains the main content
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (!element) return;
+
     let scrollContainer: HTMLElement | null = null;
-    
-    // Try to find the scroll container by looking for the overflow-auto div
     const mainElement = document.querySelector('main');
     if (mainElement) {
       const overflowDiv = mainElement.querySelector('div[class*="overflow-auto"], div.overflow-auto');
@@ -158,39 +191,15 @@ export function ProgramMatchHubClient({
         scrollContainer = mainElement;
       }
     }
-    
-    // Fallback to document if no scroll container found
-    if (!scrollContainer) {
-      scrollContainer = document.documentElement;
-    }
-    
-    console.log('[scrollToSection] Scroll container:', scrollContainer);
-    
-    // Calculate the target scroll position relative to the scroll container
+    if (!scrollContainer) scrollContainer = document.documentElement;
+
     const headerOffset = 80;
     const containerRect = scrollContainer.getBoundingClientRect();
     const elementRect = element.getBoundingClientRect();
-    
-    // Calculate position relative to scroll container
     const relativeTop = elementRect.top - containerRect.top + scrollContainer.scrollTop;
     const targetScroll = Math.max(0, relativeTop - headerOffset);
-    
-    console.log('[scrollToSection] Scroll calculation:', {
-      containerRectTop: containerRect.top,
-      elementRectTop: elementRect.top,
-      containerScrollTop: scrollContainer.scrollTop,
-      relativeTop,
-      headerOffset,
-      targetScroll,
-    });
-    
-    // Scroll the container
-    scrollContainer.scrollTo({
-      top: targetScroll,
-      behavior: 'smooth',
-    });
-    
-    console.log('[scrollToSection] Scroll command executed on container');
+
+    scrollContainer.scrollTo({ top: targetScroll, behavior: 'smooth' });
   };
 
   const formatDate = (isoString: string) => {
@@ -237,22 +246,17 @@ export function ProgramMatchHubClient({
         workspace: 'admissions',
         app: 'student-lifecycle',
       };
-      
-      // Publish the overall Program Match snapshot
-      const snapshot = await dataClient.publishProgramMatchDraft(ctx);
-      
-      // Also publish the first quiz if it's not already published
-      if (quizDraft?.quizId) {
-        const quiz = quizzes.find(q => q.id === quizDraft.quizId);
-        if (quiz && !quiz.activePublishedVersionId) {
-          try {
-            await dataClient.publishProgramMatchQuizDraft(ctx, quizDraft.quizId);
-          } catch (quizError: any) {
-            // If quiz publish fails, log but don't block the overall publish
-            console.warn('Failed to auto-publish quiz:', quizError);
-          }
-        }
-      }
+
+      // Pass effective draft config from UI state (avoids server/client in-memory state mismatch)
+      const effectiveVoiceToneId = optimisticVoiceToneId ?? draftConfig?.voiceToneProfileId;
+      const effectiveDraftConfig = effectiveVoiceToneId
+        ? { ...draftConfig, voiceToneProfileId: effectiveVoiceToneId }
+        : draftConfig ?? undefined;
+
+      // Publish via server action so snapshot persists for widget iframe
+      const quiz = quizDraft?.quizId ? quizzes.find(q => q.id === quizDraft.quizId) : null;
+      const quizToPublish = quiz && !quiz.activePublishedVersionId ? quizDraft!.quizId : null;
+      const snapshot = await publishProgramMatchAction(effectiveDraftConfig, quizToPublish);
       
       setLatestSnapshot(snapshot);
       router.refresh();
@@ -330,9 +334,46 @@ export function ProgramMatchHubClient({
     }
   };
 
+  const quizVersionId = quizzes.find((q) => q.activePublishedVersionId)?.activePublishedVersionId ?? null;
+
   return (
     <div className="p-6">
       <div className="max-w-7xl mx-auto space-y-6">
+        {/* Stepper */}
+        <div className="bg-white border border-gray-200 rounded-lg p-4">
+          <div className="flex flex-wrap gap-4 items-center">
+            {(['basics', 'match_model', 'launch'] as const).map((step, idx) => (
+              <button
+                key={step}
+                type="button"
+                onClick={() => {
+                  setActiveStep(step);
+                  updateStepParam(step);
+                  setOpenPanels(new Set(STEP_SECTIONS[step]));
+                }}
+                className={`flex items-center gap-2 text-sm font-medium ${
+                  activeStep === step ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-current">
+                  {idx + 1}
+                </span>
+                <span>
+                  {step === 'basics' && 'Basics'}
+                  {step === 'match_model' && 'Match Model'}
+                  {step === 'launch' && 'Quiz + Launch'}
+                </span>
+              </button>
+            ))}
+            <div className="flex-1 min-w-[60px]" />
+          </div>
+          <p className="text-xs text-gray-500 mt-2">
+            {activeStep === 'basics' && 'Voice & Tone, Gate'}
+            {activeStep === 'match_model' && 'Libraries, Programs, ICP'}
+            {activeStep === 'launch' && 'Quiz, Preview & Deploy, Publish'}
+          </p>
+        </div>
+
         {/* Page Header */}
         <div className="flex items-start justify-between">
           <div>
@@ -442,11 +483,9 @@ export function ProgramMatchHubClient({
                     variant="ghost"
                     size="sm"
                     onClick={(e) => {
-                      console.log('[Button Click] Go to button clicked for:', item.label, 'sectionId:', item.sectionId);
                       e.preventDefault();
                       e.stopPropagation();
-                      console.log('[Button Click] Event prevented, calling scrollToSection');
-                      scrollToSection(item.sectionId);
+                      goToSection(item.sectionId);
                     }}
                     className="text-xs"
                     type="button"
@@ -459,12 +498,38 @@ export function ProgramMatchHubClient({
           </div>
         </div>
 
-        {/* Sections */}
-        <div className="space-y-6">
-          {/* Voice & Tone Section */}
-          <section id="voice-tone" className="bg-white border border-gray-200 rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Voice & Tone</h2>
-            <p className="text-sm text-gray-600 mb-4">Configure the voice and tone for your Program Match experience.</p>
+        {/* Main content + Preview layout */}
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Left: Sections */}
+          <div className="flex-1 min-w-0 space-y-4">
+            {/* Voice & Tone Section */}
+            <Collapsible
+              open={openPanels.has('voice-tone')}
+              onOpenChange={(open) =>
+                setOpenPanels((p) => {
+                  const next = new Set(p);
+                  if (open) next.add('voice-tone');
+                  else next.delete('voice-tone');
+                  return next;
+                })
+              }
+            >
+              <section id="voice-tone" className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <CollapsibleTrigger asChild>
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50"
+                  >
+                    <h2 className="text-lg font-semibold text-gray-900">Voice & Tone</h2>
+                    <FontAwesomeIcon
+                      icon={openPanels.has('voice-tone') ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'}
+                      className="h-5 w-5 text-gray-500"
+                    />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="px-4 pb-6 pt-0">
+                    <p className="text-sm text-gray-600 mb-4">Configure the voice and tone for your Program Match experience.</p>
             <div className="space-y-2">
               <label htmlFor="voice-tone-select" className="block text-sm font-medium text-gray-700">
                 Select Voice & Tone Profile
@@ -557,17 +622,72 @@ export function ProgramMatchHubClient({
                 </p>
               )}
             </div>
-          </section>
+                  </div>
+                </CollapsibleContent>
+            </section>
+            </Collapsible>
 
-          {/* Lead Capture Section */}
-          <section id="lead-capture" className="bg-white border border-gray-200 rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Lead Capture (Gate)</h2>
-            <p className="text-sm text-gray-600 mb-4">Set up the gate that collects lead information before the quiz.</p>
-            <GateConfigPanel draftConfig={draftConfig} voiceToneProfiles={voiceToneProfiles} />
-          </section>
+            {/* Lead Capture Section */}
+            <Collapsible
+              open={openPanels.has('lead-capture')}
+              onOpenChange={(open) =>
+                setOpenPanels((p) => {
+                  const next = new Set(p);
+                  if (open) next.add('lead-capture');
+                  else next.delete('lead-capture');
+                  return next;
+                })
+              }
+            >
+              <section id="lead-capture" className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <CollapsibleTrigger asChild>
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50"
+                  >
+                    <h2 className="text-lg font-semibold text-gray-900">Lead Capture (Gate)</h2>
+                    <FontAwesomeIcon
+                      icon={openPanels.has('lead-capture') ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'}
+                      className="h-5 w-5 text-gray-500"
+                    />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="px-4 pb-6 pt-0">
+                    <p className="text-sm text-gray-600 mb-4">Set up the gate that collects lead information before the quiz.</p>
+                    <GateConfigPanel draftConfig={draftConfig} voiceToneProfiles={voiceToneProfiles} />
+                  </div>
+                </CollapsibleContent>
+              </section>
+            </Collapsible>
 
-          {/* Libraries Section */}
-          <section id="libraries" className="bg-white border border-gray-200 rounded-lg p-6">
+            {/* Libraries Section */}
+            <Collapsible
+              open={openPanels.has('libraries')}
+              onOpenChange={(open) =>
+                setOpenPanels((p) => {
+                  const next = new Set(p);
+                  if (open) next.add('libraries');
+                  else next.delete('libraries');
+                  return next;
+                })
+              }
+            >
+              <section id="libraries" className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <CollapsibleTrigger asChild>
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50"
+                  >
+                    <h2 className="text-lg font-semibold text-gray-900">Libraries</h2>
+                    <FontAwesomeIcon
+                      icon={openPanels.has('libraries') ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'}
+                      className="h-5 w-5 text-gray-500"
+                    />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="px-4 pb-6 pt-0">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Libraries</h2>
             <Tabs value={activeLibraryTab} onValueChange={(v) => setActiveLibraryTab(v as typeof activeLibraryTab)}>
               <TabsList>
@@ -591,11 +711,38 @@ export function ProgramMatchHubClient({
                 <OutcomesTab outcomes={outcomes} draftConfig={draftConfig} />
               </TabsContent>
             </Tabs>
-          </section>
+                  </div>
+                </CollapsibleContent>
+              </section>
+            </Collapsible>
 
-          {/* Program ICP Section */}
-          <section id="program-icp" className="bg-white border border-gray-200 rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Program ICP</h2>
+            {/* Program ICP Section */}
+            <Collapsible
+              open={openPanels.has('program-icp')}
+              onOpenChange={(open) =>
+                setOpenPanels((p) => {
+                  const next = new Set(p);
+                  if (open) next.add('program-icp');
+                  else next.delete('program-icp');
+                  return next;
+                })
+              }
+            >
+              <section id="program-icp" className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <CollapsibleTrigger asChild>
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50"
+                  >
+                    <h2 className="text-lg font-semibold text-gray-900">Program ICP</h2>
+                    <FontAwesomeIcon
+                      icon={openPanels.has('program-icp') ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'}
+                      className="h-5 w-5 text-gray-500"
+                    />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="px-4 pb-6 pt-0">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div>
                 <ProgramsPanel
@@ -622,11 +769,38 @@ export function ProgramMatchHubClient({
                 )}
               </div>
             </div>
-          </section>
+                  </div>
+                </CollapsibleContent>
+              </section>
+            </Collapsible>
 
-          {/* Quiz Section */}
-          <section id="quiz" className="bg-white border border-gray-200 rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Quiz</h2>
+            {/* Quiz Section */}
+            <Collapsible
+              open={openPanels.has('quiz')}
+              onOpenChange={(open) =>
+                setOpenPanels((p) => {
+                  const next = new Set(p);
+                  if (open) next.add('quiz');
+                  else next.delete('quiz');
+                  return next;
+                })
+              }
+            >
+              <section id="quiz" className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <CollapsibleTrigger asChild>
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50"
+                  >
+                    <h2 className="text-lg font-semibold text-gray-900">Quiz</h2>
+                    <FontAwesomeIcon
+                      icon={openPanels.has('quiz') ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'}
+                      className="h-5 w-5 text-gray-500"
+                    />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="px-4 pb-6 pt-0">
             <QuizBuilder
               quizDraft={quizDraft}
               draftConfig={draftConfig}
@@ -635,11 +809,38 @@ export function ProgramMatchHubClient({
               outcomes={outcomes}
               programs={programs}
             />
-          </section>
+                  </div>
+                </CollapsibleContent>
+              </section>
+            </Collapsible>
 
-          {/* Preview & Deploy Section */}
-          <section id="preview-deploy" className="bg-white border border-gray-200 rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Preview & Deploy</h2>
+            {/* Preview & Deploy Section */}
+            <Collapsible
+              open={openPanels.has('preview-deploy')}
+              onOpenChange={(open) =>
+                setOpenPanels((p) => {
+                  const next = new Set(p);
+                  if (open) next.add('preview-deploy');
+                  else next.delete('preview-deploy');
+                  return next;
+                })
+              }
+            >
+              <section id="preview-deploy" className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <CollapsibleTrigger asChild>
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50"
+                  >
+                    <h2 className="text-lg font-semibold text-gray-900">Preview & Deploy</h2>
+                    <FontAwesomeIcon
+                      icon={openPanels.has('preview-deploy') ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'}
+                      className="h-5 w-5 text-gray-500"
+                    />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="px-4 pb-6 pt-0">
             <PreviewDeployPanel
               latestSnapshot={latestSnapshot}
               quizzes={quizzes}
@@ -647,13 +848,51 @@ export function ProgramMatchHubClient({
               onCreatePreviewLink={handleCreatePreviewLink}
               onRevokePreviewLink={handleRevokePreviewLink}
             />
-          </section>
+                  </div>
+                </CollapsibleContent>
+              </section>
+            </Collapsible>
+          </div>
 
-          {/* Candidates Section */}
-          <section id="candidates" className="bg-white border border-gray-200 rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Candidates</h2>
-            <CandidatesSection publishedSnapshots={publishedSnapshots} programs={programs} />
+          {/* Right: Preview Panel */}
+          <div className="lg:w-[420px] shrink-0">
+            <div className="lg:sticky lg:top-6">
+              <ProgramMatchPreviewPanel
+                latestSnapshot={latestSnapshot}
+                quizVersionId={quizVersionId}
+                isCollapsed={previewPanelCollapsed}
+                onToggleCollapse={() => setPreviewPanelCollapsed((c) => !c)}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Post-launch: Candidates + Analytics */}
+        <Collapsible defaultOpen={false}>
+          <section className="bg-white border border-gray-200 rounded-lg overflow-hidden mt-6">
+            <CollapsibleTrigger asChild>
+              <button
+                type="button"
+                className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50"
+              >
+                <h2 className="text-lg font-semibold text-gray-900">Post-launch (after you deploy)</h2>
+                <FontAwesomeIcon icon="fa-solid fa-chevron-down" className="h-5 w-5 text-gray-500" />
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="px-4 pb-6 pt-0 space-y-6">
+                <div id="candidates">
+                  <h3 className="text-base font-semibold text-gray-900 mb-3">Candidates</h3>
+                  <CandidatesSection publishedSnapshots={publishedSnapshots} programs={programs} />
+                </div>
+                <div id="analytics">
+                  <h3 className="text-base font-semibold text-gray-900 mb-3">Analytics</h3>
+                  <AnalyticsSection publishedSnapshots={publishedSnapshots} />
+                </div>
+              </div>
+            </CollapsibleContent>
           </section>
+        </Collapsible>
 
           {/* Publish Error Modal */}
           {publishError && publishError.length > 0 && (
@@ -795,18 +1034,11 @@ export function ProgramMatchHubClient({
             </div>
           )}
 
-          {/* Analytics Section */}
-          <section id="analytics" className="bg-white border border-gray-200 rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Analytics</h2>
-            <AnalyticsSection publishedSnapshots={publishedSnapshots} />
-          </section>
-        </div>
+        {/* Template Gallery Modal */}
+        {showTemplateGallery && (
+          <TemplateGallery onClose={() => setShowTemplateGallery(false)} />
+        )}
       </div>
-
-      {/* Template Gallery Modal */}
-      {showTemplateGallery && (
-        <TemplateGallery onClose={() => setShowTemplateGallery(false)} />
-      )}
     </div>
   );
 }

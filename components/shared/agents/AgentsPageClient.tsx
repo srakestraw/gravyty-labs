@@ -2,16 +2,21 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { AgentTypeBadge } from "@/components/shared/agents/AgentTypeBadge";
 import type { AiPlatformPageContext } from '@/components/shared/ai-platform/types';
 import { getAiPlatformBasePath } from '@/components/shared/ai-platform/types';
-
-type RoleKey =
-  | "admissions"
-  | "registrar"
-  | "studentSuccess"
-  | "careerServices"
-  | "alumniEngagement"
-  | "advancement";
+import {
+  AGENT_TEMPLATES,
+  getTemplatesForWorkspace,
+  isTemplateAllowedInContext,
+  templateHasDecisionIntelligence,
+  workspaceScopeLabel,
+  subWorkspaceLabel,
+  type AgentTemplate,
+  type SubWorkspaceId,
+} from "@/app/(shell)/ai-assistants/templates/agent-templates";
+import { MOCK_AGENTS, type MockAgent } from "@/lib/agents/mock-data";
+import type { AgentType } from "@/lib/agents/types";
 
 type Role =
   | "Admissions"
@@ -24,7 +29,8 @@ type Role =
 type RoleFilter = Role | "All";
 
 type AgentStatus = "active" | "paused" | "error";
-type AgentType = "proactive" | "on-demand" | "workflow";
+
+type AgentTypeFilter = "all" | AgentType;
 
 interface AgentsPageClientProps {
   context?: AiPlatformPageContext;
@@ -41,10 +47,7 @@ const ROLES: Role[] = [
 
 const ROLE_COPY: Record<
   Role,
-  {
-    subtitle: string;
-    bullets: string[];
-  }
+  { subtitle: string; bullets: string[] }
 > = {
   Admissions: {
     subtitle:
@@ -102,120 +105,53 @@ const ROLE_COPY: Record<
   },
 };
 
-interface AgentTemplate {
-  id: string;
-  name: string;
-  role: RoleKey;
-  summary: string;
-}
-
-interface Agent {
-  id: string;
-  name: string;
-  role: RoleKey;
-  purpose: string;
-  status: AgentStatus;
-  lastRun: string | null; // null = never run
-  priorityWeight?: 1 | 2 | 3 | 4 | 5; // optional for backward compatibility
-}
-
-const agentTemplates: AgentTemplate[] = [
-  {
-    id: "template-transcript-collector",
-    name: "Transcript Collector Agent",
-    role: "admissions",
-    summary: "Automatically checks SIS for missing transcripts, sends reminders, and updates student records.",
-  },
-  {
-    id: "template-document-intake",
-    name: "Document Intake Agent",
-    role: "registrar",
-    summary: "Collects and validates required documents across Admissions, Registrar, or Financial Aid.",
-  },
-  {
-    id: "template-donor-recovery",
-    name: "Donor Recovery Agent",
-    role: "advancement",
-    summary: "Identifies LYBUNT/SYBUNT donors, triggers outreach, and monitors follow-ups.",
-  },
-  {
-    id: "template-registration-blockers",
-    name: "Registration Blocker Resolution Agent",
-    role: "registrar",
-    summary: "Detects registration blockers, notifies students, and escalates unresolved items.",
-  },
-];
-
-const agents: Agent[] = [
-  {
-    id: "agent-transcript-helper",
-    name: "Transcript Helper Agent",
-    role: "admissions",
-    purpose: "Clears missing transcripts and sends nudges.",
-    status: "active",
-    lastRun: "12 min ago",
-    priorityWeight: 4,
-  },
-  {
-    id: "agent-registration-requirements",
-    name: "Registration Requirements Agent",
-    role: "registrar",
-    purpose: "Flags holds and notifies students.",
-    status: "active",
-    lastRun: "47 min ago",
-    priorityWeight: 4,
-  },
-  {
-    id: "agent-high-intent-prospect",
-    name: "High-Intent Prospect Agent",
-    role: "admissions",
-    purpose: "Surfaces high-intent prospects for outreach.",
-    status: "paused",
-    lastRun: null,
-    priorityWeight: 3,
-  },
-  {
-    id: "agent-donor-warmup",
-    name: "Donor Warm-Up Agent",
-    role: "advancement",
-    purpose: "Sends warm-up emails and scores replies.",
-    status: "active",
-    lastRun: "3 hours ago",
-    priorityWeight: 2,
-  },
-  {
-    id: "agent-international-visa",
-    name: "International Visa Docs Agent",
-    role: "admissions",
-    purpose: "Identifies missing I-20 / visa documents.",
-    status: "error",
-    lastRun: "1 hour ago",
-    priorityWeight: 5,
-  },
-];
-
-const roleLabelFromKey = (key: RoleKey): Role => {
-  switch (key) {
-    case "admissions": return "Admissions";
-    case "registrar": return "Registrar";
-    case "studentSuccess": return "Student Success";
-    case "careerServices": return "Career Services";
-    case "alumniEngagement": return "Alumni Engagement";
-    case "advancement": return "Advancement";
-    default: return "Admissions";
-  }
+const roleLabelFromKey = (key: string): Role => {
+  const map: Record<string, Role> = {
+    admissions: "Admissions",
+    registrar: "Registrar",
+    studentSuccess: "Student Success",
+    careerServices: "Career Services",
+    alumniEngagement: "Alumni Engagement",
+    advancement: "Advancement",
+  };
+  return map[key] ?? "Admissions";
 };
 
-const roleKeyFromRole = (role: Role): RoleKey => {
-  switch (role) {
-    case "Admissions": return "admissions";
-    case "Registrar": return "registrar";
-    case "Student Success": return "studentSuccess";
-    case "Career Services": return "careerServices";
-    case "Alumni Engagement": return "alumniEngagement";
-    case "Advancement": return "advancement";
-  }
-};
+/** Templates with context contract (excludes blank) */
+const TEMPLATES_WITH_CONTEXT = AGENT_TEMPLATES.filter(
+  (t): t is AgentTemplate & { contextContract: NonNullable<AgentTemplate["contextContract"]> } =>
+    !!t.contextContract && t.key !== "blank"
+);
+
+function TemplateCardBadges({ template }: { template: AgentTemplate }) {
+  const c = template.contextContract;
+  if (!c) return null;
+  const ws = c.workspace_scope;
+  const narrative = c.narrative_dependency?.uses_narrative_messaging;
+  const decision = templateHasDecisionIntelligence(template);
+  return (
+    <div className="flex flex-wrap items-center gap-1">
+      <span className="inline-flex rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-600">
+        {workspaceScopeLabel(ws.workspace_id)}
+      </span>
+      {ws.sub_workspace_ids.slice(0, 2).map((id) => (
+        <span key={id} className="inline-flex rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-600">
+          {subWorkspaceLabel(id)}
+        </span>
+      ))}
+      {narrative && (
+        <span className="inline-flex rounded bg-indigo-50 px-1.5 py-0.5 text-[10px] font-medium text-indigo-700">
+          Narrative Messaging
+        </span>
+      )}
+      {decision && (
+        <span className="inline-flex rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700">
+          Decision Intelligence
+        </span>
+      )}
+    </div>
+  );
+}
 
 const renderStatusPill = (status: AgentStatus) => {
   const base =
@@ -247,16 +183,26 @@ export function AgentsPageClient({ context }: AgentsPageClientProps) {
   const [search, setSearch] = React.useState("");
   const [selectedRole, setSelectedRole] = React.useState<RoleFilter>("All");
   const [statusFilter, setStatusFilter] = React.useState<AgentStatus | "all">("all");
+  const [typeFilter, setTypeFilter] = React.useState<AgentTypeFilter>("all");
+  const [viewAllTemplates, setViewAllTemplates] = React.useState(false);
 
   const isAllRoles = selectedRole === "All";
 
-  // Filter agents by role
-  const filteredAgents = agents.filter((agent) => {
-    if (!isAllRoles) {
-      const agentRole = roleLabelFromKey(agent.role);
-      if (agentRole !== selectedRole) return false;
-    }
+  const recommendedTemplates = React.useMemo(
+    () => getTemplatesForWorkspace(context ?? {}),
+    [context?.appId, context?.workspaceId]
+  );
+  const allTemplatesForViewAll = React.useMemo(() => {
+    let list = TEMPLATES_WITH_CONTEXT;
+    if (!isAllRoles) list = list.filter((t) => t.contextContract.category === selectedRole);
+    return list;
+  }, [isAllRoles, selectedRole]);
+  const visibleTemplates = viewAllTemplates ? allTemplatesForViewAll : recommendedTemplates;
+
+  const filteredAgents = MOCK_AGENTS.filter((agent: MockAgent) => {
+    if (!isAllRoles && roleLabelFromKey(agent.roleKey) !== selectedRole) return false;
     if (statusFilter !== "all" && agent.status !== statusFilter) return false;
+    if (typeFilter !== "all" && agent.type !== typeFilter) return false;
     if (
       search &&
       !agent.name.toLowerCase().includes(search.toLowerCase()) &&
@@ -267,14 +213,8 @@ export function AgentsPageClient({ context }: AgentsPageClientProps) {
     return true;
   });
 
-  // Filter templates by role
-  const visibleTemplates = isAllRoles
-    ? agentTemplates
-    : agentTemplates.filter((tpl) => roleLabelFromKey(tpl.role) === selectedRole);
-
   return (
     <div className="flex h-full flex-col gap-4 p-4">
-      {/* Header */}
       <header className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
@@ -306,13 +246,9 @@ export function AgentsPageClient({ context }: AgentsPageClientProps) {
         </div>
       </header>
 
-      {/* Search & Filters */}
       <section className="flex flex-col gap-4 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
         <h2 className="text-sm font-semibold text-gray-900">Search & Filters</h2>
-        
-        {/* Search and Filters Row */}
-        <div className="flex items-end gap-4">
-          {/* Search */}
+        <div className="flex flex-wrap items-end gap-4">
           <div className="flex min-w-[220px] flex-1 items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
             <span className="text-gray-400">🔍</span>
             <input
@@ -323,7 +259,6 @@ export function AgentsPageClient({ context }: AgentsPageClientProps) {
             />
           </div>
 
-          {/* Roles Filter */}
           <div className="flex flex-col gap-2">
             <label className="text-xs font-medium text-gray-700">Roles:</label>
             <select
@@ -340,7 +275,6 @@ export function AgentsPageClient({ context }: AgentsPageClientProps) {
             </select>
           </div>
 
-          {/* Status Filter */}
           <div className="flex flex-col gap-2">
             <label className="text-xs font-medium text-gray-700">Status:</label>
             <select
@@ -354,54 +288,88 @@ export function AgentsPageClient({ context }: AgentsPageClientProps) {
               <option value="error">Error</option>
             </select>
           </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-medium text-gray-700">Agent Type:</label>
+            <select
+              className="h-9 rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-700"
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value as AgentTypeFilter)}
+            >
+              <option value="all">All</option>
+              <option value="AUTONOMOUS">Autonomous</option>
+              <option value="FLOW">Flow Builder</option>
+            </select>
+          </div>
         </div>
       </section>
 
-      {/* Recommended Templates */}
       <section className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
         <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-gray-900">
-            {isAllRoles
-              ? "Recommended agent templates"
-              : `Recommended agent templates for ${selectedRole}`}
+            {viewAllTemplates
+              ? "All agent templates"
+              : "Recommended for this workspace"}
           </h2>
           <span className="text-xs text-gray-500">
             Jump-start with a pre-built pattern.
           </span>
         </div>
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          {visibleTemplates.map((tpl) => (
-            <button
-              key={tpl.id}
-              type="button"
-              className="flex flex-col items-start gap-1 rounded-lg border border-gray-200 bg-gray-50 p-3 text-left hover:border-gray-300 hover:bg-gray-100"
-            >
-              <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                {roleLabelFromKey(tpl.role)}
-              </span>
-              <span className="text-sm font-medium text-gray-900">
-                {tpl.name}
-              </span>
-              <span className="text-xs text-gray-600 line-clamp-2">
-                {tpl.summary}
-              </span>
-              <span className="mt-1 text-xs font-medium text-gray-700">
-                Use template →
-              </span>
-            </button>
-          ))}
+          {visibleTemplates.map((tpl) => {
+            const allowed = isTemplateAllowedInContext(tpl, context ?? {});
+            const content = (
+              <>
+                <TemplateCardBadges template={tpl} />
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    {tpl.role !== "All" ? tpl.role : (tpl.contextContract?.category ?? "")}
+                  </span>
+                  <AgentTypeBadge type={tpl.type as AgentType} />
+                </div>
+                <span className="text-sm font-medium text-gray-900">{tpl.name}</span>
+                <span className="text-xs text-gray-600 line-clamp-2">{tpl.description}</span>
+                <span className="mt-1 text-xs font-medium text-gray-700">
+                  {allowed ? "Use template →" : "Not available in this workspace"}
+                </span>
+              </>
+            );
+            return allowed ? (
+              <Link
+                key={tpl.key}
+                href={`${basePath}/agents/new?template=${tpl.key}`}
+                className="flex flex-col items-start gap-1 rounded-lg border border-gray-200 bg-gray-50 p-3 text-left hover:border-gray-300 hover:bg-gray-100"
+              >
+                {content}
+              </Link>
+            ) : (
+              <div
+                key={tpl.key}
+                className="flex flex-col items-start gap-1 rounded-lg border border-gray-200 bg-gray-50 p-3 text-left opacity-75"
+              >
+                {content}
+              </div>
+            );
+          })}
         </div>
         <div className="mt-4 flex justify-center border-t border-gray-100 pt-4">
+          <button
+            type="button"
+            onClick={() => setViewAllTemplates(!viewAllTemplates)}
+            className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
+          >
+            {viewAllTemplates ? "Show recommended for this workspace" : "View all agent templates →"}
+          </button>
+          <span className="mx-2 text-gray-300">|</span>
           <Link
             href={`${basePath}/templates`}
             className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
           >
-            View all agent templates →
+            Template library
           </Link>
         </div>
       </section>
 
-      {/* Agents Table */}
       <section className="rounded-xl border border-gray-100 bg-white shadow-sm">
         <div className="border-b border-gray-100 px-4 py-3">
           <h2 className="text-sm font-semibold text-gray-900">Your agents</h2>
@@ -415,7 +383,7 @@ export function AgentsPageClient({ context }: AgentsPageClientProps) {
               No agents match your current filters.
             </p>
             <p className="max-w-sm text-xs text-gray-500">
-              Try clearing your search or adjusting the role and status filters.
+              Try clearing your search or adjusting the role, status, and type filters.
             </p>
           </div>
         ) : (
@@ -424,6 +392,7 @@ export function AgentsPageClient({ context }: AgentsPageClientProps) {
               <thead className="bg-gray-50 text-xs font-medium text-gray-500">
                 <tr>
                   <th className="px-4 py-2">Agent Name</th>
+                  <th className="px-4 py-2">Type</th>
                   <th className="px-4 py-2">Role</th>
                   <th className="px-4 py-2">Purpose</th>
                   <th className="px-4 py-2">Status</th>
@@ -437,14 +406,17 @@ export function AgentsPageClient({ context }: AgentsPageClientProps) {
                     <td className="px-4 py-3 align-top font-medium text-gray-900">
                       {agent.name}
                     </td>
+                    <td className="px-4 py-3 align-top text-xs">
+                      <AgentTypeBadge type={agent.type} />
+                    </td>
                     <td className="px-4 py-3 align-top text-xs text-gray-600">
-                      {roleLabelFromKey(agent.role)}
+                      {roleLabelFromKey(agent.roleKey)}
                     </td>
                     <td className="px-4 py-3 align-top text-xs text-gray-600">
                       {agent.purpose}
                     </td>
                     <td className="px-4 py-3 align-top text-xs">
-                      {renderStatusPill(agent.status)}
+                      {renderStatusPill(agent.status as AgentStatus)}
                     </td>
                     <td className="px-4 py-3 align-top text-xs text-gray-600">
                       {agent.lastRun ?? "Not run yet"}
@@ -467,4 +439,3 @@ export function AgentsPageClient({ context }: AgentsPageClientProps) {
     </div>
   );
 }
-

@@ -18,7 +18,9 @@ interface QueueDetailProps {
   onAction: (id: string, action: QueueAction) => void;
   onNavigateToPerson?: (personId: string) => void;
   onNavigateToAgent?: (agentId: string) => void;
-  detailRendererKey?: string; // Optional: if provided, use this key instead of item.detailView
+  /** Base path for deep links (getAiPlatformBasePath). */
+  basePath?: string;
+  detailRendererKey?: string;
 }
 
 export function QueueDetail({
@@ -30,38 +32,46 @@ export function QueueDetail({
   onAction,
   onNavigateToPerson,
   onNavigateToAgent,
+  basePath,
   detailRendererKey,
 }: QueueDetailProps) {
-  // Determine renderer key: use prop if provided, otherwise use item.detailView, fallback to 'default'
+  // Determine renderer key: prop > item.type (agent-generated) > item.detailView > default
   const rendererKey = useMemo(() => {
     if (detailRendererKey) return detailRendererKey;
+    const agentTypeToRenderer: Record<string, string> = {
+      AGENT_DRAFT_MESSAGE: 'agent-draft-message',
+      AGENT_APPROVAL_REQUIRED: 'agent-approval-required',
+      AGENT_BLOCKED_ACTION: 'agent-blocked-action',
+      AGENT_FLOW_EXCEPTION: 'agent-flow-exception',
+    };
+    if (item.type && agentTypeToRenderer[item.type]) return agentTypeToRenderer[item.type];
     if (item.detailView === 'first-draft') return 'advancement-first-draft';
     return 'default';
-  }, [detailRendererKey, item.detailView]);
+  }, [detailRendererKey, item.type, item.detailView]);
 
   // Get the appropriate renderer
   const Renderer = useMemo(() => {
     const customRenderer = getQueueDetailRenderer(rendererKey);
     if (customRenderer) {
-      // Call the renderer with action handlers
       return (props: { item: AgentOpsItem }) =>
         customRenderer({
           item: props.item,
           onAction,
           onNavigateToPerson,
           onNavigateToAgent,
+          basePath,
         });
     }
-    // Fallback to default renderer
     return (props: { item: AgentOpsItem }) => (
       <DefaultQueueDetail
         item={props.item}
         onAction={onAction}
         onNavigateToPerson={onNavigateToPerson}
         onNavigateToAgent={onNavigateToAgent}
+        basePath={basePath}
       />
     );
-  }, [rendererKey, onAction, onNavigateToPerson, onNavigateToAgent]);
+  }, [rendererKey, onAction, onNavigateToPerson, onNavigateToAgent, basePath]);
 
   return (
     <div className="h-full overflow-y-auto">

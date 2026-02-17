@@ -1,0 +1,423 @@
+{
+  "_meta": {
+    "institution": "UNC (University of North Carolina)",
+    "workspace": "advancement_giving_intelligence",
+    "sub_workspace": "pipeline_intelligence",
+    "default_voice": "gift_officer",
+    "description": "Seed data for Narrative Messaging – UNC advancement. All metrics and stats marked as example/placeholder where applicable."
+  },
+  "narratives": [
+    {
+      "id": "na-unc-00000000-0000-4000-8000-000000000001",
+      "title": "Major gift nudge – Carolina First",
+      "domain_scope": "advancement_giving",
+      "sub_domain_scope": "pipeline_intelligence",
+      "outcome": "Major gift nudge – Carolina First",
+      "moment": "solicitation",
+      "message_intent": "nudge",
+      "primary_cta": "Schedule a conversation",
+      "channel_fit": ["email", "call_script", "portal_content"],
+      "voice": "gift_officer",
+      "compliance_risk_level": "low",
+      "pii_tier": "standard",
+      "approval_state": "approved",
+      "relationship_type": "staff_to_person",
+      "contentRef": "Carolina First priorities and impact on student success and research.",
+      "modules": [
+        { "id": "mod-1a", "type": "opening", "contentRef": "Your connection to Carolina has always been about more than a degree—it's about the next generation of Tar Heels.", "order": 0 },
+        { "id": "mod-1b", "type": "body", "contentRef": "Carolina First is our most comprehensive campaign, supporting scholarships, faculty, and the programs that define the Carolina experience. A conversation can help align your giving with what matters most to you.", "order": 1 },
+        { "id": "mod-1c", "type": "proof_slot", "contentRef": null, "order": 2 },
+        { "id": "mod-1d", "type": "cta", "contentRef": "Schedule a conversation with your gift officer to explore options that fit your goals.", "order": 3 }
+      ],
+      "proof_refs": ["pb-unc-00000000-0000-4000-8000-000000000001", "pb-unc-00000000-0000-4000-8000-000000000003"]
+    },
+    {
+      "id": "na-unc-00000000-0000-4000-8000-000000000002",
+      "title": "Thank you – recent gift received",
+      "domain_scope": "advancement_giving",
+      "sub_domain_scope": "pipeline_intelligence",
+      "outcome": "Thank you – recent gift received",
+      "moment": "gratitude",
+      "message_intent": "thank",
+      "primary_cta": "See your impact",
+      "channel_fit": ["email", "portal_content", "sms"],
+      "voice": "gift_officer",
+      "compliance_risk_level": "low",
+      "pii_tier": "none",
+      "approval_state": "approved",
+      "relationship_type": "staff_to_person",
+      "contentRef": "Timely thank-you after gift posting.",
+      "modules": [
+        { "id": "mod-2a", "type": "opening", "contentRef": "Thank you for your generous support of UNC.", "order": 0 },
+        { "id": "mod-2b", "type": "body", "contentRef": "Your gift helps Carolina students and faculty every day. We wanted you to know it's been received and is already at work.", "order": 1 },
+        { "id": "mod-2c", "type": "proof_slot", "contentRef": null, "order": 2 },
+        { "id": "mod-2d", "type": "cta", "contentRef": "See how your support makes a difference in the Carolina Impact portal.", "order": 3 }
+      ],
+      "proof_refs": ["pb-unc-00000000-0000-4000-8000-000000000002", "pb-unc-00000000-0000-4000-8000-000000000005"]
+    },
+    {
+      "id": "na-unc-00000000-0000-4000-8000-000000000003",
+      "title": "Cultivation – research and scholarship impact",
+      "domain_scope": "advancement_giving",
+      "sub_domain_scope": "pipeline_intelligence",
+      "outcome": "Cultivation – research and scholarship impact",
+      "moment": "cultivation",
+      "message_intent": "explain",
+      "primary_cta": "Learn more",
+      "channel_fit": ["email", "portal_content"],
+      "voice": "gift_officer",
+      "compliance_risk_level": "low",
+      "pii_tier": "none",
+      "approval_state": "approved",
+      "relationship_type": "institution_to_person",
+      "contentRef": "How Carolina uses philanthropy for research and scholarships.",
+      "modules": [
+        { "id": "mod-3a", "type": "opening", "contentRef": "Carolina's research and scholarship programs are possible because of donors like you.", "order": 0 },
+        { "id": "mod-3b", "type": "body", "contentRef": "From endowed professorships to student scholarships, private support shapes what Carolina can achieve. Here's a snapshot of where that impact goes.", "order": 1 },
+        { "id": "mod-3c", "type": "proof_slot", "contentRef": null, "order": 2 },
+        { "id": "mod-3d", "type": "cta", "contentRef": "Learn more about priorities that might align with your interests.", "order": 3 }
+      ],
+      "proof_refs": ["pb-unc-00000000-0000-4000-8000-000000000004", "pb-unc-00000000-0000-4000-8000-000000000006"]
+    },
+    {
+      "id": "na-unc-00000000-0000-4000-8000-000000000004",
+      "title": "Lapsed donor – we miss you",
+      "domain_scope": "advancement_giving",
+      "sub_domain_scope": "pipeline_intelligence",
+      "outcome": "Lapsed donor – we miss you",
+      "moment": "opportunity",
+      "message_intent": "reminder",
+      "primary_cta": "Update your preferences",
+      "channel_fit": ["email", "sms", "portal_content"],
+      "voice": "gift_officer",
+      "compliance_risk_level": "low",
+      "pii_tier": "standard",
+      "approval_state": "approved",
+      "relationship_type": "staff_to_person",
+      "contentRef": "Re-engagement for lapsed donors.",
+      "modules": [
+        { "id": "mod-4a", "type": "opening", "contentRef": "It's been a while since we've heard from you—we'd love to reconnect.", "order": 0 },
+        { "id": "mod-4b", "type": "body", "contentRef": "Carolina continues to grow because of the community that supports it. If your priorities have shifted, we're here to help you find the right fit.", "order": 1 },
+        { "id": "mod-4c", "type": "proof_slot", "contentRef": null, "order": 2 },
+        { "id": "mod-4d", "type": "cta", "contentRef": "Update your preferences or tell us how you'd like to stay involved.", "order": 3 }
+      ],
+      "proof_refs": ["pb-unc-00000000-0000-4000-8000-000000000007"]
+    },
+    {
+      "id": "na-unc-00000000-0000-4000-8000-000000000005",
+      "title": "Stewardship touch – impact update",
+      "domain_scope": "advancement_giving",
+      "sub_domain_scope": "pipeline_intelligence",
+      "outcome": "Stewardship touch – impact update",
+      "moment": "stewardship_touch",
+      "message_intent": "update",
+      "primary_cta": "View your impact report",
+      "channel_fit": ["email", "portal_content", "call_script"],
+      "voice": "gift_officer",
+      "compliance_risk_level": "low",
+      "pii_tier": "standard",
+      "approval_state": "approved",
+      "relationship_type": "staff_to_person",
+      "contentRef": "Quarterly or annual impact update for current donors.",
+      "modules": [
+        { "id": "mod-5a", "type": "opening", "contentRef": "Here's how your support made a difference this year.", "order": 0 },
+        { "id": "mod-5b", "type": "body", "contentRef": "We've prepared a short update on the programs and people your generosity helps. Your commitment is what keeps Carolina moving forward.", "order": 1 },
+        { "id": "mod-5c", "type": "proof_slot", "contentRef": null, "order": 2 },
+        { "id": "mod-5d", "type": "cta", "contentRef": "View your personalized impact report in the portal.", "order": 3 }
+      ],
+      "proof_refs": ["pb-unc-00000000-0000-4000-8000-000000000002", "pb-unc-00000000-0000-4000-8000-000000000008"]
+    },
+    {
+      "id": "na-unc-00000000-0000-4000-8000-000000000006",
+      "title": "Ask – leadership giving invitation",
+      "domain_scope": "advancement_giving",
+      "sub_domain_scope": "pipeline_intelligence",
+      "outcome": "Ask – leadership giving invitation",
+      "moment": "solicitation",
+      "message_intent": "ask",
+      "primary_cta": "Join the Bell Society",
+      "channel_fit": ["email", "call_script", "portal_content"],
+      "voice": "gift_officer",
+      "compliance_risk_level": "medium",
+      "pii_tier": "standard",
+      "approval_state": "approved",
+      "relationship_type": "staff_to_person",
+      "contentRef": "Invitation to leadership giving (e.g., Bell Society).",
+      "modules": [
+        { "id": "mod-6a", "type": "opening", "contentRef": "You're among the donors we count on to lead.", "order": 0 },
+        { "id": "mod-6b", "type": "body", "contentRef": "Leadership giving through the Bell Society helps Carolina set the pace. We'd like to invite you to join this group and see the impact up close.", "order": 1 },
+        { "id": "mod-6c", "type": "proof_slot", "contentRef": null, "order": 2 },
+        { "id": "mod-6d", "type": "cta", "contentRef": "Learn more about the Bell Society and how to join.", "order": 3 }
+      ],
+      "proof_refs": ["pb-unc-00000000-0000-4000-8000-000000000009", "pb-unc-00000000-0000-4000-8000-000000000010"]
+    }
+  ],
+  "proof_blocks": [
+    {
+      "id": "pb-unc-00000000-0000-4000-8000-000000000001",
+      "title": "Carolina First campaign priority areas",
+      "proof_type": "impact",
+      "claim_support_level": "verified",
+      "claim_class": "impact",
+      "freshness_window": "365d",
+      "allowed_voice": ["gift_officer", "institutional"],
+      "restricted_channels": [],
+      "content": "Carolina First focuses on three priorities: affordability and access, research and discovery, and the student experience. Gifts support scholarships, faculty positions, and campus programs. (Example placeholder scope.)"
+    },
+    {
+      "id": "pb-unc-00000000-0000-4000-8000-000000000002",
+      "title": "Donor impact – gifts at work",
+      "proof_type": "impact",
+      "claim_support_level": "internally_reported",
+      "claim_class": "impact",
+      "freshness_window": "90d",
+      "allowed_voice": ["gift_officer"],
+      "restricted_channels": ["sms"],
+      "content": "Your gift is already at work. This year, donor support helped fund [X] scholarships and [Y] research initiatives. (Internally reported; replace X/Y with current institutional figures.)"
+    },
+    {
+      "id": "pb-unc-00000000-0000-4000-8000-000000000003",
+      "title": "Alumni giving participation (example)",
+      "proof_type": "stat",
+      "claim_support_level": "placeholder",
+      "claim_class": "financial",
+      "freshness_window": "365d",
+      "allowed_voice": ["gift_officer", "institutional"],
+      "restricted_channels": [],
+      "content": "Alumni participation in giving helps Carolina maintain its strength. When more Tar Heels give at any level, it signals broad support and helps secure matching and challenge gifts. (Example placeholder—do not cite specific percentages without verification.)"
+    },
+    {
+      "id": "pb-unc-00000000-0000-4000-8000-000000000004",
+      "title": "Research and faculty support",
+      "proof_type": "benefit",
+      "claim_support_level": "verified",
+      "claim_class": "academic",
+      "freshness_window": "evergreen",
+      "allowed_voice": ["gift_officer"],
+      "restricted_channels": [],
+      "content": "Private support helps Carolina attract and retain world-class faculty and fund research that addresses global challenges. Endowed positions and research funds create lasting impact."
+    },
+    {
+      "id": "pb-unc-00000000-0000-4000-8000-000000000005",
+      "title": "Thank-you timing policy",
+      "proof_type": "policy",
+      "claim_support_level": "verified",
+      "claim_class": "policy",
+      "freshness_window": "evergreen",
+      "allowed_voice": ["gift_officer"],
+      "restricted_channels": [],
+      "content": "UNC sends an official receipt and thank-you within 48 hours of gift posting. Additional stewardship touches are tailored to giving level and designation."
+    },
+    {
+      "id": "pb-unc-00000000-0000-4000-8000-000000000006",
+      "title": "Scholarship recipient story (anecdotal)",
+      "proof_type": "testimonial",
+      "claim_support_level": "anecdotal",
+      "claim_class": "testimonial",
+      "freshness_window": "90d",
+      "allowed_voice": ["gift_officer"],
+      "restricted_channels": [],
+      "content": "A current scholarship recipient shared: 'Donor support meant I could focus on my studies instead of worrying about costs. I'm grateful to every person who gives to Carolina.' (Anecdotal; use with permission.)"
+    },
+    {
+      "id": "pb-unc-00000000-0000-4000-8000-000000000007",
+      "title": "Re-engagement benefit",
+      "proof_type": "benefit",
+      "claim_support_level": "internally_reported",
+      "claim_class": "operational",
+      "freshness_window": "evergreen",
+      "allowed_voice": ["gift_officer"],
+      "restricted_channels": [],
+      "content": "Re-engaging lapsed donors helps Carolina build a more resilient community of support. Your updated preferences help us tailor communications and opportunities to you."
+    },
+    {
+      "id": "pb-unc-00000000-0000-4000-8000-000000000008",
+      "title": "Impact report availability",
+      "proof_type": "deadline",
+      "claim_support_level": "verified",
+      "claim_class": "policy",
+      "freshness_window": "90d",
+      "allowed_voice": ["gift_officer"],
+      "restricted_channels": ["sms"],
+      "content": "Your personalized impact report is available in the Carolina Impact portal. Reports are updated quarterly; you can view yours anytime after signing in."
+    },
+    {
+      "id": "pb-unc-00000000-0000-4000-8000-000000000009",
+      "title": "Bell Society recognition",
+      "proof_type": "benefit",
+      "claim_support_level": "verified",
+      "claim_class": "impact",
+      "freshness_window": "evergreen",
+      "allowed_voice": ["gift_officer"],
+      "restricted_channels": [],
+      "content": "Bell Society members are recognized for their leadership giving and receive invitations to exclusive events, impact updates, and opportunities to connect with campus leadership."
+    },
+    {
+      "id": "pb-unc-00000000-0000-4000-8000-000000000010",
+      "title": "Leadership giving levels (example)",
+      "proof_type": "stat",
+      "claim_support_level": "placeholder",
+      "claim_class": "financial",
+      "freshness_window": "365d",
+      "allowed_voice": ["gift_officer"],
+      "restricted_channels": [],
+      "content": "Leadership giving levels are set annually and reflect the institution's priorities. Your gift officer can share current thresholds and benefits. (Placeholder—use current published levels.)"
+    }
+  ],
+  "narrative_proof_links": [
+    { "narrative_asset_id": "na-unc-00000000-0000-4000-8000-000000000001", "proof_block_id": "pb-unc-00000000-0000-4000-8000-000000000001" },
+    { "narrative_asset_id": "na-unc-00000000-0000-4000-8000-000000000001", "proof_block_id": "pb-unc-00000000-0000-4000-8000-000000000003" },
+    { "narrative_asset_id": "na-unc-00000000-0000-4000-8000-000000000002", "proof_block_id": "pb-unc-00000000-0000-4000-8000-000000000002" },
+    { "narrative_asset_id": "na-unc-00000000-0000-4000-8000-000000000002", "proof_block_id": "pb-unc-00000000-0000-4000-8000-000000000005" },
+    { "narrative_asset_id": "na-unc-00000000-0000-4000-8000-000000000003", "proof_block_id": "pb-unc-00000000-0000-4000-8000-000000000004" },
+    { "narrative_asset_id": "na-unc-00000000-0000-4000-8000-000000000003", "proof_block_id": "pb-unc-00000000-0000-4000-8000-000000000006" },
+    { "narrative_asset_id": "na-unc-00000000-0000-4000-8000-000000000004", "proof_block_id": "pb-unc-00000000-0000-4000-8000-000000000007" },
+    { "narrative_asset_id": "na-unc-00000000-0000-4000-8000-000000000005", "proof_block_id": "pb-unc-00000000-0000-4000-8000-000000000002" },
+    { "narrative_asset_id": "na-unc-00000000-0000-4000-8000-000000000005", "proof_block_id": "pb-unc-00000000-0000-4000-8000-000000000008" },
+    { "narrative_asset_id": "na-unc-00000000-0000-4000-8000-000000000006", "proof_block_id": "pb-unc-00000000-0000-4000-8000-000000000009" },
+    { "narrative_asset_id": "na-unc-00000000-0000-4000-8000-000000000006", "proof_block_id": "pb-unc-00000000-0000-4000-8000-000000000010" }
+  ],
+  "delivery_plays": [
+    {
+      "id": "dp-unc-00000000-0000-4000-8000-000000000001",
+      "title": "High-propensity major gift nudge",
+      "play_category": "portfolio_recommendation",
+      "trigger_type": "model_signal",
+      "trigger_definition": "Propensity score above threshold (e.g. 0.7); portfolio priority = major gift",
+      "cadence_policy": "single",
+      "channels": ["email", "call_script"],
+      "suppression_rules": "Max 1 email per 14 days; respect do-not-contact and opt-out",
+      "narrative_selection": { "moment": "solicitation", "message_intent": "nudge", "voice": "gift_officer", "channel_fit": ["email", "call_script"] },
+      "eligibility": { "outcome": "pipeline_growth", "moment": "solicitation", "narrativeIds": ["na-unc-00000000-0000-4000-8000-000000000001"] },
+      "success_events": [{ "type": "conversation_scheduled", "metric": "meeting_booked", "threshold": 1 }]
+    },
+    {
+      "id": "dp-unc-00000000-0000-4000-8000-000000000002",
+      "title": "Thank-you after gift posted",
+      "play_category": "lifecycle_automation",
+      "trigger_type": "event",
+      "trigger_definition": "Gift posted in CRM; event = gift_posted",
+      "cadence_policy": "single",
+      "channels": ["email", "portal_content"],
+      "suppression_rules": "Single touch per gift; no same-day duplicate",
+      "narrative_selection": { "moment": "gratitude", "message_intent": "thank", "voice": "gift_officer" },
+      "eligibility": { "moment": "gratitude", "narrativeIds": ["na-unc-00000000-0000-4000-8000-000000000002"] },
+      "success_events": [{ "type": "narrative_delivered", "metric": "open_or_click", "threshold": 1 }]
+    },
+    {
+      "id": "dp-unc-00000000-0000-4000-8000-000000000003",
+      "title": "Cultivation – time since last contact",
+      "play_category": "staff_assist",
+      "trigger_type": "threshold",
+      "trigger_definition": "Days since last meaningful contact > 90; officer portfolio",
+      "cadence_policy": "recurring",
+      "channels": ["email", "portal_content"],
+      "suppression_rules": "Max 2 emails per month per constituent; do-not-contact respected",
+      "narrative_selection": { "moment": "cultivation", "message_intent": "explain", "voice": "gift_officer" },
+      "eligibility": { "moment": "cultivation", "narrativeIds": ["na-unc-00000000-0000-4000-8000-000000000003"] },
+      "success_events": [{ "type": "narrative_converted", "metric": "response_or_meeting", "threshold": 1 }]
+    },
+    {
+      "id": "dp-unc-00000000-0000-4000-8000-000000000004",
+      "title": "Lapsed donor re-engagement",
+      "play_category": "lifecycle_automation",
+      "trigger_type": "threshold",
+      "trigger_definition": "Inactivity: no gift in 18 months; lapsed segment",
+      "cadence_policy": "sequence",
+      "channels": ["email", "sms"],
+      "suppression_rules": "Frequency cap 1 email + 1 SMS per 30 days; full DNC check",
+      "narrative_selection": { "moment": "opportunity", "message_intent": "reminder", "voice": "gift_officer" },
+      "eligibility": { "moment": "opportunity", "narrativeIds": ["na-unc-00000000-0000-4000-8000-000000000004"] },
+      "success_events": [{ "type": "narrative_converted", "metric": "gift_or_pledge", "threshold": 1 }]
+    },
+    {
+      "id": "dp-unc-00000000-0000-4000-8000-000000000005",
+      "title": "Stewardship touch – anniversary",
+      "play_category": "lifecycle_automation",
+      "trigger_type": "schedule",
+      "trigger_definition": "Time-to-event: gift anniversary (e.g. 1 year since last gift)",
+      "cadence_policy": "single",
+      "channels": ["email", "portal_content", "call_script"],
+      "suppression_rules": "One touch per anniversary; respect preferences",
+      "narrative_selection": { "moment": "stewardship_touch", "message_intent": "update", "voice": "gift_officer" },
+      "eligibility": { "moment": "stewardship_touch", "narrativeIds": ["na-unc-00000000-0000-4000-8000-000000000005"] },
+      "success_events": [{ "type": "narrative_delivered", "metric": "open", "threshold": 1 }]
+    },
+    {
+      "id": "dp-unc-00000000-0000-4000-8000-000000000006",
+      "title": "Officer portfolio – leadership ask",
+      "play_category": "portfolio_recommendation",
+      "trigger_type": "model_signal",
+      "trigger_definition": "Officer portfolio priority = leadership; capacity/affinity aligned",
+      "cadence_policy": "single",
+      "channels": ["email", "call_script"],
+      "suppression_rules": "Per-officer cadence; no overlap with other leadership plays",
+      "narrative_selection": { "moment": "solicitation", "message_intent": "ask", "voice": "gift_officer" },
+      "eligibility": { "moment": "solicitation", "narrativeIds": ["na-unc-00000000-0000-4000-8000-000000000006"] },
+      "success_events": [{ "type": "conversation_scheduled", "metric": "meeting_booked", "threshold": 1 }]
+    }
+  ],
+  "preview_scenarios": [
+    {
+      "id": "preview-1",
+      "persona": "Major gift prospect, high propensity",
+      "context": "High propensity score; no gift in 24 months; attended Carolina event last quarter",
+      "channel": "email",
+      "assembled_message": "Your connection to Carolina has always been about more than a degree—it's about the next generation of Tar Heels.\n\nCarolina First is our most comprehensive campaign, supporting scholarships, faculty, and the programs that define the Carolina experience. A conversation can help align your giving with what matters most to you.\n\nCarolina First focuses on three priorities: affordability and access, research and discovery, and the student experience. Gifts support scholarships, faculty positions, and campus programs. (Example placeholder scope.)\n\nAlumni participation in giving helps Carolina maintain its strength. When more Tar Heels give at any level, it signals broad support and helps secure matching and challenge gifts. (Example placeholder—do not cite specific percentages without verification.)\n\nSchedule a conversation with your gift officer to explore options that fit your goals.",
+      "why_chosen": ["High propensity score", "Lapsed giving (24+ months)", "Recent event attendance"]
+    },
+    {
+      "id": "preview-2",
+      "persona": "Recent donor, thank-you",
+      "context": "Gift posted 24 hours ago; designation: Annual Fund",
+      "channel": "sms",
+      "assembled_message": "Thank you for your generous support of UNC. Your gift is already at work. Update your preferences or see your impact in the Carolina Impact portal.",
+      "why_chosen": ["Gift posted in last 48 hours", "Thank-you automation trigger"]
+    },
+    {
+      "id": "preview-3",
+      "persona": "Donor with portal access",
+      "context": "Stewardship touch; 1-year gift anniversary; prefers portal",
+      "channel": "portal_content",
+      "assembled_message": "Here's how your support made a difference this year.\n\nWe've prepared a short update on the programs and people your generosity helps. Your commitment is what keeps Carolina moving forward.\n\nYour gift is already at work. This year, donor support helped fund [X] scholarships and [Y] research initiatives. (Internally reported; replace X/Y with current institutional figures.)\n\nYour personalized impact report is available in the Carolina Impact portal. Reports are updated quarterly; you can view yours anytime after signing in.\n\nView your personalized impact report in the portal.",
+      "why_chosen": ["Gift anniversary (1 year)", "Channel preference: portal", "Stewardship touch moment"]
+    },
+    {
+      "id": "preview-4",
+      "persona": "Leadership prospect – call script",
+      "context": "Portfolio priority = leadership; capacity/affinity aligned; officer preparing for call",
+      "channel": "call_script",
+      "assembled_message": "OPENING: You're among the donors we count on to lead.\n\nBODY: Leadership giving through the Bell Society helps Carolina set the pace. We'd like to invite you to join this group and see the impact up close.\n\nPROOF: Bell Society members are recognized for their leadership giving and receive invitations to exclusive events, impact updates, and opportunities to connect with campus leadership. Leadership giving levels are set annually and reflect the institution's priorities. Your gift officer can share current thresholds and benefits. (Placeholder—use current published levels.)\n\nCTA: Learn more about the Bell Society and how to join.",
+      "why_chosen": ["Officer portfolio priority: leadership", "High capacity/affinity", "Channel: call_script for high-touch ask"]
+    }
+  ],
+  "performance": {
+    "_note": "Sample/demo data. Metrics are placeholders for display only.",
+    "per_narrative": [
+      { "narrative_asset_id": "na-unc-00000000-0000-4000-8000-000000000001", "delivered": 142, "converted": 18, "assist": 31, "recommended": 89 },
+      { "narrative_asset_id": "na-unc-00000000-0000-4000-8000-000000000002", "delivered": 520, "converted": 0, "assist": 102, "recommended": 0 },
+      { "narrative_asset_id": "na-unc-00000000-0000-4000-8000-000000000003", "delivered": 208, "converted": 12, "assist": 45, "recommended": 67 },
+      { "narrative_asset_id": "na-unc-00000000-0000-4000-8000-000000000004", "delivered": 95, "converted": 8, "assist": 22, "recommended": 44 },
+      { "narrative_asset_id": "na-unc-00000000-0000-4000-8000-000000000005", "delivered": 310, "converted": 0, "assist": 88, "recommended": 0 },
+      { "narrative_asset_id": "na-unc-00000000-0000-4000-8000-000000000006", "delivered": 67, "converted": 9, "assist": 15, "recommended": 33 }
+    ],
+    "per_play": [
+      { "play_id": "dp-unc-00000000-0000-4000-8000-000000000001", "delivered": 142, "converted": 18, "assist": 31 },
+      { "play_id": "dp-unc-00000000-0000-4000-8000-000000000002", "delivered": 520, "converted": 0, "assist": 102 },
+      { "play_id": "dp-unc-00000000-0000-4000-8000-000000000003", "delivered": 208, "converted": 12, "assist": 45 },
+      { "play_id": "dp-unc-00000000-0000-4000-8000-000000000004", "delivered": 95, "converted": 8, "assist": 22 },
+      { "play_id": "dp-unc-00000000-0000-4000-8000-000000000005", "delivered": 310, "converted": 0, "assist": 88 },
+      { "play_id": "dp-unc-00000000-0000-4000-8000-000000000006", "delivered": 67, "converted": 9, "assist": 15 }
+    ],
+    "top_narratives_this_month": [
+      { "narrative_asset_id": "na-unc-00000000-0000-4000-8000-000000000002", "title": "Thank you – recent gift received", "delivered": 520 },
+      { "narrative_asset_id": "na-unc-00000000-0000-4000-8000-000000000005", "title": "Stewardship touch – impact update", "delivered": 310 },
+      { "narrative_asset_id": "na-unc-00000000-0000-4000-8000-000000000003", "title": "Cultivation – research and scholarship impact", "delivered": 208 }
+    ],
+    "top_proof_blocks": [
+      { "proof_block_id": "pb-unc-00000000-0000-4000-8000-000000000002", "title": "Donor impact – gifts at work", "use_count": 4 },
+      { "proof_block_id": "pb-unc-00000000-0000-4000-8000-000000000001", "title": "Carolina First campaign priority areas", "use_count": 1 },
+      { "proof_block_id": "pb-unc-00000000-0000-4000-8000-000000000004", "title": "Research and faculty support", "use_count": 1 }
+    ]
+  }
+}

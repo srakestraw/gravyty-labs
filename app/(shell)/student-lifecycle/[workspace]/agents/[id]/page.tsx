@@ -12,6 +12,8 @@ export async function generateStaticParams() {
     'agent-high-intent-prospect',
     'agent-donor-warmup',
     'agent-international-visa',
+    'agent-flow-missing-transcript',
+    'agent-flow-registration-hold',
   ];
   
   // Generate all combinations of workspace and agent id

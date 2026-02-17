@@ -155,7 +155,7 @@ export interface DataProvider {
 
   // Program Match Publish & Versioning
   listProgramMatchPublishedSnapshots(ctx: DataContext): Promise<ProgramMatchPublishSnapshot[]>;
-  publishProgramMatchDraft(ctx: DataContext): Promise<ProgramMatchPublishSnapshot>;
+  publishProgramMatchDraft(ctx: DataContext, input?: { draftConfig?: ProgramMatchDraftConfig | null }): Promise<ProgramMatchPublishSnapshot>;
   getProgramMatchPublishedSnapshot(ctx: DataContext, id: string): Promise<ProgramMatchPublishSnapshot | null>;
 
   // Program Match Preview Links

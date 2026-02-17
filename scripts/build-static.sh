@@ -21,16 +21,21 @@ API_DIR="app/api"
 API_BACKUP=".api-backup"
 WIDGETS_DIR="app/widgets"
 WIDGETS_BACKUP=".widgets-backup"
-NARRATIVE_ACTIONS="lib/narrative/actions.ts"
-NARRATIVE_ACTIONS_BACKUP=".narrative-actions-backup"
+# Files with 'use server' that must be stripped for static export (Server Actions not supported)
+SERVER_ACTION_FILES=(
+  "lib/narrative/actions.ts"
+  "app/(shell)/admissions/program-match/actions.ts"
+)
 
-# Remove 'use server' from narrative actions (static export doesn't support Server Actions)
-if [ -f "$NARRATIVE_ACTIONS" ]; then
-  echo "Temporarily removing 'use server' from narrative actions for static export..."
-  cp "$NARRATIVE_ACTIONS" "$NARRATIVE_ACTIONS_BACKUP"
-  sed "s/^'use server';$//" "$NARRATIVE_ACTIONS" > "${NARRATIVE_ACTIONS}.tmp" && mv "${NARRATIVE_ACTIONS}.tmp" "$NARRATIVE_ACTIONS"
-  echo "✓ Narrative actions prepared for static export"
-fi
+for file in "${SERVER_ACTION_FILES[@]}"; do
+  if [ -f "$file" ]; then
+    backup="${file}.static-backup"
+    echo "Removing 'use server' from $file for static export..."
+    cp "$file" "$backup"
+    sed "s/^'use server';$//" "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"
+    echo "✓ Prepared $file for static export"
+  fi
+done
 
 # Move widgets FIRST (before anything else) to prevent Next.js from scanning them during build
 if [ -d "$WIDGETS_DIR" ]; then
@@ -161,11 +166,13 @@ else
       mv "$backup" "$route_path" 2>/dev/null || true
     fi
   done
-  # Restore narrative actions
-  if [ -f "$NARRATIVE_ACTIONS_BACKUP" ]; then
-    mv "$NARRATIVE_ACTIONS_BACKUP" "$NARRATIVE_ACTIONS"
-    echo "Restored narrative actions"
-  fi
+  # Restore server action files
+  for file in "${SERVER_ACTION_FILES[@]}"; do
+    if [ -f "${file}.static-backup" ]; then
+      mv "${file}.static-backup" "$file"
+      echo "Restored $file"
+    fi
+  done
   exit 1
 fi
 
@@ -190,11 +197,13 @@ if [ ! -d "out" ]; then
       mv "$backup" "$route_path" 2>/dev/null || true
     fi
   done
-  # Restore narrative actions
-  if [ -f "$NARRATIVE_ACTIONS_BACKUP" ]; then
-    mv "$NARRATIVE_ACTIONS_BACKUP" "$NARRATIVE_ACTIONS"
-    echo "Restored narrative actions"
-  fi
+  # Restore server action files
+  for file in "${SERVER_ACTION_FILES[@]}"; do
+    if [ -f "${file}.static-backup" ]; then
+      mv "${file}.static-backup" "$file"
+      echo "Restored $file"
+    fi
+  done
   exit 1
 fi
 echo "✓ Next.js build completed successfully"
@@ -231,11 +240,13 @@ for backup in .static-exclude-*; do
   fi
 done
 
-# Restore narrative actions
-if [ -f "$NARRATIVE_ACTIONS_BACKUP" ]; then
-  mv "$NARRATIVE_ACTIONS_BACKUP" "$NARRATIVE_ACTIONS"
-  echo "✓ Narrative actions restored"
-fi
+# Restore server action files
+for file in "${SERVER_ACTION_FILES[@]}"; do
+  if [ -f "${file}.static-backup" ]; then
+    mv "${file}.static-backup" "$file"
+    echo "✓ Restored $file"
+  fi
+done
 
 # Ensure _redirects file is copied to out directory (Netlify/Firebase)
 echo ""

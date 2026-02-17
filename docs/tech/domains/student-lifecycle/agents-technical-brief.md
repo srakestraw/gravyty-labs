@@ -6,6 +6,21 @@
 
 ---
 
+## 0. Agent Types (2025-02 Refactor)
+
+Agents support two types:
+
+| Type | Description |
+|------|--------------|
+| **AUTONOMOUS** | AI-powered agent that reasons and acts on your behalf. Uses Narrative Messaging for voice/tone. |
+| **FLOW** | No-Code Flow Builder: rule-based workflow with triggers, conditions, and actions. |
+
+- **Shared type**: `AgentType = 'AUTONOMOUS' | 'FLOW'` in `lib/agents/types.ts`
+- **Narrative Messaging**: Required for Autonomous agents; configurable profile, tone, topic allow/block, escalation, personalization boundaries
+- **Flow Builder**: MVP shell with nodes palette (trigger, condition, action) and canvas placeholder
+
+---
+
 ## 1. Overview
 
 The **Agents** section lets users list, view, edit, and create AI agents scoped to a Student Lifecycle workspace (e.g. Admissions, Registrar, Financial Aid). Routes are workspace-parameterized under the dynamic segment `[workspace]`.
@@ -146,6 +161,10 @@ Used by Detail and New; live under `app/(shell)/ai-assistants/agents/`:
 | `app/(shell)/ai-assistants/templates/` | `TemplateCard.tsx` | Template selection card |
 | `lib/student-lifecycle/` | `workspaces.ts` | WORKSPACES, getWorkspaceConfig |
 | `lib/nav/` | `ai-platform-nav.ts` | buildAiPlatformNav (Agents link) |
-| `lib/agents/` | `types.ts` | AgentPriorityWeight |
+| `lib/agents/` | `types.ts` | AgentPriorityWeight, AgentType, NarrativeMessagingConfig, FlowBuilderDefinition |
+| `lib/agents/` | `mock-data.ts` | MOCK_AGENTS, MOCK_NARRATIVE_PROFILES, getMockAgentById |
+| `components/shared/agents/` | `AgentTypeBadge.tsx` | Badge for Autonomous vs Flow |
+| `components/shared/agents/` | `NarrativeMessagingSection.tsx` | Profile, tone, topics, escalation, personalization (Autonomous only) |
+| `components/shared/agents/` | `FlowBuilderSection.tsx` | Nodes palette + canvas (Flow only) |
 
 This covers all files involved in the Student Lifecycle Agents experience (e.g. `/student-lifecycle/admissions/agents`): View (list), Edit (detail), and Create (new), and where each is implemented.

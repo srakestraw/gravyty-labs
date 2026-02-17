@@ -45,6 +45,8 @@ Object.defineProperty(exports, "SectionRegistrationReferenceSchema", { enumerabl
 Object.defineProperty(exports, "GradeSchemeSchema", { enumerable: true, get: function () { return student_transcript_grade_1.GradeSchemeSchema; } });
 Object.defineProperty(exports, "GradeSchema", { enumerable: true, get: function () { return student_transcript_grade_1.GradeSchema; } });
 Object.defineProperty(exports, "StudentTranscriptGradeSchema", { enumerable: true, get: function () { return student_transcript_grade_1.StudentTranscriptGradeSchema; } });
+// Narrative Platform schemas (Phase 0)
+__exportStar(require("./schemas/narrative"), exports);
 // Export mappers
 __exportStar(require("./mappers"), exports);
 // Export config

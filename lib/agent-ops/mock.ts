@@ -407,7 +407,7 @@ Sarah Johnson`,
           },
         ],
         recommendedChannel: 'email',
-      } as AdvancementFirstDraftPayload,
+      } as Record<string, unknown>,
     },
     {
       id: 'advancement-first-draft-2',
@@ -489,7 +489,7 @@ Development Officer`,
           },
         ],
         recommendedChannel: 'email',
-      } as AdvancementFirstDraftPayload,
+      } as Record<string, unknown>,
     },
     {
       id: 'advancement-first-draft-3',
@@ -571,7 +571,7 @@ Development Officer`,
           },
         ],
         recommendedChannel: 'email',
-      } as AdvancementFirstDraftPayload,
+      } as Record<string, unknown>,
     },
     {
       id: 'advancement-first-draft-4',
@@ -647,7 +647,7 @@ Development Officer`,
           },
         ],
         recommendedChannel: 'email',
-      } as AdvancementFirstDraftPayload,
+      } as Record<string, unknown>,
     },
     {
       id: 'advancement-first-draft-5',
@@ -733,7 +733,7 @@ Next Steps:
           },
         ],
         recommendedChannel: 'email',
-      } as AdvancementFirstDraftPayload,
+      } as Record<string, unknown>,
     },
     {
       id: 'advancement-first-draft-6',
@@ -809,7 +809,7 @@ Development Officer`,
           },
         ],
         recommendedChannel: 'email',
-      } as AdvancementFirstDraftPayload,
+      } as Record<string, unknown>,
     },
 
     // Other Pipeline Items (6 items)
@@ -970,6 +970,143 @@ export function getMockAgentOpsItemsForWorkspace(workspaceId: string): AgentOpsI
     default:
       return getMockAgentOpsItems();
   }
+}
+
+/**
+ * Mock agent-generated queue items (drafts, approvals, blocked actions, flow exceptions).
+ * Used by dataClient.listQueueItems to surface agent work as first-class queue items.
+ * TODO: Replace with real integration (agents store / API) and real-time updates (websockets/SSE).
+ */
+export function getMockAgentQueueItems(workspaceId: string): AgentOpsItem[] {
+  const now = new Date();
+  const base: AgentOpsItem[] = [];
+
+  if (workspaceId === 'admissions') {
+    base.push(
+      {
+        id: 'agent-draft-1',
+        type: 'AGENT_DRAFT_MESSAGE',
+        severity: 'Medium',
+        status: 'Open',
+        title: 'Draft: Transcript reminder for Sarah Chen',
+        summary: 'Transcript Helper Agent drafted an email reminding about missing transcript.',
+        person: { id: 'person-1', name: 'Sarah Chen', email: 'sarah.chen@example.edu', externalId: 'STU-2024-001', primaryRole: 'Admissions' },
+        agentId: 'agent-transcript-helper',
+        agentName: 'Transcript Helper Agent',
+        runId: 'run-t1',
+        agentSeverity: 'INFO',
+        role: 'Admissions',
+        sourceSystem: 'Agent Platform',
+        createdAt: now.toISOString(),
+        createdBy: 'agent',
+        tags: ['draft', 'transcript', 'missing-docs'],
+        payload: { artifactId: 'art-draft-1', channel: 'EMAIL', subjectRedacted: true, bodyRedacted: true },
+      },
+      {
+        id: 'agent-approval-1',
+        type: 'AGENT_APPROVAL_REQUIRED',
+        severity: 'High',
+        status: 'Open',
+        title: 'Approval required: Send email to Alexandra Martinez',
+        summary: 'High-Intent Prospect Agent requests approval to send follow-up email.',
+        person: { id: 'person-7', name: 'Alexandra Martinez', email: 'alex.martinez@example.edu', externalId: 'PROSP-2024-012', primaryRole: 'Admissions' },
+        agentId: 'agent-high-intent-prospect',
+        agentName: 'High-Intent Prospect Agent',
+        runId: 'run-t2',
+        agentSeverity: 'WARN',
+        role: 'Admissions',
+        sourceSystem: 'Agent Platform',
+        createdAt: new Date(now.getTime() - 3600000).toISOString(),
+        createdBy: 'agent',
+        tags: ['approval', 'follow-up', 'yield'],
+        payload: { approvalRequestId: 'ar-1', actionType: 'EMAIL', payloadPreviewRedacted: true },
+      },
+      {
+        id: 'agent-blocked-1',
+        type: 'AGENT_BLOCKED_ACTION',
+        severity: 'Medium',
+        status: 'Open',
+        title: 'Message blocked: narrative guardrail',
+        summary: 'Agent attempted to reference financial aid in message; blocked by narrative profile.',
+        person: { id: 'person-2', name: 'Michael Rodriguez', email: 'm.rodriguez@example.edu', externalId: 'STU-2024-042', primaryRole: 'Student Success' },
+        agentId: 'agent-registration-requirements',
+        agentName: 'Registration Requirements Agent',
+        runId: 'run-t3',
+        agentSeverity: 'WARN',
+        role: 'Registrar',
+        sourceSystem: 'Agent Platform',
+        createdAt: new Date(now.getTime() - 7200000).toISOString(),
+        createdBy: 'agent',
+        guardrailId: 'guardrail-financial-info',
+        tags: ['blocked', 'guardrail', 'narrative'],
+        payload: { actionLogId: 'al-1', reason: 'blocked_topic', topicDetected: '[REDACTED]' },
+      },
+      {
+        id: 'agent-exception-1',
+        type: 'AGENT_FLOW_EXCEPTION',
+        severity: 'Critical',
+        status: 'Open',
+        title: 'Flow execution failed: Transcript verification step',
+        summary: 'Transcript Helper Agent flow failed at SIS lookup step; connection timeout.',
+        person: { id: 'person-1', name: 'Sarah Chen', email: 'sarah.chen@example.edu', externalId: 'STU-2024-001', primaryRole: 'Admissions' },
+        agentId: 'agent-transcript-helper',
+        agentName: 'Transcript Helper Agent',
+        runId: 'run-t4',
+        agentSeverity: 'ERROR',
+        role: 'Admissions',
+        sourceSystem: 'Agent Platform',
+        createdAt: new Date(now.getTime() - 1800000).toISOString(),
+        createdBy: 'system',
+        tags: ['flow-error', 'sis', 'transcript'],
+        payload: { runId: 'run-t4', stepId: 'sis-lookup', errorSummary: 'Connection timeout', recoveryHint: 'retry_or_escalate' },
+      }
+    );
+  }
+
+  if (workspaceId === 'advancement') {
+    base.push(
+      {
+        id: 'agent-draft-adv-1',
+        type: 'AGENT_DRAFT_MESSAGE',
+        severity: 'Medium',
+        status: 'Open',
+        title: 'Draft: Donor thank-you for recent gift',
+        summary: 'Donor Warm-Up Agent drafted a thank-you email for recent gift.',
+        person: { id: 'donor-1', name: 'Jane Smith', email: 'jane.smith@example.com', primaryRole: 'Advancement' },
+        agentId: 'agent-donor-warmup',
+        agentName: 'Donor Warm-Up Agent',
+        runId: 'run-adv-1',
+        agentSeverity: 'INFO',
+        role: 'Advancement',
+        sourceSystem: 'Agent Platform',
+        createdAt: now.toISOString(),
+        createdBy: 'agent',
+        tags: ['draft', 'stewardship', 'donor-warm-up'],
+        payload: { artifactId: 'art-adv-1', channel: 'EMAIL', subjectRedacted: true, bodyRedacted: true },
+      },
+      {
+        id: 'agent-approval-adv-1',
+        type: 'AGENT_APPROVAL_REQUIRED',
+        severity: 'High',
+        status: 'Open',
+        title: 'Approval required: Send Gratavid to major donor',
+        summary: 'Donor Warm-Up Agent requests approval to send personalized video thank-you.',
+        person: { id: 'donor-2', name: 'Robert Johnson', email: 'r.johnson@example.com', primaryRole: 'Advancement' },
+        agentId: 'agent-donor-warmup',
+        agentName: 'Donor Warm-Up Agent',
+        runId: 'run-adv-2',
+        agentSeverity: 'WARN',
+        role: 'Advancement',
+        sourceSystem: 'Agent Platform',
+        createdAt: new Date(now.getTime() - 5400000).toISOString(),
+        createdBy: 'agent',
+        tags: ['approval', 'gratavid', 'stewardship-followups'],
+        payload: { approvalRequestId: 'ar-adv-1', actionType: 'GRATAVID', payloadPreviewRedacted: true },
+      }
+    );
+  }
+
+  return base;
 }
 
 export function getMockAgentOpsItems(): AgentOpsItem[] {

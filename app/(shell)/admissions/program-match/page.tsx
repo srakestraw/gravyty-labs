@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { dataClient } from '@/lib/data';
 import { ProgramMatchHubClient } from './ProgramMatchHubClient';
 
@@ -48,6 +49,7 @@ export default async function ProgramMatchPage() {
     : null;
 
   return (
+    <Suspense fallback={<div className="p-6 animate-pulse">Loading Program Match...</div>}>
     <ProgramMatchHubClient
       hubSummary={hubSummary}
       checklist={checklist}
@@ -66,5 +68,6 @@ export default async function ProgramMatchPage() {
       publishedSnapshots={publishedSnapshots}
       previewLinks={previewLinks}
     />
+    </Suspense>
   );
 }

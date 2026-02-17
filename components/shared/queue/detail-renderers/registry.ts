@@ -14,6 +14,8 @@ export interface QueueDetailRendererProps {
   onAction?: (id: string, action: QueueAction) => void;
   onNavigateToPerson?: (personId: string) => void;
   onNavigateToAgent?: (agentId: string) => void;
+  /** Base path for deep links (e.g. /admissions, /advancement/pipeline). From getAiPlatformBasePath(context). */
+  basePath?: string;
 }
 
 export type QueueDetailRenderer = (props: QueueDetailRendererProps) => React.ReactElement;

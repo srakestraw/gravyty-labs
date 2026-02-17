@@ -6,6 +6,10 @@ export type AiPlatformMode = 'global' | 'workspace';
 export type AiPlatformPageContext = {
   appId?: string;
   workspaceId?: string;
+  /** Sub-workspace within the app (e.g. admissions, pipeline, giving). When absent, derived from workspaceId. */
+  subWorkspaceId?: string;
+  /** Default voice for this workspace (e.g. gift_officer, advisor). Used for template instantiation. */
+  defaultVoice?: string;
   mode?: AiPlatformMode;
   peopleLabel?: string;
   activeSegmentId?: string;

@@ -1,7 +1,12 @@
 "use client";
 
 import * as React from "react";
-import type { AgentTemplate } from "./agent-templates";
+import {
+  templateHasDecisionIntelligence,
+  workspaceScopeLabel,
+  subWorkspaceLabel,
+  type AgentTemplate,
+} from "./agent-templates";
 import { cn } from "@/lib/utils";
 
 type TemplateCardProps = {
@@ -68,6 +73,28 @@ export function TemplateCard({
             <p className="mt-0.5 text-[11px] font-medium uppercase tracking-wide text-gray-500">
               {template.role}
             </p>
+          )}
+          {template.contextContract && (
+            <div className="mt-1.5 flex flex-wrap items-center gap-1">
+              <span className="inline-flex rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-600">
+                {workspaceScopeLabel(template.contextContract.workspace_scope.workspace_id)}
+              </span>
+              {template.contextContract.workspace_scope.sub_workspace_ids.slice(0, 2).map((id) => (
+                <span key={id} className="inline-flex rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-600">
+                  {subWorkspaceLabel(id)}
+                </span>
+              ))}
+              {template.contextContract.narrative_dependency?.uses_narrative_messaging && (
+                <span className="inline-flex rounded bg-indigo-50 px-1.5 py-0.5 text-[10px] font-medium text-indigo-700">
+                  Narrative Messaging
+                </span>
+              )}
+              {templateHasDecisionIntelligence(template) && (
+                <span className="inline-flex rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700">
+                  Decision Intelligence
+                </span>
+              )}
+            </div>
           )}
         </div>
 

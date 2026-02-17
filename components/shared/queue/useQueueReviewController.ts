@@ -163,6 +163,8 @@ export function useQueueReviewController({
           'send-email',
           'send-gratavid',
           'skip',
+          'approve',
+          'reject',
         ];
         if (completingActions.includes(action)) {
           // Wait a bit for state to update, then advance

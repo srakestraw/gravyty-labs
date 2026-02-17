@@ -63,7 +63,8 @@ import type {
 } from "@/lib/data/provider";
 import { loadCommunicationConfig } from "@/lib/communication/store";
 
-import { getMockAgentOpsItems, getMockAgentOpsItemsForWorkspace } from "@/lib/agent-ops/mock";
+import { getMockAgentOpsItems, getMockAgentOpsItemsForWorkspace, getMockAgentQueueItems } from "@/lib/agent-ops/mock";
+import { applySlaToItem } from "@/lib/agent-ops/sla";
 import { MOCK_CONTACTS } from "@/lib/contacts/mock-contacts";
 import { MOCK_SEGMENTS } from "@/lib/segments/mock-segments";
 import { MOCK_SEGMENTS as MOCK_SEGMENT_DEFINITIONS, getSegmentsByWorkspace } from "@/components/shared/ai-platform/segments/mock-data";
@@ -112,6 +113,9 @@ const programMatchRFIs: ProgramMatchRFI[] = [];
 const programMatchQuizzes: ProgramMatchQuiz[] = [];
 const programMatchQuizDraftByQuizId = new Map<string, ProgramMatchQuizDraft>();
 const programMatchQuizPublishedByQuizId = new Map<string, ProgramMatchQuizPublishedVersion[]>();
+
+// Published snapshots (persisted in-memory for widget/preview)
+const programMatchPublishedSnapshots: ProgramMatchPublishSnapshot[] = [];
 
 // Seed data flag
 let programMatchSeeded = false;
@@ -467,6 +471,19 @@ function seedProgramMatchIfNeeded() {
   programMatchSeeded = true;
 }
 
+/** Persisted queue action state (from GET /api/agent-ops/action-state). No PII. */
+type QueueActionStateMap = Record<
+  string,
+  {
+    status?: string;
+    snoozedUntil?: string;
+    assignedTo?: string | null;
+    severity?: string;
+    agentSeverity?: string;
+    updatedAt?: string;
+  }
+>;
+
 export const mockProvider: DataProvider = {
   async listQueueItems(ctx: DataContext) {
     seedProgramMatchIfNeeded();
@@ -476,7 +493,9 @@ export const mockProvider: DataProvider = {
 
     // Filter by workspace if provided
     if (ctx.workspace) {
-      items = getMockAgentOpsItemsForWorkspace(ctx.workspace);
+      const opsItems = getMockAgentOpsItemsForWorkspace(ctx.workspace);
+      const agentItems = getMockAgentQueueItems(ctx.workspace);
+      items = [...opsItems, ...agentItems];
     } else {
       items = getMockAgentOpsItems();
     }
@@ -499,11 +518,31 @@ export const mockProvider: DataProvider = {
       items = items.filter((item) => !item.assignedTo || item.assignedTo === ctx.userId);
     }
 
-    // Filter by mode if provided (leadership mode might show different items)
-    // For now, mode filtering is handled by the UI layer, but we can add logic here if needed
-    // if (ctx.mode === 'leadership') {
-    //   items = items.filter((item) => item.severity === 'Critical' || item.severity === 'High');
-    // }
+    // Merge persisted action state from API (client-side only; survives refresh)
+    if (typeof window !== 'undefined') {
+      try {
+        const res = await fetch('/api/agent-ops/action-state');
+        if (res.ok) {
+          const actionState = (await res.json()) as QueueActionStateMap;
+          items = items.map((item) => {
+            const s = actionState[item.id];
+            if (!s) return item;
+            return {
+              ...item,
+              ...(s.status && { status: s.status as QueueItem['status'] }),
+              ...(s.snoozedUntil && { slaDueAt: s.snoozedUntil }),
+              ...(s.assignedTo !== undefined && { assignedTo: s.assignedTo ?? undefined }),
+              ...(s.agentSeverity && { agentSeverity: s.agentSeverity as QueueItem['agentSeverity'] }),
+            };
+          });
+        }
+      } catch (_) {
+        // Ignore: API may be unavailable (e.g. SSR); items remain without persisted state
+      }
+    }
+
+    // Apply SLA (dueAt, slaStatus; escalate severity if BREACHED)
+    items = items.map((item) => applySlaToItem(item));
 
     return items;
   },
@@ -3117,23 +3156,26 @@ export const mockProvider: DataProvider = {
       return [];
     }
 
-    // Return empty for now - snapshots would be stored in a separate array
-    return [];
+    return [...programMatchPublishedSnapshots].sort((a, b) => b.version - a.version);
   },
 
-  async publishProgramMatchDraft(ctx: DataContext): Promise<ProgramMatchPublishSnapshot> {
+  async publishProgramMatchDraft(ctx: DataContext, input?: { draftConfig?: ProgramMatchDraftConfig | null }): Promise<ProgramMatchPublishSnapshot> {
     await delay(200);
-    
+    seedProgramMatchIfNeeded();
+
     if (ctx.workspace !== 'admissions') {
       throw new Error('Program Match is only available for admissions workspace');
     }
+
+    // Use caller's draftConfig for validation when provided (avoids server/client state mismatch)
+    const configToValidate = input?.draftConfig ?? programMatchDraftConfig;
 
     // Validate prerequisites
     const activeTraits = programMatchTraits.filter(t => t.isActive);
     const activeSkills = programMatchSkills.filter(s => s.isActive);
     const activePrograms = programMatchPrograms.filter(p => p.status === 'active');
 
-    if (!programMatchDraftConfig.voiceToneProfileId) {
+    if (!configToValidate?.voiceToneProfileId) {
       throw new Error('Voice and Tone profile must be selected');
     }
     if (activeTraits.length < 15) {
@@ -3148,13 +3190,19 @@ export const mockProvider: DataProvider = {
 
     // Create snapshot (without quiz - quizzes are separate now)
     const now = new Date().toISOString();
+    const snapshotDraftConfig = configToValidate
+      ? { ...programMatchDraftConfig, ...configToValidate }
+      : { ...programMatchDraftConfig };
+    const nextVersion = programMatchPublishedSnapshots.length > 0
+      ? Math.max(...programMatchPublishedSnapshots.map(s => s.version)) + 1
+      : 1;
     const snapshot: ProgramMatchPublishSnapshot = {
       id: `snapshot_${Date.now()}`,
-      version: 1,
+      version: nextVersion,
       status: 'published',
       publishedAt: now,
       publishedBy: null,
-      draftConfig: { ...programMatchDraftConfig },
+      draftConfig: snapshotDraftConfig,
       traits: [...activeTraits],
       skills: [...activeSkills],
       outcomes: programMatchOutcomes.filter(o => o.isActive),
@@ -3163,7 +3211,8 @@ export const mockProvider: DataProvider = {
       programOutcomes: Array.from(programMatchProgramOutcomesById.values()),
     };
 
-    // Store snapshot (in a real implementation, this would be persisted)
+    // Store snapshot for widget/preview lookup
+    programMatchPublishedSnapshots.push(snapshot);
     return { ...snapshot };
   },
 
@@ -3174,8 +3223,8 @@ export const mockProvider: DataProvider = {
       return null;
     }
 
-    // Return null for now - would look up from storage
-    return null;
+    const snapshot = programMatchPublishedSnapshots.find(s => s.id === id);
+    return snapshot ? { ...snapshot } : null;
   },
 
   // Program Match Preview Links
@@ -4502,11 +4551,12 @@ function itemMatchesPipelineObjective(item: QueueItem, objectiveId: string): boo
     case 'stewardship-followups':
       return (
         tags.some(tag => 
-          ['stewardship', 'thank-you', 'follow-up', 'gift', 'gratitude'].includes(tag.toLowerCase())
+          ['stewardship', 'stewardship-followups', 'donor-warm-up', 'thank-you', 'follow-up', 'gift', 'gratitude', 'gratavid'].includes(tag.toLowerCase())
         ) ||
         titleLower.includes('stewardship') ||
         titleLower.includes('thank') ||
         titleLower.includes('follow-up') ||
+        titleLower.includes('donor') ||
         summaryLower.includes('stewardship') ||
         summaryLower.includes('thank')
       );

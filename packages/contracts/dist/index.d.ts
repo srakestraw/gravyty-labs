@@ -9,5 +9,6 @@ export * from './schemas/academic-program';
 export { StudentAcademicProgramSchema, type StudentAcademicProgram, } from './schemas/student-academic-program';
 export { HonorSchema, AcademicCredentialSchema, type AcademicCredential, } from './schemas/academic-credential';
 export { SectionRegistrationReferenceSchema, GradeSchemeSchema, GradeSchema, StudentTranscriptGradeSchema, type StudentTranscriptGrade, } from './schemas/student-transcript-grade';
+export * from './schemas/narrative';
 export * from './mappers';
 export * from './config';

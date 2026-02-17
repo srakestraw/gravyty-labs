@@ -26,6 +26,7 @@ export function getAppNav(_params: { pathname: string }): { sections: NavSection
           { name: 'Voice & Tone', href: '/ai-assistants/voice-and-tone', icon: 'fa-solid fa-comments' },
           { name: 'Templates', href: '/ai-assistants/templates', icon: 'fa-solid fa-file-lines' },
           { name: 'Permissions', href: '/ai-assistants/permissions', icon: 'fa-solid fa-key' },
+          { name: 'Agents Reporting', href: '/ai-assistants/reports', icon: 'fa-solid fa-chart-pie' },
           { name: 'Settings', href: '/ai-assistants/settings', icon: 'fa-solid fa-cog' },
           { name: 'Design System Preview', href: 'https://advance-admin-steel.vercel.app/ai-assistant', icon: 'fa-solid fa-palette', external: true },
         ],

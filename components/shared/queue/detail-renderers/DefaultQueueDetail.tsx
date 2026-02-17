@@ -14,6 +14,7 @@ export function DefaultQueueDetail({
   onAction,
   onNavigateToPerson,
   onNavigateToAgent,
+  basePath,
 }: QueueDetailRendererProps) {
   return (
     <QueueDetail
@@ -25,6 +26,7 @@ export function DefaultQueueDetail({
       onAction={onAction || (() => {})}
       onNavigateToPerson={onNavigateToPerson}
       onNavigateToAgent={onNavigateToAgent}
+      basePath={basePath}
     />
   );
 }

@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { dataClient } from '@/lib/data';
 import { ProgramMatchHubClient } from '@/app/(shell)/admissions/program-match/ProgramMatchHubClient';
 import { WORKSPACES } from '@/lib/student-lifecycle/workspaces';
@@ -62,6 +63,7 @@ export default async function ProgramMatchPage({ params }: PageProps) {
     : null;
 
   return (
+    <Suspense fallback={<div className="p-6 animate-pulse">Loading Program Match...</div>}>
     <ProgramMatchHubClient
       hubSummary={hubSummary}
       checklist={checklist}
@@ -80,6 +82,7 @@ export default async function ProgramMatchPage({ params }: PageProps) {
       publishedSnapshots={publishedSnapshots}
       previewLinks={previewLinks}
     />
+    </Suspense>
   );
 }
 

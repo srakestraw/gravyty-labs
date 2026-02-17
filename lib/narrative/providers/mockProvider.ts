@@ -25,8 +25,9 @@ import type {
   LearningSignal,
   NarrativeLibraryProvider,
 } from '../types';
+import type { NarrativeSeedFixture } from '../seed/types';
 import { buildEntityNarrativeContext, contextToEmbeddingText } from '../context-builder';
-import { embedTextStub } from '../embedding';
+import { embedText } from '../embedding';
 
 function cosineSimilarity(a: number[], b: number[]): number {
   if (a.length !== b.length || a.length === 0) return 0;
@@ -47,6 +48,137 @@ const proofStore: ProofBlockRecord[] = [];
 const linkStore: { narrativeAssetId: string; proofBlockId: string }[] = [];
 const eventStore: NarrativeDeliveryEvent[] = [];
 const deliveryPlayStore: DeliveryPlayRecord[] = [];
+
+/** Map fixture workspace label to record workspace (domain scope). */
+function fixtureWorkspaceToRecord(fixtureWorkspace?: string): string {
+  if (fixtureWorkspace === 'advancement_giving_intelligence') return 'advancement_giving';
+  if (fixtureWorkspace === 'student_lifecycle_ai') return 'student_lifecycle';
+  return fixtureWorkspace ?? 'advancement_giving';
+}
+
+/**
+ * Seed the in-memory mock store from a fixture (e.g. UNC narrative_messaging_unc.json).
+ * Clears existing narrative/proof/play/event data, then loads fixture.
+ * Call when SEED_NARRATIVE_UNC=true (or similar) on app start.
+ */
+export function seedFromFixture(fixture: NarrativeSeedFixture): void {
+  const meta = fixture._meta ?? {};
+  const workspaceRecord = fixtureWorkspaceToRecord(meta.workspace);
+  const subWorkspace = meta.sub_workspace ?? 'pipeline_intelligence';
+  const nowIso = new Date().toISOString();
+
+  store.length = 0;
+  proofStore.length = 0;
+  linkStore.length = 0;
+  deliveryPlayStore.length = 0;
+  eventStore.length = 0;
+
+  for (const n of fixture.narratives) {
+    const modules = (n.modules ?? []).map((m) => ({
+      id: m.id,
+      type: m.type,
+      contentRef: m.contentRef ?? undefined,
+    }));
+    const asset: NarrativeAssetRecord = {
+      id: n.id,
+      workspace: workspaceRecord,
+      domain_scope: n.domain_scope as NarrativeAssetRecord['domain_scope'],
+      sub_domain_scope: n.sub_domain_scope,
+      outcome: n.outcome,
+      moment: n.moment,
+      message_intent: n.message_intent,
+      channel_fit: n.channel_fit,
+      voice: n.voice,
+      compliance_risk_level: n.compliance_risk_level as NarrativeAssetRecord['compliance_risk_level'],
+      pii_tier: n.pii_tier as NarrativeAssetRecord['pii_tier'],
+      approval_state: n.approval_state as NarrativeAssetRecord['approval_state'],
+      relationship_type: n.relationship_type,
+      contentRef: n.contentRef,
+      modules: modules.length ? modules : undefined,
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    };
+    store.push(asset);
+  }
+
+  for (const p of fixture.proof_blocks) {
+    const proof: ProofBlockRecord = {
+      id: p.id,
+      workspace: workspaceRecord,
+      proof_type: p.proof_type,
+      claim_support_level: p.claim_support_level,
+      claim_class: p.claim_class,
+      freshness_window: p.freshness_window,
+      allowed_voice: p.allowed_voice,
+      content: p.content,
+      restricted_channels: p.restricted_channels ?? [],
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    };
+    proofStore.push(proof);
+  }
+
+  for (const link of fixture.narrative_proof_links) {
+    linkStore.push({
+      narrativeAssetId: link.narrative_asset_id,
+      proofBlockId: link.proof_block_id,
+    });
+  }
+
+  for (const dp of fixture.delivery_plays) {
+    const play: DeliveryPlayRecord = {
+      id: dp.id,
+      workspace: workspaceRecord,
+      sub_workspace: subWorkspace,
+      play_category: dp.play_category,
+      trigger_type: dp.trigger_type,
+      cadence_policy: dp.cadence_policy,
+      eligibility: dp.eligibility,
+      success_events: dp.success_events,
+      suppression_policy_id: undefined,
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    };
+    deliveryPlayStore.push(play);
+  }
+
+  if (fixture.performance?.per_narrative) {
+    const playId = fixture.delivery_plays[0]?.id ?? 'seed-play';
+    const baseTime = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    for (const row of fixture.performance.per_narrative) {
+      for (let i = 0; i < row.delivered; i++) {
+        eventStore.push({
+          workspace: workspaceRecord,
+          sub_workspace: subWorkspace,
+          play_id: playId,
+          event_type: 'narrative_delivered',
+          narrative_asset_id: row.narrative_asset_id,
+          timestamp: new Date(baseTime + i * 60000).toISOString(),
+        });
+      }
+      for (let i = 0; i < row.converted; i++) {
+        eventStore.push({
+          workspace: workspaceRecord,
+          sub_workspace: subWorkspace,
+          play_id: playId,
+          event_type: 'narrative_converted',
+          narrative_asset_id: row.narrative_asset_id,
+          timestamp: new Date(baseTime + 1000 * 60000 + i * 60000).toISOString(),
+        });
+      }
+      for (let i = 0; i < row.assist; i++) {
+        eventStore.push({
+          workspace: workspaceRecord,
+          sub_workspace: subWorkspace,
+          play_id: playId,
+          event_type: 'narrative_assist',
+          narrative_asset_id: row.narrative_asset_id,
+          timestamp: new Date(baseTime + 2000 * 60000 + i * 60000).toISOString(),
+        });
+      }
+    }
+  }
+}
 
 function nextId(): string {
   return crypto.randomUUID();
@@ -304,7 +436,7 @@ export const narrativeMockProvider: NarrativeLibraryProvider = {
   async getContextEmbedding(ctx, input) {
     const built = await this.buildEntityNarrativeContext(ctx, input);
     const text = contextToEmbeddingText(built);
-    return embedTextStub(text);
+    return embedText(text);
   },
 
   // Recommendation Engine (Phase 4)
