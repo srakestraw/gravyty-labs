@@ -14,7 +14,7 @@ const MOCK_FEATURE_FLAGS: Record<string, boolean> = {
   queueBulkActions: false, // Bulk select + bulk action bar in Queue (Workbench)
   queueRealtime: true, // Real-time queue updates via SSE (fallback to polling when disabled/unavailable)
   queueNotifications: false, // In-app notifications + Slack stub for SLA/approvals
-  advancementPipelineAssistantEnabled: false, // Phase 1: Advancement Pipeline Assistant (stub)
+  advancementPipelineAssistantEnabled: true, // Advancement Pipeline Assistant at /advancement/pipeline/assistant
 };
 
 /**

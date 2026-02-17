@@ -1,8 +1,8 @@
 /**
- * Advancement Data Provider Implementation (Stub for Phase 1)
- * 
- * Phase 1: Returns "not implemented" errors or empty results.
- * This provider is feature-flagged and will be implemented in later phases.
+ * Advancement Data Provider Implementation
+ *
+ * Combines general advancement methods with pipeline-specific methods.
+ * Pipeline methods delegate to AdvancementPipelineProvider.
  */
 
 import type {
@@ -14,15 +14,22 @@ import type {
   ProspectSearchFilters,
   PipelineSnapshot,
   PipelineSnapshotFilters,
+  PriorityBucket,
+  StalledSummary,
+  PriorityProspectRow,
+  ProspectDetail,
+  LikelyToGiveProspect,
 } from './types';
 import { notImplementedResponse } from './types';
+import { AdvancementPipelineProvider } from './advancementPipeline';
+
+const pipelineProvider = new AdvancementPipelineProvider();
 
 export class AdvancementDataProviderImpl implements AdvancementDataProvider {
   async getDonorSummary(
     userContext: UserContext,
     donorId: string
   ): Promise<ProviderResponse<DonorSummary>> {
-    // Phase 1: Not implemented
     return notImplementedResponse<DonorSummary>('Donor summary retrieval');
   }
 
@@ -32,7 +39,6 @@ export class AdvancementDataProviderImpl implements AdvancementDataProvider {
     filters?: ProspectSearchFilters,
     pagination?: { page: number; pageSize: number }
   ): Promise<ProviderResponse<ProspectSearchResult>> {
-    // Phase 1: Return empty result with clear stub marker
     const result: ProspectSearchResult = {
       prospects: [],
       total: 0,
@@ -53,8 +59,40 @@ export class AdvancementDataProviderImpl implements AdvancementDataProvider {
     userContext: UserContext,
     filters?: PipelineSnapshotFilters
   ): Promise<ProviderResponse<PipelineSnapshot>> {
-    // Phase 1: Not implemented
     return notImplementedResponse<PipelineSnapshot>('Pipeline snapshot retrieval');
+  }
+
+  async getStalledThisWeek(
+    userContext: UserContext
+  ): Promise<ProviderResponse<StalledSummary>> {
+    return pipelineProvider.getStalledThisWeek(userContext);
+  }
+
+  async getPriorityBucket(
+    userContext: UserContext,
+    bucket: PriorityBucket
+  ): Promise<ProviderResponse<PriorityProspectRow[]>> {
+    return pipelineProvider.getPriorityBucket(userContext, bucket);
+  }
+
+  async getProspectDetail(
+    userContext: UserContext,
+    prospectId: string
+  ): Promise<ProviderResponse<ProspectDetail>> {
+    return pipelineProvider.getProspectDetail(userContext, prospectId);
+  }
+
+  async getLikelyToGive(
+    userContext: UserContext,
+    windowDays?: number
+  ): Promise<ProviderResponse<LikelyToGiveProspect[]>> {
+    return pipelineProvider.getLikelyToGive(userContext, windowDays);
+  }
+
+  async getPriorityListToday(
+    userContext: UserContext
+  ): Promise<ProviderResponse<PriorityProspectRow[]>> {
+    return pipelineProvider.getPriorityListToday(userContext);
   }
 }
 

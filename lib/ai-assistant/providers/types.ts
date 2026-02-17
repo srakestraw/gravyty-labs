@@ -247,6 +247,67 @@ export interface PipelineSnapshot {
   }>;
 }
 
+// ============================================================================
+// Advancement Pipeline Types (stalled, priority buckets, prospect detail)
+// ============================================================================
+
+export type PriorityBucket = 'high' | 'medium' | 'low';
+
+export interface StalledSummary {
+  stalledCount: number;
+  highCount: number;
+  mediumCount: number;
+  lowCount: number;
+}
+
+export interface PriorityProspectRow {
+  id: string;
+  name: string;
+  subtitle?: string; // class year or segment
+  priority: PriorityBucket;
+  lastActivity: string;
+  stallReasons: string[];
+  officer: string;
+  activeAgents: string[];
+  suggestedAgents: string[];
+}
+
+export interface ProspectDetail {
+  id: string;
+  name: string;
+  officer: string;
+  lastActivity: string;
+  segment?: string;
+  priority: PriorityBucket;
+  stage?: string;
+  overview: string;
+  currentFindings: string[];
+  whyStalled: string[];
+  recentActions: {
+    timestamp: string;
+    action: string;
+    detail: string;
+  }[];
+  whatHappensNext: string;
+  recommendedNextSteps: {
+    label: string;
+    action: string;
+  }[];
+  timeline: {
+    timestamp: string;
+    action: string;
+    detail: string;
+  }[];
+}
+
+export interface LikelyToGiveProspect {
+  id: string;
+  name: string;
+  score?: number;
+  lastGiftDate?: string;
+  givingTier?: string;
+}
+
 export interface AdvancementDataProvider {
   /**
    * Get summary information for a specific donor
@@ -276,6 +337,44 @@ export interface AdvancementDataProvider {
     userContext: UserContext,
     filters?: PipelineSnapshotFilters
   ): Promise<ProviderResponse<PipelineSnapshot>>;
+
+  /**
+   * Get stalled prospects this week (counts + bucket definitions)
+   */
+  getStalledThisWeek(
+    userContext: UserContext
+  ): Promise<ProviderResponse<StalledSummary>>;
+
+  /**
+   * Get prospects for a priority bucket
+   */
+  getPriorityBucket(
+    userContext: UserContext,
+    bucket: PriorityBucket
+  ): Promise<ProviderResponse<PriorityProspectRow[]>>;
+
+  /**
+   * Get prospect detail including timelines and suggested actions
+   */
+  getProspectDetail(
+    userContext: UserContext,
+    prospectId: string
+  ): Promise<ProviderResponse<ProspectDetail>>;
+
+  /**
+   * Get prospects likely to give in the next N days
+   */
+  getLikelyToGive(
+    userContext: UserContext,
+    windowDays?: number
+  ): Promise<ProviderResponse<LikelyToGiveProspect[]>>;
+
+  /**
+   * Get today's priority list (mixed high/medium for outreach)
+   */
+  getPriorityListToday(
+    userContext: UserContext
+  ): Promise<ProviderResponse<PriorityProspectRow[]>>;
 }
 
 

@@ -122,7 +122,7 @@ describe('AI Assistant Data Access Enforcement', () => {
       const content = readFileSync(filePath, 'utf-8');
       
       if (content.includes("from '@/lib/data'") || content.includes('from "@/lib/data"')) {
-        violations.push(`Found direct dataClient import in ${file}`);
+        violations.push(`Found direct dataClient import in ${filePath}`);
       }
     }
 
@@ -131,6 +131,50 @@ describe('AI Assistant Data Access Enforcement', () => {
       violations.forEach(v => console.error(`  ${v}`));
       console.error('\n💡 Use domain-scoped providers instead.');
       console.error('   Example: import { AdmissionsDataProvider } from "@/lib/ai-assistant/providers/types"');
+    }
+
+    expect(violations).toHaveLength(0);
+  });
+
+  it('advancement pipeline pages should not import admissions provider or dataClient', () => {
+    const advancementPipelinePaths = [
+      join(process.cwd(), 'app', '(shell)', 'advancement', 'pipeline', 'assistant'),
+      join(process.cwd(), 'components', 'ai-assistant', 'advancement-pipeline'),
+    ];
+
+    const forbiddenInAdvancement = [
+      { pattern: /from\s+['"]@\/lib\/data['"]|import.*dataClient/, message: 'dataClient' },
+      { pattern: /from\s+['"][^'"]*\/admissions['"]|from\s+['"][^'"]*admissions\/types['"]/, message: 'admissions provider' },
+    ];
+
+    const violations: string[] = [];
+
+    function scanDir(dir: string) {
+      try {
+        const stat = statSync(dir);
+        if (!stat.isDirectory()) return;
+      } catch {
+        return;
+      }
+      const entries = readdirSync(dir);
+      for (const entry of entries) {
+        const fullPath = join(dir, entry);
+        const stat = statSync(fullPath);
+        if (stat.isDirectory()) {
+          scanDir(fullPath);
+        } else if ((entry.endsWith('.ts') || entry.endsWith('.tsx')) && !entry.endsWith('.test.ts')) {
+          const content = readFileSync(fullPath, 'utf-8');
+          for (const { pattern, message } of forbiddenInAdvancement) {
+            if (pattern.test(content)) {
+              violations.push(`${fullPath}: must not import ${message}`);
+            }
+          }
+        }
+      }
+    }
+
+    for (const dir of advancementPipelinePaths) {
+      scanDir(dir);
     }
 
     expect(violations).toHaveLength(0);
