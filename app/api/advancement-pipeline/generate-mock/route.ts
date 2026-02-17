@@ -61,7 +61,7 @@ Your job is to:
 4. Generate 3-5 suggestedNextSteps as short action bullets, tailored to the question context.
 5. Generate realistic mock data matching the result type.
 
-For stalled_summary: return { stalledCount, highCount, mediumCount, lowCount, highProspects, mediumProspects, lowProspects }. Each prospect: { id, name, subtitle, priority, lastActivity, stallReasons, officer, activeAgents, suggestedAgents }.
+For stalled_summary: return { stalledCount, highCount, mediumCount, lowCount, highProspects, mediumProspects, lowProspects }. CRITICAL: highProspects MUST contain exactly highCount items; mediumProspects exactly mediumCount; lowProspects exactly lowCount. stalledCount = highCount + mediumCount + lowCount. Generate ALL prospects—do not truncate. Each prospect: { id, name, subtitle, priority, lastActivity, stallReasons, officer, activeAgents, suggestedAgents }. Use realistic university donor names.
 
 For likely_to_give: return an array of 5-10 prospects with { id, name, score (70-95), lastGiftDate, givingTier }.
 
@@ -104,7 +104,7 @@ Generate mock data for this advancement pipeline question. Return the JSON objec
         { role: 'user', content: userPrompt },
       ],
       temperature: 0.7,
-      max_tokens: 2000,
+      max_tokens: 4000,
       response_format: { type: 'json_object' },
     });
 
@@ -134,25 +134,46 @@ Generate mock data for this advancement pipeline question. Return the JSON objec
       if (typeof d.stalledCount !== 'number' || typeof d.highCount !== 'number') {
         throw new Error('Invalid stalled_summary data');
       }
-      const normalizeProspect = (prefix: string) => (p: Partial<PriorityProspectRow>, i: number) => ({
+      const highCount = Math.max(0, d.highCount);
+      const mediumCount = Math.max(0, d.mediumCount ?? 0);
+      const lowCount = Math.max(0, d.lowCount ?? 0);
+      const normalizeProspect = (prefix: string, priority: 'high' | 'medium' | 'low') => (p: Partial<PriorityProspectRow>, i: number) => ({
         id: p?.id || `${prefix}-${i + 1}`,
         name: p?.name || 'Unknown',
         subtitle: p?.subtitle,
-        priority: (p?.priority as 'high' | 'medium' | 'low') || 'medium',
+        priority: (p?.priority as 'high' | 'medium' | 'low') || priority,
         lastActivity: p?.lastActivity || '5 days ago',
         stallReasons: Array.isArray(p?.stallReasons) ? p.stallReasons : [],
         officer: p?.officer || 'Sarah Mitchell',
         activeAgents: Array.isArray(p?.activeAgents) ? p.activeAgents : [],
         suggestedAgents: Array.isArray(p?.suggestedAgents) ? p.suggestedAgents : [],
       });
+      const padProspect = (prefix: string, priority: 'high' | 'medium' | 'low', startIndex: number) =>
+        normalizeProspect(prefix, priority)({ name: `Prospect ${startIndex + 1}` }, startIndex);
+
+      let highProspects = (d.highProspects || []).slice(0, highCount).map(normalizeProspect('p-high', 'high'));
+      let mediumProspects = (d.mediumProspects || []).slice(0, mediumCount).map(normalizeProspect('p-med', 'medium'));
+      let lowProspects = (d.lowProspects || []).slice(0, lowCount).map(normalizeProspect('p-low', 'low'));
+
+      // Pad when AI returns fewer prospects than counts (common with LLMs)
+      while (highProspects.length < highCount) {
+        highProspects.push(padProspect('p-high', 'high', highProspects.length));
+      }
+      while (mediumProspects.length < mediumCount) {
+        mediumProspects.push(padProspect('p-med', 'medium', mediumProspects.length));
+      }
+      while (lowProspects.length < lowCount) {
+        lowProspects.push(padProspect('p-low', 'low', lowProspects.length));
+      }
+
       parsed.data = {
-        stalledCount: d.stalledCount,
-        highCount: d.highCount,
-        mediumCount: d.mediumCount ?? 0,
-        lowCount: d.lowCount ?? 0,
-        highProspects: (d.highProspects || []).slice(0, d.highCount).map(normalizeProspect('p-high')),
-        mediumProspects: (d.mediumProspects || []).slice(0, d.mediumCount ?? 0).map(normalizeProspect('p-med')),
-        lowProspects: (d.lowProspects || []).slice(0, d.lowCount ?? 0).map(normalizeProspect('p-low')),
+        stalledCount: highCount + mediumCount + lowCount,
+        highCount,
+        mediumCount,
+        lowCount,
+        highProspects,
+        mediumProspects,
+        lowProspects,
       };
     }
 
