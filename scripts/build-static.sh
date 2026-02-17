@@ -56,7 +56,6 @@ DYNAMIC_PAGE_ROUTES=(
   "app/(shell)/sis/instructors/[id]"
   "app/(shell)/sis/students/[id]"
   "app/(shell)/admin/voice-and-tone/profiles/[profileId]"
-  "app/(shell)/student-lifecycle/[workspace]"
   "app/(shell)/advancement/pipeline/agents/[id]"
 )
 
