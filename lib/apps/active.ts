@@ -54,10 +54,14 @@ export function isAppActiveInSwitcher(params: {
   if (app.id === 'ai-chatbots-messaging' && !!pathname?.startsWith('/ai-assistants/assistant')) return true;
   if (
     app.id === 'engagement-hub' &&
-    (activeAppId === 'community' || activeAppId === 'alumni-engagement' || activeAppId === 'graduway-community')
+    (activeAppId === 'community' ||
+      activeAppId === 'alumni-engagement' ||
+      activeAppId === 'graduway-community' ||
+      activeAppId === 'engagement-hub')
   ) {
     return true;
   }
+  if (app.id === 'engagement-hub' && !!pathname?.startsWith('/engagement-hub')) return true;
   if (
     app.id === 'advancement-philanthropy' &&
     (activeAppId === 'advancement' ||

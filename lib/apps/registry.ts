@@ -77,12 +77,18 @@ export function getAppRegistry(params?: { persona?: 'higher-ed' | 'nonprofit' })
       id: 'engagement-hub',
       label: isHigherEd ? 'Engagement Hub' : 'Community Engagement',
       icon: 'fa-solid fa-users',
-      href: '/community',
+      href: '/engagement-hub',
       color: '#7C3AED',
       poweredBy: 'Platform',
       description: isHigherEd
-        ? 'Events, volunteering, mentoring, groups, and messaging. Graduway & Athlete Network.'
+        ? 'Events, mentoring, networking, and messaging for students and alumni.'
         : 'Events, volunteering, peer programs, groups, and messaging.',
+      pills: isHigherEd
+        ? [
+            { id: 'student', label: 'Student Hub', href: '/engagement-hub/student' },
+            { id: 'alumni', label: 'Alumni Hub', href: '/engagement-hub/alumni' },
+          ]
+        : undefined,
       group: 'main',
     },
     {

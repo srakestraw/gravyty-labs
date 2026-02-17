@@ -19,6 +19,7 @@ import { getAppNav as getAiAssistantsNav } from '../ai-assistants/_nav';
 import { getAppNav as getAdminNav } from '../admin/_nav';
 import { getAppNav as getAdvancementNav } from '../advancement/_nav';
 import { getAppNav as getCommunityNav } from '../community/_nav';
+import { getAppNav as getEngagementHubNav } from '../engagement-hub/_nav';
 import { getAppNav as getDataNav } from '../data/_nav';
 import { getAppNav as getSimAppsNav } from '../sim-apps/_nav';
 import { getAppNav as getStudentLifecycleNav } from '../student-lifecycle/_nav';
@@ -43,7 +44,7 @@ function getSidebarNav(persona: Persona): NavItem[] {
     { name: 'AI Chatbots & Messaging', href: '/ai-assistants/assistant', icon: 'fa-solid fa-comments' },
     {
       name: isHigherEd ? 'Engagement Hub' : 'Community Engagement',
-      href: '/community',
+      href: '/engagement-hub',
       icon: 'fa-solid fa-users',
     },
     {
@@ -102,6 +103,7 @@ export function AppSidebar() {
   const isInStudentLifecycle = pathname?.startsWith('/student-lifecycle');
   // Check if we're in the Community/Engagement Hub app
   const isInCommunity = pathname?.startsWith('/community');
+  const isInEngagementHub = pathname?.startsWith('/engagement-hub');
   // Check if we're in the CRM Mock app
   const isInCrmMock = pathname?.startsWith('/crm-mock');
 
@@ -185,8 +187,8 @@ export function AppSidebar() {
       // CRM Mock area
       'crm-mock': getCrmMockNav,
 
-      // These exist but currently have no sidebar sub-nav; keep map for completeness.
-      'engagement-hub': getCommunityNav,
+      // Engagement Hub (Student Hub, Alumni Hub workspaces)
+      'engagement-hub': getEngagementHubNav,
       insights: getDataNav,
 
       // SIM Apps are currently separate links in the sidebar and not part of the switcher registry.
@@ -315,7 +317,7 @@ type Navigation =
     });
 
     return filteredNav;
-  }, [activeRegistryAppId, appNavByAppId, pathname, isInAIAssistants, isInAdmin, isInAdvancement, isInAdmissions, isInStudentLifecycle, isInCommunity, aiAssistantsEnabled, user?.email, user?.uid, persona, sidebarOpen, isMobile]);
+  }, [activeRegistryAppId, appNavByAppId, pathname, isInAIAssistants, isInAdmin, isInAdvancement, isInAdmissions, isInStudentLifecycle, isInCommunity, isInEngagementHub, aiAssistantsEnabled, user?.email, user?.uid, persona, sidebarOpen, isMobile]);
 
   return (
     <>
@@ -337,7 +339,7 @@ type Navigation =
       >
         <nav className="flex flex-col gap-1 p-2 h-full overflow-hidden">
           <div className="flex-1 min-h-0 overflow-y-auto">
-          {(isInAIAssistants || isInAdmin || isInAdvancement || isInAdmissions || isInStudentLifecycle || isInCommunity || isInCrmMock) && !Array.isArray(navigation) ? (
+          {(isInAIAssistants || isInAdmin || isInAdvancement || isInAdmissions || isInStudentLifecycle || isInCommunity || isInEngagementHub || isInCrmMock) && !Array.isArray(navigation) ? (
             <>
               {/* Top-level navigation items */}
               {/* For CRM Mock, navigation.topLevel contains sections; for others, it contains items */}
