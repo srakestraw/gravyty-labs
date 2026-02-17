@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
-import { narrativeClient } from '@/lib/narrative';
+import { narrativeClient } from '@/lib/narrative/client';
 import { getOutcomes, getMoments, type DomainScope } from '@/lib/narrative/taxonomy';
 import type { NarrativeMessagingContext } from './NarrativeMessagingClient';
-import type { NarrativeAssetInput, NarrativeAssetRecord } from '@/lib/narrative';
+import type { NarrativeAssetInput, NarrativeAssetRecord } from '@/lib/narrative/client';
 
 const MESSAGE_INTENTS = [
   { value: 'nudge', label: 'Nudge' },

@@ -58,8 +58,6 @@ DYNAMIC_PAGE_ROUTES=(
   "app/(shell)/admin/voice-and-tone/profiles/[profileId]"
   "app/(shell)/student-lifecycle/[workspace]"
   "app/(shell)/advancement/pipeline/agents/[id]"
-  "app/(shell)/advancement/giving/narrative-messaging"
-  "app/(shell)/advancement/pipeline/narrative-messaging"
 )
 
 for route in "${DYNAMIC_PAGE_ROUTES[@]}"; do

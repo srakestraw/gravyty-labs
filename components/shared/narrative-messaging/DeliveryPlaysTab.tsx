@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { narrativeClient } from '@/lib/narrative';
+import { narrativeClient } from '@/lib/narrative/client';
 import type { NarrativeMessagingContext } from './NarrativeMessagingClient';
-import type { DeliveryPlayRecord } from '@/lib/narrative';
+import type { DeliveryPlayRecord } from '@/lib/narrative/client';
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -68,7 +68,7 @@ export function DeliveryPlaysTab({
     return (
       <div className="flex items-center gap-2 text-muted-foreground">
         <FontAwesomeIcon icon="fa-solid fa-spinner" className="h-4 w-4 animate-spin" />
-        Loading delivery plays…
+        Loading usage rules…
       </div>
     );
   }
@@ -86,14 +86,14 @@ export function DeliveryPlaysTab({
       <div className="flex justify-between items-center">
         <Button onClick={() => setShowForm(true)}>
           <FontAwesomeIcon icon="fa-solid fa-plus" className="mr-2" />
-          Create delivery play
+          Create usage rule
         </Button>
       </div>
 
       {showForm && (
         <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border bg-card p-4">
           <div className="flex justify-between items-center">
-            <h3 className="font-semibold">New delivery play</h3>
+            <h3 className="font-semibold">New usage rule</h3>
             <Button type="button" variant="ghost" size="sm" onClick={() => setShowForm(false)}>Cancel</Button>
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
@@ -118,14 +118,14 @@ export function DeliveryPlaysTab({
           </div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
-            <Button type="submit" disabled={submitting}>Create delivery play</Button>
+            <Button type="submit" disabled={submitting}>Create usage rule</Button>
           </div>
         </form>
       )}
 
       {plays.length === 0 && !showForm ? (
         <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-          No delivery plays yet. Create one to use narratives in the right moments.
+          No usage rules yet. Create one to use messages in the right moments.
         </div>
       ) : (
         <ul className="space-y-3">
@@ -133,7 +133,7 @@ export function DeliveryPlaysTab({
             <li key={p.id} className="rounded-lg border bg-card px-4 py-3">
               <div className="font-medium text-sm">{p.play_category.replace(/_/g, ' ')} · {p.trigger_type} · {p.cadence_policy}</div>
               {p.eligibility?.narrativeIds?.length ? (
-                <div className="text-xs text-muted-foreground mt-1">Narratives: {p.eligibility.narrativeIds.length}</div>
+                <div className="text-xs text-muted-foreground mt-1">Messages: {p.eligibility.narrativeIds.length}</div>
               ) : null}
             </li>
           ))}

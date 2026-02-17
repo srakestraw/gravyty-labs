@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { narrativeClient } from '@/lib/narrative';
+import { narrativeClient } from '@/lib/narrative/client';
 import type { NarrativeMessagingContext } from './NarrativeMessagingClient';
-import type { ProofBlockRecord } from '@/lib/narrative';
+import type { ProofBlockRecord } from '@/lib/narrative/client';
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -72,7 +72,7 @@ export function ProofBlocksTab({
     return (
       <div className="flex items-center gap-2 text-muted-foreground">
         <FontAwesomeIcon icon="fa-solid fa-spinner" className="h-4 w-4 animate-spin" />
-        Loading proof blocks…
+        Loading supporting details…
       </div>
     );
   }
@@ -90,14 +90,14 @@ export function ProofBlocksTab({
       <div className="flex justify-between items-center">
         <Button onClick={() => setShowForm(true)}>
           <FontAwesomeIcon icon="fa-solid fa-plus" className="mr-2" />
-          Create proof block
+          Create supporting detail
         </Button>
       </div>
 
       {showForm && (
         <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border bg-card p-4">
           <div className="flex justify-between items-center">
-            <h3 className="font-semibold">New proof block</h3>
+            <h3 className="font-semibold">New supporting detail</h3>
             <Button type="button" variant="ghost" size="sm" onClick={() => setShowForm(false)}>Cancel</Button>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -146,7 +146,7 @@ export function ProofBlocksTab({
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
             <Button type="submit" disabled={submitting || !form.content.trim()}>
-              {submitting ? <FontAwesomeIcon icon="fa-solid fa-spinner" className="animate-spin" /> : 'Create proof block'}
+              {submitting ? <FontAwesomeIcon icon="fa-solid fa-spinner" className="animate-spin" /> : 'Create supporting detail'}
             </Button>
           </div>
         </form>
@@ -154,7 +154,7 @@ export function ProofBlocksTab({
 
       {blocks.length === 0 && !showForm ? (
         <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-          No proof blocks yet. Create one to attach to narratives.
+          No supporting details yet. Create one to attach to messages.
         </div>
       ) : (
         <ul className="space-y-3">

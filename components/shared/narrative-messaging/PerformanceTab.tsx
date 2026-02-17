@@ -1,10 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { narrativeClient } from '@/lib/narrative';
+import { narrativeClient } from '@/lib/narrative/client';
 import type { NarrativeMessagingContext } from './NarrativeMessagingClient';
-import type { NarrativePerformanceStats, LearningSignal } from '@/lib/narrative';
+import type { NarrativePerformanceStats, LearningSignal } from '@/lib/narrative/client';
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
+
+interface PerformanceSummary {
+  note: string;
+  top_narratives_this_month: { narrative_asset_id: string; title: string; delivered: number }[];
+  top_proof_blocks: { proof_block_id: string; title: string; use_count: number }[];
+}
 
 export function PerformanceTab({
   narrativeContext,
@@ -15,6 +21,8 @@ export function PerformanceTab({
   const [signals, setSignals] = useState<LearningSignal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [seedEnabled, setSeedEnabled] = useState(false);
+  const [performanceSummary, setPerformanceSummary] = useState<PerformanceSummary | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -22,10 +30,14 @@ export function PerformanceTab({
     Promise.all([
       narrativeClient.getPerformanceStats(narrativeContext),
       narrativeClient.getLearningSignals(narrativeContext),
+      narrativeClient.isNarrativeSeedEnabled(),
+      narrativeClient.getPerformanceSummary(),
     ])
-      .then(([s, sig]) => {
+      .then(([s, sig, enabled, summary]) => {
         setStats(s);
         setSignals(sig);
+        setSeedEnabled(enabled);
+        setPerformanceSummary(summary ?? null);
       })
       .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load'))
       .finally(() => setLoading(false));
@@ -50,6 +62,39 @@ export function PerformanceTab({
 
   return (
     <div className="space-y-6">
+      {seedEnabled && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50/50 px-4 py-3 text-sm text-amber-900">
+          <strong>Sample/demo data.</strong> {performanceSummary?.note ?? 'Metrics are placeholders for display only.'}
+        </div>
+      )}
+
+      {performanceSummary && (performanceSummary.top_narratives_this_month.length > 0 || performanceSummary.top_proof_blocks.length > 0) && (
+        <section className="rounded-lg border bg-muted/30 p-4">
+          <h3 className="font-semibold mb-3">Top narratives this month (seed)</h3>
+          {performanceSummary.top_narratives_this_month.length > 0 ? (
+            <ul className="mb-4 space-y-1 text-sm">
+              {performanceSummary.top_narratives_this_month.map((n) => (
+                <li key={n.narrative_asset_id}>
+                  <span className="font-medium">{n.title}</span>
+                  <span className="ml-2 text-muted-foreground">— {n.delivered} delivered</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          <h3 className="font-semibold mb-3">Top proof blocks (seed)</h3>
+          {performanceSummary.top_proof_blocks.length > 0 ? (
+            <ul className="space-y-1 text-sm">
+              {performanceSummary.top_proof_blocks.map((p) => (
+                <li key={p.proof_block_id}>
+                  <span className="font-medium">{p.title}</span>
+                  <span className="ml-2 text-muted-foreground">— used {p.use_count} time(s)</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </section>
+      )}
+
       <section>
         <h3 className="font-semibold mb-3">Performance by narrative</h3>
         {stats.length === 0 ? (
