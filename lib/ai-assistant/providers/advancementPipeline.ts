@@ -444,7 +444,12 @@ const MOCK_PROSPECT_DETAILS: Record<string, ProspectDetail> = {
     whyStalled: ['No recent touchpoints', 'Overdue follow-up'],
     recentActions: [],
     whatHappensNext: 'Schedule stewardship call to re-engage.',
-    timeline: [],
+    timeline: [
+      { timestamp: '4 hours ago', action: 'Pipeline Agent reviewed status', detail: 'Pipeline Agent flagged prospect for follow-up due to no touchpoints in 8 days.' },
+      { timestamp: '2 days ago', action: 'Follow-up Agent queued task', detail: 'Follow-up Agent created reminder for stewardship call.' },
+      { timestamp: '5 days ago', action: 'Stewardship Agent drafted update', detail: 'Stewardship Agent prepared cultivation update for officer review.' },
+      { timestamp: '8 days ago', action: 'Pipeline Agent activated', detail: 'Pipeline Agent started monitoring prospect activity.' },
+    ],
   }),
   p6: createProspectDetail({
     id: 'p6',
@@ -460,7 +465,12 @@ const MOCK_PROSPECT_DETAILS: Record<string, ProspectDetail> = {
     whyStalled: ['Open ask with no activity'],
     recentActions: [],
     whatHappensNext: 'Follow up on open ask.',
-    timeline: [],
+    timeline: [
+      { timestamp: '6 hours ago', action: 'Pipeline Agent reviewed status', detail: 'Pipeline Agent noted open ask with no activity; recommended Email Draft Agent.' },
+      { timestamp: '3 days ago', action: 'Call Prep Agent prepared notes', detail: 'Call Prep Agent researched Leadership Council engagement history.' },
+      { timestamp: '5 days ago', action: 'Follow-up Agent queued task', detail: 'Follow-up Agent created follow-up reminder for open ask.' },
+      { timestamp: '7 days ago', action: 'Pipeline Agent activated', detail: 'Pipeline Agent started monitoring prospect activity.' },
+    ],
   }),
   p7: createProspectDetail({
     id: 'p7',
@@ -475,7 +485,12 @@ const MOCK_PROSPECT_DETAILS: Record<string, ProspectDetail> = {
     whyStalled: ['No recent touchpoints'],
     recentActions: [],
     whatHappensNext: 'Schedule a check-in call or send a stewardship update.',
-    timeline: [],
+    timeline: [
+      { timestamp: '1 day ago', action: 'Pipeline Agent reviewed status', detail: 'Pipeline Agent flagged prospect for re-engagement outreach.' },
+      { timestamp: '3 days ago', action: 'Stewardship Agent drafted update', detail: 'Stewardship Agent prepared Class of 1992 reunion update for officer.' },
+      { timestamp: '4 days ago', action: 'Follow-up Agent queued task', detail: 'Follow-up Agent created check-in reminder.' },
+      { timestamp: '5 days ago', action: 'Pipeline Agent activated', detail: 'Pipeline Agent started monitoring prospect activity.' },
+    ],
   }),
   p8: createProspectDetail({
     id: 'p8',
@@ -490,7 +505,12 @@ const MOCK_PROSPECT_DETAILS: Record<string, ProspectDetail> = {
     whyStalled: ['Open ask with no activity'],
     recentActions: [],
     whatHappensNext: 'Pipeline Agent will continue monitoring.',
-    timeline: [],
+    timeline: [
+      { timestamp: '12 hours ago', action: 'Pipeline Agent reviewed status', detail: 'Pipeline Agent noted open ask with no activity; monitoring continues.' },
+      { timestamp: '2 days ago', action: 'Email Draft Agent prepared draft', detail: 'Email Draft Agent drafted follow-up on open ask for officer review.' },
+      { timestamp: '4 days ago', action: 'Follow-up Agent queued task', detail: 'Follow-up Agent created reminder for Leadership Council prospect.' },
+      { timestamp: '6 days ago', action: 'Pipeline Agent activated', detail: 'Pipeline Agent started monitoring prospect activity.' },
+    ],
   }),
   p9: createProspectDetail({
     id: 'p9',
@@ -505,7 +525,12 @@ const MOCK_PROSPECT_DETAILS: Record<string, ProspectDetail> = {
     whyStalled: ['No recent touchpoints'],
     recentActions: [],
     whatHappensNext: 'Send stewardship update.',
-    timeline: [],
+    timeline: [
+      { timestamp: '8 hours ago', action: 'Pipeline Agent reviewed status', detail: 'Pipeline Agent flagged prospect for nudge; no touchpoints in 5 days.' },
+      { timestamp: '2 days ago', action: 'Stewardship Agent drafted update', detail: 'Stewardship Agent prepared Class of 2000 engagement update.' },
+      { timestamp: '3 days ago', action: 'Follow-up Agent queued task', detail: 'Follow-up Agent created stewardship reminder.' },
+      { timestamp: '5 days ago', action: 'Pipeline Agent activated', detail: 'Pipeline Agent started monitoring prospect activity.' },
+    ],
   }),
   p10: createProspectDetail({
     id: 'p10',
@@ -520,7 +545,12 @@ const MOCK_PROSPECT_DETAILS: Record<string, ProspectDetail> = {
     whyStalled: ['Open ask with no activity'],
     recentActions: [],
     whatHappensNext: 'Follow up on open ask.',
-    timeline: [],
+    timeline: [
+      { timestamp: '10 hours ago', action: 'Pipeline Agent reviewed status', detail: 'Pipeline Agent noted open ask for Young Alumni prospect.' },
+      { timestamp: '3 days ago', action: 'Email Draft Agent prepared draft', detail: 'Email Draft Agent drafted young alumni engagement email.' },
+      { timestamp: '4 days ago', action: 'Follow-up Agent queued task', detail: 'Follow-up Agent created follow-up reminder.' },
+      { timestamp: '6 days ago', action: 'Pipeline Agent activated', detail: 'Pipeline Agent started monitoring prospect activity.' },
+    ],
   }),
   p11: createProspectDetail({
     id: 'p11',
@@ -535,7 +565,12 @@ const MOCK_PROSPECT_DETAILS: Record<string, ProspectDetail> = {
     whyStalled: ['No recent touchpoints'],
     recentActions: [],
     whatHappensNext: 'Schedule check-in.',
-    timeline: [],
+    timeline: [
+      { timestamp: '6 hours ago', action: 'Pipeline Agent reviewed status', detail: 'Pipeline Agent flagged Class of 1978 prospect for check-in.' },
+      { timestamp: '2 days ago', action: 'Stewardship Agent drafted update', detail: 'Stewardship Agent prepared legacy society update for officer.' },
+      { timestamp: '3 days ago', action: 'Follow-up Agent queued task', detail: 'Follow-up Agent created check-in reminder.' },
+      { timestamp: '5 days ago', action: 'Pipeline Agent activated', detail: 'Pipeline Agent started monitoring prospect activity.' },
+    ],
   }),
   p12: createProspectDetail({
     id: 'p12',
@@ -550,7 +585,12 @@ const MOCK_PROSPECT_DETAILS: Record<string, ProspectDetail> = {
     whyStalled: ['Open ask with no activity'],
     recentActions: [],
     whatHappensNext: 'Follow up on open ask.',
-    timeline: [],
+    timeline: [
+      { timestamp: '14 hours ago', action: 'Pipeline Agent reviewed status', detail: 'Pipeline Agent noted open ask for Major Donor prospect.' },
+      { timestamp: '3 days ago', action: 'Call Prep Agent prepared notes', detail: 'Call Prep Agent researched naming opportunity history.' },
+      { timestamp: '4 days ago', action: 'Email Draft Agent prepared draft', detail: 'Email Draft Agent drafted follow-up on open ask.' },
+      { timestamp: '6 days ago', action: 'Pipeline Agent activated', detail: 'Pipeline Agent started monitoring prospect activity.' },
+    ],
   }),
   p13: createProspectDetail({
     id: 'p13',
@@ -565,7 +605,12 @@ const MOCK_PROSPECT_DETAILS: Record<string, ProspectDetail> = {
     whyStalled: ['No recent touchpoints'],
     recentActions: [],
     whatHappensNext: 'Send stewardship update.',
-    timeline: [],
+    timeline: [
+      { timestamp: '9 hours ago', action: 'Pipeline Agent reviewed status', detail: 'Pipeline Agent flagged Class of 1995 prospect for stewardship.' },
+      { timestamp: '2 days ago', action: 'Stewardship Agent drafted update', detail: 'Stewardship Agent prepared engagement update for officer.' },
+      { timestamp: '4 days ago', action: 'Follow-up Agent queued task', detail: 'Follow-up Agent created stewardship reminder.' },
+      { timestamp: '5 days ago', action: 'Pipeline Agent activated', detail: 'Pipeline Agent started monitoring prospect activity.' },
+    ],
   }),
   p14: createProspectDetail({
     id: 'p14',
@@ -580,7 +625,12 @@ const MOCK_PROSPECT_DETAILS: Record<string, ProspectDetail> = {
     whyStalled: ['Open ask with no activity'],
     recentActions: [],
     whatHappensNext: 'Follow up on open ask.',
-    timeline: [],
+    timeline: [
+      { timestamp: '11 hours ago', action: 'Pipeline Agent reviewed status', detail: 'Pipeline Agent noted open ask for Corporate Partner prospect.' },
+      { timestamp: '2 days ago', action: 'Call Prep Agent prepared notes', detail: 'Call Prep Agent researched corporate partnership history.' },
+      { timestamp: '4 days ago', action: 'Email Draft Agent prepared draft', detail: 'Email Draft Agent drafted follow-up on open ask.' },
+      { timestamp: '6 days ago', action: 'Pipeline Agent activated', detail: 'Pipeline Agent started monitoring prospect activity.' },
+    ],
   }),
   p15: createProspectDetail({
     id: 'p15',
@@ -595,7 +645,12 @@ const MOCK_PROSPECT_DETAILS: Record<string, ProspectDetail> = {
     whyStalled: ['No recent touchpoints'],
     recentActions: [],
     whatHappensNext: 'Schedule check-in.',
-    timeline: [],
+    timeline: [
+      { timestamp: '7 hours ago', action: 'Pipeline Agent reviewed status', detail: 'Pipeline Agent flagged Class of 2012 prospect for check-in.' },
+      { timestamp: '2 days ago', action: 'Stewardship Agent drafted update', detail: 'Stewardship Agent prepared young alumni update for officer.' },
+      { timestamp: '3 days ago', action: 'Follow-up Agent queued task', detail: 'Follow-up Agent created check-in reminder.' },
+      { timestamp: '5 days ago', action: 'Pipeline Agent activated', detail: 'Pipeline Agent started monitoring prospect activity.' },
+    ],
   }),
   p16: createProspectDetail({
     id: 'p16',
@@ -610,7 +665,12 @@ const MOCK_PROSPECT_DETAILS: Record<string, ProspectDetail> = {
     whyStalled: ['Open ask with no activity'],
     recentActions: [],
     whatHappensNext: 'Follow up on open ask.',
-    timeline: [],
+    timeline: [
+      { timestamp: '5 hours ago', action: 'Pipeline Agent reviewed status', detail: 'Pipeline Agent noted open ask for Leadership Council prospect.' },
+      { timestamp: '2 days ago', action: 'Email Draft Agent prepared draft', detail: 'Email Draft Agent drafted follow-up on open ask.' },
+      { timestamp: '4 days ago', action: 'Follow-up Agent queued task', detail: 'Follow-up Agent created follow-up reminder.' },
+      { timestamp: '6 days ago', action: 'Pipeline Agent activated', detail: 'Pipeline Agent started monitoring prospect activity.' },
+    ],
   }),
   p17: createProspectDetail({
     id: 'p17',
@@ -625,7 +685,12 @@ const MOCK_PROSPECT_DETAILS: Record<string, ProspectDetail> = {
     whyStalled: [],
     recentActions: [],
     whatHappensNext: 'Consider adding Pipeline Agent for monitoring.',
-    timeline: [],
+    timeline: [
+      { timestamp: '3 hours ago', action: 'Pipeline Agent reviewed status', detail: 'Pipeline Agent flagged Class of 2010 prospect for early outreach.' },
+      { timestamp: '1 day ago', action: 'Follow-up Agent queued task', detail: 'Follow-up Agent created early outreach reminder.' },
+      { timestamp: '2 days ago', action: 'Stewardship Agent drafted update', detail: 'Stewardship Agent prepared light-touch update for officer.' },
+      { timestamp: '4 days ago', action: 'Pipeline Agent activated', detail: 'Pipeline Agent started monitoring prospect activity.' },
+    ],
   }),
   p18: createProspectDetail({
     id: 'p18',
@@ -640,7 +705,12 @@ const MOCK_PROSPECT_DETAILS: Record<string, ProspectDetail> = {
     whyStalled: [],
     recentActions: [],
     whatHappensNext: 'Monitor for another few days.',
-    timeline: [],
+    timeline: [
+      { timestamp: '5 hours ago', action: 'Pipeline Agent reviewed status', detail: 'Pipeline Agent noted Class of 2015 prospect in early stall.' },
+      { timestamp: '1 day ago', action: 'Stewardship Agent drafted update', detail: 'Stewardship Agent prepared light-touch cultivation note.' },
+      { timestamp: '2 days ago', action: 'Follow-up Agent queued task', detail: 'Follow-up Agent created monitor reminder for 2 days.' },
+      { timestamp: '3 days ago', action: 'Pipeline Agent activated', detail: 'Pipeline Agent started monitoring prospect activity.' },
+    ],
   }),
   p19: createProspectDetail({
     id: 'p19',
@@ -655,7 +725,12 @@ const MOCK_PROSPECT_DETAILS: Record<string, ProspectDetail> = {
     whyStalled: [],
     recentActions: [],
     whatHappensNext: 'Monitor.',
-    timeline: [],
+    timeline: [
+      { timestamp: '2 hours ago', action: 'Pipeline Agent reviewed status', detail: 'Pipeline Agent flagged Young Alumni prospect in early stall.' },
+      { timestamp: '2 days ago', action: 'Follow-up Agent queued task', detail: 'Follow-up Agent created monitor reminder.' },
+      { timestamp: '3 days ago', action: 'Stewardship Agent drafted update', detail: 'Stewardship Agent prepared young alumni update.' },
+      { timestamp: '4 days ago', action: 'Pipeline Agent activated', detail: 'Pipeline Agent started monitoring prospect activity.' },
+    ],
   }),
   p20: createProspectDetail({
     id: 'p20',
@@ -670,7 +745,12 @@ const MOCK_PROSPECT_DETAILS: Record<string, ProspectDetail> = {
     whyStalled: [],
     recentActions: [],
     whatHappensNext: 'Monitor.',
-    timeline: [],
+    timeline: [
+      { timestamp: '4 hours ago', action: 'Pipeline Agent reviewed status', detail: 'Pipeline Agent noted Class of 2008 prospect in early stall.' },
+      { timestamp: '1 day ago', action: 'Stewardship Agent drafted update', detail: 'Stewardship Agent prepared light-touch update.' },
+      { timestamp: '2 days ago', action: 'Follow-up Agent queued task', detail: 'Follow-up Agent created monitor reminder.' },
+      { timestamp: '3 days ago', action: 'Pipeline Agent activated', detail: 'Pipeline Agent started monitoring prospect activity.' },
+    ],
   }),
   p21: createProspectDetail({
     id: 'p21',
@@ -685,7 +765,12 @@ const MOCK_PROSPECT_DETAILS: Record<string, ProspectDetail> = {
     whyStalled: [],
     recentActions: [],
     whatHappensNext: 'Monitor.',
-    timeline: [],
+    timeline: [
+      { timestamp: '6 hours ago', action: 'Pipeline Agent reviewed status', detail: 'Pipeline Agent flagged Class of 2018 prospect in early stall.' },
+      { timestamp: '2 days ago', action: 'Follow-up Agent queued task', detail: 'Follow-up Agent created monitor reminder.' },
+      { timestamp: '3 days ago', action: 'Stewardship Agent drafted update', detail: 'Stewardship Agent prepared young alumni update.' },
+      { timestamp: '4 days ago', action: 'Pipeline Agent activated', detail: 'Pipeline Agent started monitoring prospect activity.' },
+    ],
   }),
   p22: createProspectDetail({
     id: 'p22',
@@ -700,7 +785,12 @@ const MOCK_PROSPECT_DETAILS: Record<string, ProspectDetail> = {
     whyStalled: [],
     recentActions: [],
     whatHappensNext: 'Monitor.',
-    timeline: [],
+    timeline: [
+      { timestamp: '8 hours ago', action: 'Pipeline Agent reviewed status', detail: 'Pipeline Agent noted Class of 2014 prospect in early stall.' },
+      { timestamp: '1 day ago', action: 'Stewardship Agent drafted update', detail: 'Stewardship Agent prepared light-touch cultivation note.' },
+      { timestamp: '2 days ago', action: 'Follow-up Agent queued task', detail: 'Follow-up Agent created monitor reminder.' },
+      { timestamp: '3 days ago', action: 'Pipeline Agent activated', detail: 'Pipeline Agent started monitoring prospect activity.' },
+    ],
   }),
   p23: createProspectDetail({
     id: 'p23',
@@ -715,7 +805,12 @@ const MOCK_PROSPECT_DETAILS: Record<string, ProspectDetail> = {
     whyStalled: [],
     recentActions: [],
     whatHappensNext: 'Monitor.',
-    timeline: [],
+    timeline: [
+      { timestamp: '1 hour ago', action: 'Pipeline Agent reviewed status', detail: 'Pipeline Agent flagged Young Alumni prospect in early stall.' },
+      { timestamp: '1 day ago', action: 'Follow-up Agent queued task', detail: 'Follow-up Agent created monitor reminder.' },
+      { timestamp: '2 days ago', action: 'Stewardship Agent drafted update', detail: 'Stewardship Agent prepared young alumni update.' },
+      { timestamp: '4 days ago', action: 'Pipeline Agent activated', detail: 'Pipeline Agent started monitoring prospect activity.' },
+    ],
   }),
   p24: createProspectDetail({
     id: 'p24',
@@ -730,7 +825,12 @@ const MOCK_PROSPECT_DETAILS: Record<string, ProspectDetail> = {
     whyStalled: [],
     recentActions: [],
     whatHappensNext: 'Monitor.',
-    timeline: [],
+    timeline: [
+      { timestamp: '2 hours ago', action: 'Pipeline Agent reviewed status', detail: 'Pipeline Agent noted Class of 2016 prospect in early stall.' },
+      { timestamp: '1 day ago', action: 'Stewardship Agent drafted update', detail: 'Stewardship Agent prepared light-touch cultivation note.' },
+      { timestamp: '2 days ago', action: 'Follow-up Agent queued task', detail: 'Follow-up Agent created monitor reminder.' },
+      { timestamp: '3 days ago', action: 'Pipeline Agent activated', detail: 'Pipeline Agent started monitoring prospect activity.' },
+    ],
   }),
 };
 

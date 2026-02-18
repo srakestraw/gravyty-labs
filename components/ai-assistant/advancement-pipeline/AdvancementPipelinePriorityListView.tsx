@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { SlideUpSection } from '@/components/ui/animations';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -14,7 +14,6 @@ import { motion } from 'framer-motion';
 
 const BATCH_ACTION_TOAST: Record<string, string> = {
   assign_agent: 'Assigned to Agent',
-  add_queue: 'Added to Queue',
   create_segment: 'Created Segment',
   create_task: 'Created Task',
 };
@@ -33,8 +32,20 @@ export function AdvancementPipelinePriorityListView({
   onBack,
 }: AdvancementPipelinePriorityListViewProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const headerCheckRef = useRef<HTMLInputElement>(null);
   const toast = useToast();
   const visibleRowIds = prospects.map((p) => p.id);
+
+  const isAllSelected =
+    visibleRowIds.length > 0 && selectedIds.length === visibleRowIds.length;
+  const isIndeterminate =
+    selectedIds.length > 0 && selectedIds.length < visibleRowIds.length;
+
+  useEffect(() => {
+    if (headerCheckRef.current) {
+      headerCheckRef.current.indeterminate = isIndeterminate;
+    }
+  }, [isIndeterminate]);
   const getPriorityColor = (p: string) => {
     switch (p) {
       case 'high':
@@ -71,13 +82,6 @@ export function AdvancementPipelinePriorityListView({
     const label = BATCH_ACTION_TOAST[key] ?? key;
     toast.success(`${label} (${ids.length} prospects)`);
   };
-
-  const headerChecked =
-    visibleRowIds.length > 0 && selectedIds.length === visibleRowIds.length
-      ? true
-      : selectedIds.length > 0
-        ? ('indeterminate' as const)
-        : false;
 
   const toggleRow = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -138,12 +142,16 @@ export function AdvancementPipelinePriorityListView({
                   <th className="w-10 px-3 py-3">
                     {visibleRowIds.length > 0 && (
                       <div onClick={(e) => e.stopPropagation()}>
-                        <Checkbox
-                          checked={headerChecked}
-                          onCheckedChange={() => {
-                            if (headerChecked === true) setSelectedIds([]);
+                        <input
+                          ref={headerCheckRef}
+                          type="checkbox"
+                          checked={isAllSelected}
+                          onChange={() => {
+                            if (isAllSelected) setSelectedIds([]);
                             else setSelectedIds([...visibleRowIds]);
                           }}
+                          className="h-4 w-4 rounded border border-primary cursor-pointer"
+                          aria-label="Select all"
                         />
                       </div>
                     )}

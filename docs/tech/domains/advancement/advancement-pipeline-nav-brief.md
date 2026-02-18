@@ -40,23 +40,39 @@ The Advancement app has three workspaces, surfaced as pills in the App Switcher 
 
 ## 2. Pipeline & Portfolio Sidebar Items
 
-When the user is in the Pipeline workspace (`/advancement/pipeline`), the sidebar shows these top-level items:
+When the user is in the Pipeline workspace (`/advancement/pipeline`), the sidebar shows items grouped into sections:
+
+### Section: Overview
 
 | Item | href | Icon | Purpose |
 |------|------|------|---------|
 | **Command Center** | `/advancement/pipeline` | `fa-solid fa-compass` | Team/Leadership dashboard with portfolio health, game plan, goal tracker |
+
+### Section: Work
+
+| Item | href | Icon | Purpose |
+|------|------|------|---------|
 | **AI Assistant** | `/advancement/pipeline/assistant` | `fa-solid fa-comments` | AI-powered prospect discovery, priority lists, briefs |
-| **Queue** | `/advancement/pipeline/agent-ops/queue` | `fa-solid fa-list` | Triage and action on agent-generated items |
-| **Narrative Messaging** | `/advancement/pipeline/narrative-messaging` | `fa-solid fa-message-lines` | Storytelling content library for personalized messaging |
-| **Agents** | `/advancement/pipeline/agents` | `fa-solid fa-bolt` | Agent configuration and management |
+| **Task Queue** | `/advancement/pipeline/agent-ops/queue` | `fa-solid fa-list` | Triage and action on agent-generated items |
+| **Agents & Workflow** | `/advancement/pipeline/agents` | `fa-solid fa-bolt` | Agent configuration and management |
 
-**Source**: `app/(shell)/advancement/_nav.ts` (workspace `pipeline`)
+### Section: Pipeline & Portfolio
 
----
+| Item | href | Icon |
+|------|------|------|
+| **Opportunities** | `/advancement/pipeline/opportunities` | `fa-solid fa-handshake-angle` |
+| **Portfolios** | `/advancement/pipeline/portfolios` | `fa-solid fa-briefcase` |
+| **Plans (Moves)** | `/advancement/pipeline/plans` | `fa-solid fa-diagram-project` |
 
-## 3. Data and Audiences Section
+### Section: Campaigns
 
-Below the top-level items, the sidebar includes a **Data and audiences** section:
+| Item | href | Icon |
+|------|------|------|
+| **Campaigns** | `/advancement/pipeline/campaigns` | `fa-solid fa-bullhorn` |
+| **Events** | `/advancement/pipeline/events` | `fa-solid fa-calendar-days` |
+| **Narrative Messaging** | `/advancement/pipeline/narrative-messaging` | `fa-solid fa-message-lines` |
+
+### Section: Data and audiences
 
 | Item | href | Icon |
 |------|------|------|
@@ -65,7 +81,22 @@ Below the top-level items, the sidebar includes a **Data and audiences** section
 
 These are shared across Advancement workspaces and link to platform-wide Contacts and Segments.
 
-**Source**: `app/(shell)/advancement/_nav.ts` (section `dataAndAudiences`)
+### Section: Insights
+
+| Item | href | Icon |
+|------|------|------|
+| **Reports** | `/advancement/pipeline/reports` | `fa-solid fa-chart-line` |
+| **Forecast** | `/advancement/pipeline/forecast` | `fa-solid fa-chart-column` |
+| **Alerts** | `/advancement/pipeline/alerts` | `fa-solid fa-bell` |
+
+### Section: Admin Tools
+
+| Item | href | Icon |
+|------|------|------|
+| **Settings** | `/advancement/pipeline/settings` | `fa-solid fa-gear` |
+| **Data Quality** | `/advancement/pipeline/data-quality` | `fa-solid fa-broom` |
+
+**Source**: `app/(shell)/advancement/_nav.ts` (workspace `pipeline`)
 
 ---
 
@@ -99,7 +130,7 @@ The mode is persisted in URL params (`?mode=team` or `?mode=leadership`) and loc
 
 | Location | File | Purpose |
 |----------|------|---------|
-| `app/(shell)/advancement/` | `_nav.ts` | `getAppNav` — returns sections (topLevel, aiPlatform, dataAndAudiences) based on pathname |
+| `app/(shell)/advancement/` | `_nav.ts` | `getAppNav` — for pipeline workspace returns sectioned nav (overview, work, pipelinePortfolio, campaigns, dataAndAudiences, insights, adminTools); for giving/payments returns topLevel + aiPlatform + dataAndAudiences |
 | `app/(shell)/components/` | `app-sidebar.tsx` | Renders sidebar; uses `getAdvancementNav` when `activeRegistryAppId === 'advancement-philanthropy'` |
 | `app/(shell)/components/` | `workspace-switcher.tsx` | Header dropdown for workspace switching |
 | `lib/advancement/` | `workspaces.ts` | `ADVANCEMENT_WORKSPACES`, `isValidAdvancementWorkspace`, `getAdvancementWorkspaceConfig` |

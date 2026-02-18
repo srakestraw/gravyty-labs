@@ -222,9 +222,8 @@ type Navigation =
     const hasContractItems = contractSections.some((s) => s.items && s.items.length > 0);
 
     if (hasContractItems) {
-      // Special handling for CRM Mock which uses multiple sections with titles
-      if (isInCrmMock) {
-        // Return sections structure for CRM Mock to preserve section titles
+      // Special handling for CRM Mock and Advancement Pipeline which use multiple sections with titles
+      if (isInCrmMock || (isInAdvancement && isInPipeline)) {
         return {
           topLevel: contractSections,
           dataAndAudiences: undefined,
@@ -337,23 +336,27 @@ type Navigation =
           sidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64 md:w-16'
         )}
       >
-        <nav className="flex flex-col gap-1 p-2 h-full overflow-hidden">
+        <nav className="flex flex-col gap-1 p-3 h-full overflow-hidden">
           <div className="flex-1 min-h-0 overflow-y-auto">
           {(isInAIAssistants || isInAdmin || isInAdvancement || isInAdmissions || isInStudentLifecycle || isInCommunity || isInEngagementHub || isInCrmMock) && !Array.isArray(navigation) ? (
             <>
               {/* Top-level navigation items */}
-              {/* For CRM Mock, navigation.topLevel contains sections; for others, it contains items */}
-              {isInCrmMock ? (
+              {/* For CRM Mock and Advancement Pipeline, navigation.topLevel contains sections; for others, it contains items */}
+              {(isInCrmMock || (isInAdvancement && isInPipeline)) ? (
                 // CRM Mock: render sections with titles
-                (navigation.topLevel as NavSection[]).map((section) => (
+                (navigation.topLevel as NavSection[]).map((section, sectionIndex) => (
                   <div key={section.id}>
-                    {/* Section title */}
+                    {/* Section title - lighter weight, normal case, more spacing */}
                     {(sidebarOpen || isMobile) && section.title && (
-                      <div className="mt-4 px-3 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                      <div className={cn(
+                        'px-3 text-[10px] font-medium tracking-wide text-gray-500',
+                        sectionIndex === 0 ? 'mt-2 mb-1' : 'mt-6 mb-1'
+                      )}>
                         {section.title}
                       </div>
                     )}
                     {/* Section items */}
+                    <div className="space-y-0.5">
                     {section.items.map((item) => {
                       const hasChildren = item.children && item.children.length > 0;
                       const isExpanded = hasChildren && expandedGroups.has(item.id || '');
@@ -372,9 +375,9 @@ type Navigation =
                               <Link
                                 href={item.href}
                                 className={cn(
-                                  'flex items-center gap-3 flex-1 min-w-0 px-3 py-2 rounded-md text-sm transition-colors',
-                                  'hover:bg-gray-100 text-gray-700',
-                                  isActive && 'bg-blue-50 text-blue-700 font-medium'
+                                  'flex items-center gap-3 flex-1 min-w-0 px-3 py-2.5 rounded-md text-sm transition-colors min-h-[44px]',
+                                  'hover:bg-gray-50 text-gray-700',
+                                  isActive && cn('bg-gray-50/80 border-l-2 -ml-0.5 pl-3', isInAdvancement ? 'border-red-400/50' : 'border-gray-400')
                                 )}
                                 onClick={(e) => {
                                   if ((e.target as HTMLElement).closest('button')) {
@@ -386,7 +389,7 @@ type Navigation =
                                   }
                                 }}
                               >
-                                <FontAwesomeIcon icon={item.icon} className="h-5 w-5 flex-shrink-0" />
+                                <FontAwesomeIcon icon={item.icon} className="h-4 w-4 flex-shrink-0 opacity-65" />
                                 {(sidebarOpen || isMobile) && (
                                   <span className="truncate">{item.name}</span>
                                 )}
@@ -409,7 +412,7 @@ type Navigation =
                                   }}
                                   className={cn(
                                     'px-2 py-2 rounded-md text-sm transition-colors',
-                                    'hover:bg-gray-100 text-gray-700',
+                                    'hover:bg-gray-50 text-gray-700',
                                     'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1'
                                   )}
                                   aria-expanded={isExpanded}
@@ -419,7 +422,7 @@ type Navigation =
                                   <FontAwesomeIcon 
                                     icon="fa-solid fa-chevron-right" 
                                     className={cn(
-                                      'h-4 w-4 transition-transform',
+                                      'h-4 w-4 transition-transform opacity-60',
                                       isExpanded && 'rotate-90'
                                     )} 
                                   />
@@ -428,7 +431,7 @@ type Navigation =
                             </div>
                             {/* Children */}
                             {isExpanded && (sidebarOpen || isMobile) && item.children && (
-                              <div id={`nav-group-${item.id || item.name}`} className="ml-4 mt-1 space-y-1">
+                              <div id={`nav-group-${item.id || item.name}`} className="ml-4 mt-1 space-y-0.5">
                                 {item.children.map((child) => {
                                   const isChildActive = pathname === child.href || pathname?.startsWith(child.href + '/');
                                   return (
@@ -437,8 +440,8 @@ type Navigation =
                                       href={child.href}
                                       className={cn(
                                         'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
-                                        'hover:bg-gray-100 text-gray-700',
-                                        isChildActive && 'bg-blue-50 text-blue-700 font-medium'
+                                        'hover:bg-gray-50 text-gray-700',
+                                        isChildActive && 'bg-gray-50/80 border-l-2 border-gray-300 -ml-0.5 pl-3'
                                       )}
                                       onClick={() => {
                                         if (isMobile) {
@@ -446,7 +449,7 @@ type Navigation =
                                         }
                                       }}
                                     >
-                                      <FontAwesomeIcon icon={child.icon} className="h-4 w-4 flex-shrink-0" />
+                                      <FontAwesomeIcon icon={child.icon} className="h-4 w-4 flex-shrink-0 opacity-65" />
                                       <span className="truncate text-xs">{child.name}</span>
                                     </Link>
                                   );
@@ -464,9 +467,9 @@ type Navigation =
                           href={item.href}
                           title={item.title}
                           className={cn(
-                            'flex items-center justify-between gap-2 px-3 py-2 rounded-md text-sm transition-colors',
-                            'hover:bg-gray-100 text-gray-700',
-                            isActive && 'bg-blue-50 text-blue-700 font-medium'
+                            'flex items-center justify-between gap-3 px-3 py-2.5 rounded-md text-sm transition-colors min-h-[44px]',
+                            'hover:bg-gray-50 text-gray-700',
+                            isActive && cn('bg-gray-50/80 border-l-2 -ml-0.5 pl-3', isInAdvancement ? 'border-red-400/50' : 'border-gray-400')
                           )}
                           onClick={() => {
                             if (isMobile) {
@@ -475,14 +478,27 @@ type Navigation =
                           }}
                         >
                           <span className="flex items-center gap-3 flex-1 min-w-0">
-                            <FontAwesomeIcon icon={item.icon} className="h-5 w-5 flex-shrink-0" />
+                            <FontAwesomeIcon icon={item.icon} className="h-4 w-4 flex-shrink-0 opacity-65" />
                             {(sidebarOpen || isMobile) && (
-                              <span className="truncate">{item.name}</span>
+                              <span className="truncate leading-snug">{item.name}</span>
                             )}
                           </span>
+                          {item.id === 'queue' && queueAttentionCount > 0 && (sidebarOpen || isMobile) && (
+                            <span
+                              className={cn(
+                                'inline-flex min-w-[1.75rem] items-center justify-center rounded-full px-1.5 text-[11px] font-medium flex-shrink-0 ml-1',
+                                isActive
+                                  ? 'bg-gray-300/50 text-gray-700'
+                                  : 'bg-rose-100/80 text-rose-600'
+                              )}
+                            >
+                              {queueDisplayCount}
+                            </span>
+                          )}
                         </Link>
                       );
                     })}
+                    </div>
                   </div>
                 ))
               ) : (

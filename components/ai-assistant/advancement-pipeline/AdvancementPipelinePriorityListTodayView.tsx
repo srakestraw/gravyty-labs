@@ -1,10 +1,21 @@
 'use client';
 
+import { useState, useRef, useEffect } from 'react';
 import { SlideUpSection } from '@/components/ui/animations';
+import { Checkbox } from '@/components/ui/checkbox';
 import { FontAwesomeIcon } from '@/components/ui/font-awesome-icon';
+import { TableBatchActions } from '@/components/advancement/pipeline/TableBatchActions';
+import { ToastContainer } from '@/components/shared/queue/ToastContainer';
+import { useToast } from '@/components/shared/queue/useToast';
 import type { PriorityProspectRow } from '@/lib/ai-assistant/providers/types';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+
+const BATCH_ACTION_TOAST: Record<string, string> = {
+  assign_agent: 'Assigned to Agent',
+  create_segment: 'Created Segment',
+  create_task: 'Created Task',
+};
 
 interface AdvancementPipelinePriorityListTodayViewProps {
   prospects: PriorityProspectRow[];
@@ -28,11 +39,34 @@ export function AdvancementPipelinePriorityListTodayView({
   suggestedNextSteps = DEFAULT_STEPS,
 }: AdvancementPipelinePriorityListTodayViewProps) {
   const router = useRouter();
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const headerCheckRef = useRef<HTMLInputElement>(null);
+  const toast = useToast();
+  const visibleRowIds = prospects.map((p) => p.id);
+
+  const isAllSelected =
+    visibleRowIds.length > 0 && selectedIds.length === visibleRowIds.length;
+  const isIndeterminate =
+    selectedIds.length > 0 && selectedIds.length < visibleRowIds.length;
+
+  useEffect(() => {
+    if (headerCheckRef.current) {
+      headerCheckRef.current.indeterminate = isIndeterminate;
+    }
+  }, [isIndeterminate]);
+
+  const handleBatchAction = (key: string, ids: string[]) => {
+    console.log({ actionKey: key, selectedIds: ids });
+    const label = BATCH_ACTION_TOAST[key] ?? key;
+    toast.success(`${label} (${ids.length} prospects)`);
+  };
 
   return (
-    <SlideUpSection className="max-w-4xl mx-auto px-4">
-      <div className="space-y-8 py-8">
-        <div className="text-center space-y-2">
+    <>
+      <ToastContainer toasts={toast.toasts} onDismiss={toast.dismissToast} />
+      <SlideUpSection className="max-w-4xl mx-auto px-4">
+        <div className="space-y-8 py-8">
+          <div className="text-center space-y-2">
           <p className="text-lg text-foreground">
             {resultTitle}: <span className="font-semibold text-primary">{prospects.length} prospects</span>
           </p>
@@ -42,10 +76,31 @@ export function AdvancementPipelinePriorityListTodayView({
         </div>
 
         <div className="bg-background border border-border rounded-lg overflow-hidden shadow-sm">
+          <TableBatchActions
+            selectedIds={selectedIds}
+            onAction={handleBatchAction}
+          />
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-muted/50 border-b border-border">
                 <tr>
+                  <th className="w-10 px-3 py-3">
+                    {visibleRowIds.length > 0 && (
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <input
+                          ref={headerCheckRef}
+                          type="checkbox"
+                          checked={isAllSelected}
+                          onChange={() => {
+                            if (isAllSelected) setSelectedIds([]);
+                            else setSelectedIds([...visibleRowIds]);
+                          }}
+                          className="h-4 w-4 rounded border border-primary cursor-pointer"
+                          aria-label="Select all"
+                        />
+                      </div>
+                    )}
+                  </th>
                   <th className="px-4 md:px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Name
                   </th>
@@ -73,6 +128,29 @@ export function AdvancementPipelinePriorityListTodayView({
                     onClick={() => router.push(`/advancement/pipeline/assistant/prospect/${prospect.id}`)}
                     className="hover:bg-accent/50 cursor-pointer transition-colors"
                   >
+                    <td
+                      className="w-10 px-3 py-4"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedIds((prev) =>
+                          prev.includes(prospect.id)
+                            ? prev.filter((x) => x !== prospect.id)
+                            : [...prev, prospect.id]
+                        );
+                      }}
+                    >
+                      <Checkbox
+                        checked={selectedIds.includes(prospect.id)}
+                        onCheckedChange={() => {
+                          setSelectedIds((prev) =>
+                            prev.includes(prospect.id)
+                              ? prev.filter((x) => x !== prospect.id)
+                              : [...prev, prospect.id]
+                          );
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </td>
                     <td className="px-4 md:px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-foreground">{prospect.name}</div>
@@ -126,5 +204,6 @@ export function AdvancementPipelinePriorityListTodayView({
         </div>
       </div>
     </SlideUpSection>
+    </>
   );
 }

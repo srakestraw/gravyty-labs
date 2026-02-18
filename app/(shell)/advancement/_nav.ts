@@ -26,14 +26,70 @@ export function getAppNav(params: { pathname: string }): { sections: NavSection[
     let workspaceSpecificItems: typeof workspaceSwitcherItems = [];
     
     if (workspace === 'pipeline') {
-      workspaceSpecificItems = [
-        { name: 'Command Center', href: '/advancement/pipeline', icon: 'fa-solid fa-compass', id: 'command-center' },
-        { name: 'AI Assistant', href: '/advancement/pipeline/assistant', icon: 'fa-solid fa-comments', id: 'assistant' },
-        { name: 'Queue', href: '/advancement/pipeline/agent-ops/queue', icon: 'fa-solid fa-list', id: 'queue' },
-        { name: 'Narrative Messaging', href: '/advancement/pipeline/narrative-messaging', icon: 'fa-solid fa-message-lines', id: 'narrative-messaging' },
-        { name: 'Agents', href: '/advancement/pipeline/agents', icon: 'fa-solid fa-bolt', id: 'agents' },
-      ];
-      // Pipeline doesn't show workspace switcher in sidebar (only in header)
+      // Pipeline uses sectioned nav: Overview, Work, Pipeline & Portfolio, Campaigns, Data and audiences, Insights, Admin Tools
+      return {
+        sections: [
+          {
+            id: 'overview',
+            title: 'Overview',
+            items: [
+              { name: 'Command Center', href: '/advancement/pipeline', icon: 'fa-solid fa-compass', id: 'command-center' },
+            ],
+          },
+          {
+            id: 'work',
+            title: 'Work',
+            items: [
+              { name: 'AI Assistant', href: '/advancement/pipeline/assistant', icon: 'fa-solid fa-comments', id: 'assistant' },
+              { name: 'Task Queue', href: '/advancement/pipeline/agent-ops/queue', icon: 'fa-solid fa-list', id: 'queue' },
+              { name: 'Agents & Workflow', href: '/advancement/pipeline/agents', icon: 'fa-solid fa-bolt', id: 'agents' },
+            ],
+          },
+          {
+            id: 'pipelinePortfolio',
+            title: 'Pipeline & Portfolio',
+            items: [
+              { name: 'Opportunities', href: '/advancement/pipeline/opportunities', icon: 'fa-solid fa-handshake-angle', id: 'opportunities' },
+              { name: 'Portfolios', href: '/advancement/pipeline/portfolios', icon: 'fa-solid fa-briefcase', id: 'portfolios' },
+              { name: 'Plans (Moves)', href: '/advancement/pipeline/plans', icon: 'fa-solid fa-diagram-project', id: 'plans' },
+            ],
+          },
+          {
+            id: 'campaigns',
+            title: 'Campaigns',
+            items: [
+              { name: 'Campaigns', href: '/advancement/pipeline/campaigns', icon: 'fa-solid fa-bullhorn', id: 'campaigns' },
+              { name: 'Events', href: '/advancement/pipeline/events', icon: 'fa-solid fa-calendar-days', id: 'events' },
+              { name: 'Narrative Messaging', href: '/advancement/pipeline/narrative-messaging', icon: 'fa-solid fa-message-lines', id: 'narrative-messaging' },
+            ],
+          },
+          {
+            id: 'dataAndAudiences',
+            title: 'Data and audiences',
+            items: [
+              { name: 'Contacts', href: '/contacts', icon: 'fa-solid fa-users' },
+              { name: 'Segments', href: '/segments', icon: 'fa-solid fa-filter' },
+            ],
+          },
+          {
+            id: 'insights',
+            title: 'Insights',
+            items: [
+              { name: 'Reports', href: '/advancement/pipeline/reports', icon: 'fa-solid fa-chart-line', id: 'reports' },
+              { name: 'Forecast', href: '/advancement/pipeline/forecast', icon: 'fa-solid fa-chart-column', id: 'forecast' },
+              { name: 'Alerts', href: '/advancement/pipeline/alerts', icon: 'fa-solid fa-bell', id: 'alerts' },
+            ],
+          },
+          {
+            id: 'adminTools',
+            title: 'Admin Tools',
+            items: [
+              { name: 'Settings', href: '/advancement/pipeline/settings', icon: 'fa-solid fa-gear', id: 'settings' },
+              { name: 'Data Quality', href: '/advancement/pipeline/data-quality', icon: 'fa-solid fa-broom', id: 'data-quality' },
+            ],
+          },
+        ],
+      };
     } else if (workspace === 'giving') {
       workspaceSpecificItems = [
         { name: 'Overview', href: '/advancement/giving', icon: 'fa-solid fa-hand-holding-heart', id: 'overview' },
