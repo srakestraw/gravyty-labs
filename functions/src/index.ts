@@ -1,5 +1,6 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
+import { handleAdvancementPipelineGenerateMock } from './advancementPipelineGenerateMock';
 
 // Initialize Firebase Admin
 admin.initializeApp();
@@ -281,6 +282,8 @@ export const api = functions.https.onRequest(async (req, res) => {
     return handleGuardrails(req, res);
   } else if (endpoint === 'communication-config') {
     return handleCommunicationConfig(req, res);
+  } else if (endpoint === 'advancement-pipeline' && segments[1] === 'generate-mock') {
+    return handleAdvancementPipelineGenerateMock(req, res);
   } else if (endpoint === 'auth' && segments[1] === 'sync') {
     // Handle auth/sync
     return authSync(req, res);
