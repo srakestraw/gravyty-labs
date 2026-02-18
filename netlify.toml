@@ -17,6 +17,12 @@
   status = 200
   force = true
 
+[[redirects]]
+  from = "/api/advancement-pipeline/generate-mock"
+  to = "/.netlify/functions/advancement-pipeline-generate-mock"
+  status = 200
+  force = true
+
 
 
 

@@ -62,11 +62,28 @@ function ResultsContent() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt, mode: 'steps' }),
         });
-        const stepsJson = await stepsRes.json();
+        let stepsJson: Record<string, unknown>;
+        try {
+          const text = await stepsRes.text();
+          stepsJson = text ? JSON.parse(text) : {};
+        } catch {
+          // API returned non-JSON (e.g. 404 HTML page) - show user-friendly error
+          setError(
+            stepsRes.status === 404
+              ? 'The AI Assistant service is not available. Please try again later or contact support.'
+              : 'Failed to load results. Please try again.'
+          );
+          setView('error');
+          return;
+        }
 
         if (cancelled) return;
         if (!stepsRes.ok) {
-          setError(stepsJson.message || stepsJson.error || 'Failed to generate results');
+          setError(
+            (stepsJson.message as string) ||
+              (stepsJson.error as string) ||
+              'Failed to generate results'
+          );
           setView('error');
           return;
         }
@@ -85,17 +102,33 @@ function ResultsContent() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt, mode: 'data', resultType: stepsJson.resultType }),
         });
-        const dataJson = await dataRes.json();
-
-        if (cancelled) return;
-        if (!dataRes.ok) {
-          setError(dataJson.message || dataJson.error || 'Failed to load results');
+        let dataJson: Record<string, unknown>;
+        try {
+          const text = await dataRes.text();
+          dataJson = text ? JSON.parse(text) : {};
+        } catch {
+          setError(
+            dataRes.status === 404
+              ? 'The AI Assistant service is not available. Please try again later or contact support.'
+              : 'Failed to load results. Please try again.'
+          );
           setView('error');
           return;
         }
 
         if (cancelled) return;
-        const rt = stepsJson.resultType;
+        if (!dataRes.ok) {
+          setError(
+            (dataJson.message as string) ||
+              (dataJson.error as string) ||
+              'Failed to load results'
+          );
+          setView('error');
+          return;
+        }
+
+        if (cancelled) return;
+        const rt = stepsJson.resultType as string | null;
         const d = dataJson.data;
 
         if (rt === 'stalled_summary' && d) {
