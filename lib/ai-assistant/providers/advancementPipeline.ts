@@ -28,6 +28,10 @@ const MOCK_STALLED_SUMMARY: StalledSummary = {
   lowCount: 8,
 };
 
+// Advancement agent IDs for suggestedAgentIds (from getAdvancementAgentOptions)
+const AGENT_DONOR_WARMUP = 'agent-donor-warmup';
+const AGENT_FLOW_REENGAGEMENT = 'agent-flow-prospect-reengagement';
+
 const MOCK_PRIORITY_PROSPECTS: PriorityProspectRow[] = [
   // HIGH PRIORITY (6)
   {
@@ -38,8 +42,8 @@ const MOCK_PRIORITY_PROSPECTS: PriorityProspectRow[] = [
     lastActivity: '8 days ago',
     stallReasons: ['No recent touchpoints', 'Open ask with no activity'],
     officer: 'Sarah Mitchell',
-    activeAgents: ['Pipeline Agent'],
-    suggestedAgents: ['Follow-up Agent', 'Email Draft Agent'],
+    activeAgents: ['Donor Warm-Up Agent'],
+    suggestedAgentIds: [AGENT_FLOW_REENGAGEMENT, AGENT_DONOR_WARMUP],
   },
   {
     id: 'p2',
@@ -50,7 +54,7 @@ const MOCK_PRIORITY_PROSPECTS: PriorityProspectRow[] = [
     stallReasons: ['Overdue follow-up', 'No recent touchpoints'],
     officer: 'James Park',
     activeAgents: [],
-    suggestedAgents: ['Pipeline Agent', 'Call Prep Agent'],
+    suggestedAgentIds: [AGENT_DONOR_WARMUP, AGENT_FLOW_REENGAGEMENT],
   },
   {
     id: 'p3',
@@ -60,8 +64,8 @@ const MOCK_PRIORITY_PROSPECTS: PriorityProspectRow[] = [
     lastActivity: '9 days ago',
     stallReasons: ['Open ask with no activity'],
     officer: 'Sarah Mitchell',
-    activeAgents: ['Pipeline Agent'],
-    suggestedAgents: ['Email Draft Agent'],
+    activeAgents: ['Donor Warm-Up Agent'],
+    suggestedAgentIds: [AGENT_DONOR_WARMUP],
   },
   {
     id: 'p4',
@@ -72,7 +76,7 @@ const MOCK_PRIORITY_PROSPECTS: PriorityProspectRow[] = [
     stallReasons: ['Overdue follow-up', 'Open ask with no activity'],
     officer: 'James Park',
     activeAgents: [],
-    suggestedAgents: ['Pipeline Agent', 'Stewardship Agent'],
+    suggestedAgentIds: [AGENT_DONOR_WARMUP, AGENT_FLOW_REENGAGEMENT],
   },
   {
     id: 'p5',
@@ -82,8 +86,8 @@ const MOCK_PRIORITY_PROSPECTS: PriorityProspectRow[] = [
     lastActivity: '8 days ago',
     stallReasons: ['No recent touchpoints', 'Overdue follow-up'],
     officer: 'Sarah Mitchell',
-    activeAgents: ['Pipeline Agent'],
-    suggestedAgents: ['Follow-up Agent'],
+    activeAgents: ['Donor Warm-Up Agent'],
+    suggestedAgentIds: [AGENT_FLOW_REENGAGEMENT],
   },
   {
     id: 'p6',
@@ -94,7 +98,7 @@ const MOCK_PRIORITY_PROSPECTS: PriorityProspectRow[] = [
     stallReasons: ['Open ask with no activity'],
     officer: 'James Park',
     activeAgents: [],
-    suggestedAgents: ['Pipeline Agent', 'Email Draft Agent'],
+    suggestedAgentIds: [AGENT_DONOR_WARMUP, AGENT_FLOW_REENGAGEMENT],
   },
   // MEDIUM PRIORITY (10)
   {
@@ -106,7 +110,7 @@ const MOCK_PRIORITY_PROSPECTS: PriorityProspectRow[] = [
     stallReasons: ['No recent touchpoints'],
     officer: 'James Park',
     activeAgents: [],
-    suggestedAgents: ['Pipeline Agent'],
+    suggestedAgentIds: [AGENT_DONOR_WARMUP],
   },
   {
     id: 'p8',
@@ -117,7 +121,7 @@ const MOCK_PRIORITY_PROSPECTS: PriorityProspectRow[] = [
     stallReasons: ['Open ask with no activity'],
     officer: 'Sarah Mitchell',
     activeAgents: ['Pipeline Agent'],
-    suggestedAgents: [],
+    suggestedAgentIds: [],
   },
   {
     id: 'p9',
@@ -128,7 +132,7 @@ const MOCK_PRIORITY_PROSPECTS: PriorityProspectRow[] = [
     stallReasons: ['No recent touchpoints'],
     officer: 'James Park',
     activeAgents: [],
-    suggestedAgents: ['Pipeline Agent'],
+    suggestedAgentIds: [AGENT_DONOR_WARMUP],
   },
   {
     id: 'p10',
@@ -139,7 +143,7 @@ const MOCK_PRIORITY_PROSPECTS: PriorityProspectRow[] = [
     stallReasons: ['Open ask with no activity'],
     officer: 'Sarah Mitchell',
     activeAgents: ['Pipeline Agent'],
-    suggestedAgents: ['Email Draft Agent'],
+    suggestedAgentIds: [AGENT_DONOR_WARMUP],
   },
   {
     id: 'p11',
@@ -150,7 +154,7 @@ const MOCK_PRIORITY_PROSPECTS: PriorityProspectRow[] = [
     stallReasons: ['No recent touchpoints'],
     officer: 'James Park',
     activeAgents: [],
-    suggestedAgents: ['Pipeline Agent'],
+    suggestedAgentIds: [AGENT_DONOR_WARMUP],
   },
   {
     id: 'p12',
@@ -161,7 +165,7 @@ const MOCK_PRIORITY_PROSPECTS: PriorityProspectRow[] = [
     stallReasons: ['Open ask with no activity'],
     officer: 'Sarah Mitchell',
     activeAgents: ['Pipeline Agent'],
-    suggestedAgents: [],
+    suggestedAgentIds: [],
   },
   {
     id: 'p13',
@@ -172,7 +176,7 @@ const MOCK_PRIORITY_PROSPECTS: PriorityProspectRow[] = [
     stallReasons: ['No recent touchpoints'],
     officer: 'James Park',
     activeAgents: [],
-    suggestedAgents: ['Pipeline Agent'],
+    suggestedAgentIds: [AGENT_DONOR_WARMUP],
   },
   {
     id: 'p14',
@@ -183,7 +187,7 @@ const MOCK_PRIORITY_PROSPECTS: PriorityProspectRow[] = [
     stallReasons: ['Open ask with no activity'],
     officer: 'Sarah Mitchell',
     activeAgents: [],
-    suggestedAgents: ['Pipeline Agent', 'Call Prep Agent'],
+    suggestedAgentIds: [AGENT_DONOR_WARMUP, AGENT_FLOW_REENGAGEMENT],
   },
   {
     id: 'p15',
@@ -194,7 +198,7 @@ const MOCK_PRIORITY_PROSPECTS: PriorityProspectRow[] = [
     stallReasons: ['No recent touchpoints'],
     officer: 'James Park',
     activeAgents: ['Pipeline Agent'],
-    suggestedAgents: [],
+    suggestedAgentIds: [],
   },
   {
     id: 'p16',
@@ -205,7 +209,7 @@ const MOCK_PRIORITY_PROSPECTS: PriorityProspectRow[] = [
     stallReasons: ['Open ask with no activity'],
     officer: 'Sarah Mitchell',
     activeAgents: [],
-    suggestedAgents: ['Pipeline Agent'],
+    suggestedAgentIds: [AGENT_DONOR_WARMUP],
   },
   // LOW PRIORITY (8)
   {
@@ -217,7 +221,7 @@ const MOCK_PRIORITY_PROSPECTS: PriorityProspectRow[] = [
     stallReasons: [],
     officer: 'James Park',
     activeAgents: [],
-    suggestedAgents: ['Pipeline Agent'],
+    suggestedAgentIds: [AGENT_DONOR_WARMUP],
   },
   {
     id: 'p18',
@@ -228,7 +232,7 @@ const MOCK_PRIORITY_PROSPECTS: PriorityProspectRow[] = [
     stallReasons: [],
     officer: 'Sarah Mitchell',
     activeAgents: ['Pipeline Agent'],
-    suggestedAgents: [],
+    suggestedAgentIds: [],
   },
   {
     id: 'p19',
@@ -239,7 +243,7 @@ const MOCK_PRIORITY_PROSPECTS: PriorityProspectRow[] = [
     stallReasons: [],
     officer: 'James Park',
     activeAgents: [],
-    suggestedAgents: ['Pipeline Agent'],
+    suggestedAgentIds: [AGENT_DONOR_WARMUP],
   },
   {
     id: 'p20',
@@ -250,7 +254,7 @@ const MOCK_PRIORITY_PROSPECTS: PriorityProspectRow[] = [
     stallReasons: [],
     officer: 'Sarah Mitchell',
     activeAgents: [],
-    suggestedAgents: ['Pipeline Agent'],
+    suggestedAgentIds: [AGENT_DONOR_WARMUP],
   },
   {
     id: 'p21',
@@ -261,7 +265,7 @@ const MOCK_PRIORITY_PROSPECTS: PriorityProspectRow[] = [
     stallReasons: [],
     officer: 'James Park',
     activeAgents: ['Pipeline Agent'],
-    suggestedAgents: [],
+    suggestedAgentIds: [],
   },
   {
     id: 'p22',
@@ -272,7 +276,7 @@ const MOCK_PRIORITY_PROSPECTS: PriorityProspectRow[] = [
     stallReasons: [],
     officer: 'Sarah Mitchell',
     activeAgents: [],
-    suggestedAgents: ['Pipeline Agent'],
+    suggestedAgentIds: [AGENT_DONOR_WARMUP],
   },
   {
     id: 'p23',
@@ -283,7 +287,7 @@ const MOCK_PRIORITY_PROSPECTS: PriorityProspectRow[] = [
     stallReasons: [],
     officer: 'James Park',
     activeAgents: [],
-    suggestedAgents: [],
+    suggestedAgentIds: [],
   },
   {
     id: 'p24',
@@ -294,7 +298,7 @@ const MOCK_PRIORITY_PROSPECTS: PriorityProspectRow[] = [
     stallReasons: [],
     officer: 'Sarah Mitchell',
     activeAgents: ['Pipeline Agent'],
-    suggestedAgents: [],
+    suggestedAgentIds: [],
   },
 ];
 
@@ -928,7 +932,12 @@ export class AdvancementPipelineProvider {
     userContext: UserContext,
     prospectId: string
   ): Promise<ProviderResponse<ProspectDetail>> {
-    const detail = MOCK_PROSPECT_DETAILS[prospectId];
+    // Support numeric IDs from AI (e.g. "1" -> "p1") since mock uses p1, p2, ...
+    const lookupId =
+      /^\d+$/.test(prospectId) && !MOCK_PROSPECT_DETAILS[prospectId]
+        ? `p${prospectId}`
+        : prospectId;
+    const detail = MOCK_PROSPECT_DETAILS[lookupId];
     if (!detail) {
       return errorResponse({
         code: 'NOT_FOUND',

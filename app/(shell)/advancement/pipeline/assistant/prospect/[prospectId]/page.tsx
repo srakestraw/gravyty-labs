@@ -78,6 +78,35 @@ export default function AdvancementPipelineProspectPage() {
       timeline: [],
     });
 
+    const buildDetailFromLikelyToGive = (row: {
+      id: string;
+      name: string;
+      score?: number;
+      lastGiftDate?: string;
+      givingTier?: string;
+    }): ProspectDetail => ({
+      id: row.id,
+      name: row.name,
+      officer: 'Sarah Mitchell',
+      lastActivity: row.lastGiftDate || '6 months ago',
+      segment: row.givingTier,
+      priority: 'high',
+      overview: `${row.name} is likely to give. ${row.score ? `Opportunity score: ${row.score}. ` : ''}${row.lastGiftDate ? `Last gift: ${row.lastGiftDate}.` : ''}`,
+      currentFindings: row.givingTier ? [`Giving tier: ${row.givingTier}`] : ['Consider outreach'],
+      whyStalled: [],
+      recentActions: [],
+      whatHappensNext: 'Reach out for follow-up.',
+      recommendedNextSteps: [
+        { label: 'Create task', action: 'create-task' },
+        { label: 'Draft email', action: 'draft-email' },
+        { label: 'Send email', action: 'send-email' },
+        { label: 'Tag for follow-up', action: 'tag-follow-up' },
+        { label: 'Open profile', action: 'open-profile' },
+        { label: 'Flag for manager review', action: 'flag-manager' },
+      ],
+      timeline: [],
+    });
+
     const trySessionStorage = (): ProspectDetail | null => {
       try {
         const stored = sessionStorage.getItem('advancement-pipeline-ai-prospects');
@@ -89,6 +118,16 @@ export default function AdvancementPipelineProspectPage() {
             const row = list.find((p: { id: string }) => p.id === prospectId);
             if (row) return buildDetailFromRow(row);
           }
+        }
+        const likelyToGive = parsed.likelyToGive;
+        if (Array.isArray(likelyToGive)) {
+          const row = likelyToGive.find((p: { id: string }) => p.id === prospectId);
+          if (row) return buildDetailFromLikelyToGive(row);
+        }
+        const priorityList = parsed.priorityList;
+        if (Array.isArray(priorityList)) {
+          const row = priorityList.find((p: { id: string }) => p.id === prospectId);
+          if (row) return buildDetailFromRow(row);
         }
       } catch {
         /* ignore */

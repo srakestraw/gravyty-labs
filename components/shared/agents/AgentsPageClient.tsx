@@ -8,6 +8,7 @@ import { getAiPlatformBasePath } from '@/components/shared/ai-platform/types';
 import {
   AGENT_TEMPLATES,
   getTemplatesForWorkspace,
+  getWorkspaceScopeFromContext,
   isTemplateAllowedInContext,
   templateHasDecisionIntelligence,
   workspaceScopeLabel,
@@ -199,7 +200,42 @@ export function AgentsPageClient({ context }: AgentsPageClientProps) {
   }, [isAllRoles, selectedRole]);
   const visibleTemplates = viewAllTemplates ? allTemplatesForViewAll : recommendedTemplates;
 
-  const filteredAgents = MOCK_AGENTS.filter((agent: MockAgent) => {
+  /** Agents scoped to current workspace: Advancement shows only advancement agents; Student Lifecycle shows admissions/registrar/etc. */
+  const agentsInWorkspace = React.useMemo(() => {
+    const scope = getWorkspaceScopeFromContext(context ?? {});
+    if (!scope) return MOCK_AGENTS;
+    if (scope.workspaceScopeId === "advancement_giving_intelligence") {
+      return MOCK_AGENTS.filter((a) => a.roleKey === "advancement");
+    }
+    if (scope.workspaceScopeId === "student_lifecycle_ai") {
+      return MOCK_AGENTS.filter(
+        (a) =>
+          a.roleKey === "admissions" ||
+          a.roleKey === "registrar" ||
+          a.roleKey === "student-success" ||
+          a.roleKey === "career-services" ||
+          a.roleKey === "alumni-engagement"
+      );
+    }
+    return MOCK_AGENTS;
+  }, [context?.appId, context?.workspaceId]);
+
+  const rolesInWorkspace = React.useMemo(() => {
+    const roles = [...new Set(agentsInWorkspace.map((a) => roleLabelFromKey(a.roleKey)))];
+    return roles.sort((a, b) => ROLES.indexOf(a) - ROLES.indexOf(b));
+  }, [agentsInWorkspace]);
+
+  // Reset role filter if it's no longer valid for this workspace
+  React.useEffect(() => {
+    if (
+      selectedRole !== "All" &&
+      !rolesInWorkspace.includes(selectedRole)
+    ) {
+      setSelectedRole("All");
+    }
+  }, [selectedRole, rolesInWorkspace]);
+
+  const filteredAgents = agentsInWorkspace.filter((agent: MockAgent) => {
     if (!isAllRoles && roleLabelFromKey(agent.roleKey) !== selectedRole) return false;
     if (statusFilter !== "all" && agent.status !== statusFilter) return false;
     if (typeFilter !== "all" && agent.type !== typeFilter) return false;
@@ -267,7 +303,7 @@ export function AgentsPageClient({ context }: AgentsPageClientProps) {
               onChange={(e) => setSelectedRole(e.target.value as RoleFilter)}
             >
               <option value="All">All roles</option>
-              {ROLES.map((role) => (
+              {rolesInWorkspace.map((role) => (
                 <option key={role} value={role}>
                   {role}
                 </option>

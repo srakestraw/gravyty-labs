@@ -53,65 +53,97 @@ function ResultsContent() {
     }
 
     let cancelled = false;
-    let summaryTimerId: ReturnType<typeof setTimeout> | null = null;
 
     const run = async () => {
       try {
-        const res = await fetch('/api/advancement-pipeline/generate-mock', {
+        // Phase 1: Get thinking steps (fast, small response)
+        const stepsRes = await fetch('/api/advancement-pipeline/generate-mock', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt }),
+          body: JSON.stringify({ prompt, mode: 'steps' }),
         });
-        const json = await res.json();
+        const stepsJson = await stepsRes.json();
 
         if (cancelled) return;
-        if (!res.ok) {
-          setError(json.message || json.error || 'Failed to generate results');
+        if (!stepsRes.ok) {
+          setError(stepsJson.message || stepsJson.error || 'Failed to generate results');
           setView('error');
           return;
         }
 
         if (cancelled) return;
-        setThinkingSteps(json.thinkingSteps || []);
-        setResultType(json.resultType);
-        setResultTitle(json.resultTitle || '');
-        setResultDescription(json.resultDescription || '');
-        setSuggestedNextSteps(json.suggestedNextSteps || []);
+        setThinkingSteps(stepsJson.thinkingSteps || []);
+        setResultType(stepsJson.resultType);
+        setResultTitle(stepsJson.resultTitle || '');
+        setResultDescription(stepsJson.resultDescription || '');
+        setSuggestedNextSteps(stepsJson.suggestedNextSteps || []);
         setView('thinking');
 
-        if (json.resultType === 'stalled_summary' && json.data) {
-          const d = json.data as StalledSummaryWithProspects;
+        // Phase 2: Get data (heavier call, runs while user sees thinking steps)
+        const dataRes = await fetch('/api/advancement-pipeline/generate-mock', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt, mode: 'data', resultType: stepsJson.resultType }),
+        });
+        const dataJson = await dataRes.json();
+
+        if (cancelled) return;
+        if (!dataRes.ok) {
+          setError(dataJson.message || dataJson.error || 'Failed to load results');
+          setView('error');
+          return;
+        }
+
+        if (cancelled) return;
+        const rt = stepsJson.resultType;
+        const d = dataJson.data;
+
+        if (rt === 'stalled_summary' && d) {
+          const stalled = d as StalledSummaryWithProspects;
           setStalledData({
-            stalledCount: d.stalledCount,
-            highCount: d.highCount,
-            mediumCount: d.mediumCount,
-            lowCount: d.lowCount,
-            highProspects: d.highProspects,
-            mediumProspects: d.mediumProspects,
-            lowProspects: d.lowProspects,
+            stalledCount: stalled.stalledCount,
+            highCount: stalled.highCount,
+            mediumCount: stalled.mediumCount,
+            lowCount: stalled.lowCount,
+            highProspects: stalled.highProspects,
+            mediumProspects: stalled.mediumProspects,
+            lowProspects: stalled.lowProspects,
           });
           try {
             sessionStorage.setItem(
               STORAGE_KEY,
               JSON.stringify({
-                high: d.highProspects || [],
-                medium: d.mediumProspects || [],
-                low: d.lowProspects || [],
+                high: stalled.highProspects || [],
+                medium: stalled.mediumProspects || [],
+                low: stalled.lowProspects || [],
                 prompt,
               })
             );
           } catch {
             /* ignore */
           }
-        } else if (json.resultType === 'likely_to_give' && Array.isArray(json.data)) {
-          setLikelyToGiveData(json.data);
-        } else if (json.resultType === 'priority_list' && Array.isArray(json.data)) {
-          setPriorityListData(json.data);
+        } else if (rt === 'likely_to_give' && Array.isArray(d)) {
+          setLikelyToGiveData(d);
+          try {
+            sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ likelyToGive: d, prompt }));
+          } catch {
+            /* ignore */
+          }
+        } else if (rt === 'priority_list' && Array.isArray(d)) {
+          setPriorityListData(d);
+          try {
+            sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ priorityList: d, prompt }));
+          } catch {
+            /* ignore */
+          }
         }
 
-        summaryTimerId = setTimeout(() => {
-          if (!cancelled) setView('summary');
-        }, 2500);
+        // Use metadata from data response if provided (e.g. fallback mode)
+        if (dataJson.resultTitle) setResultTitle(dataJson.resultTitle);
+        if (dataJson.resultDescription) setResultDescription(dataJson.resultDescription);
+        if (Array.isArray(dataJson.suggestedNextSteps)) setSuggestedNextSteps(dataJson.suggestedNextSteps);
+
+        if (!cancelled) setView('summary');
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : 'Something went wrong');
@@ -124,7 +156,6 @@ function ResultsContent() {
 
     return () => {
       cancelled = true;
-      if (summaryTimerId) clearTimeout(summaryTimerId);
     };
   }, [prompt, router]);
 

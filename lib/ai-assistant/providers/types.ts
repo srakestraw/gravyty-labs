@@ -269,7 +269,10 @@ export interface PriorityProspectRow {
   stallReasons: string[];
   officer: string;
   activeAgents: string[];
-  suggestedAgents: string[];
+  /** @deprecated Use suggestedAgentIds - human names must never be shown as agents */
+  suggestedAgents?: string[];
+  /** Agent/workflow IDs from availableAgentOptions. Only real agents from inventory. */
+  suggestedAgentIds?: string[];
 }
 
 export interface ProspectDetail {
