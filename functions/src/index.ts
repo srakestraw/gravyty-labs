@@ -39,7 +39,7 @@ export const authSync = functions.https.onRequest(async (req, res) => {
     
     // Validate email domain on backend as well
     if (body.email) {
-      const allowedDomains = ['gravyty.com', 'rakestraw.com', 'gravytylabs.com'];
+      const allowedDomains = ['gravyty.com', 'rakestraw.com', 'gravytylabs.com', 'goldhue.co'];
       const domain = body.email.split('@')[1];
       
       if (!allowedDomains.includes(domain)) {

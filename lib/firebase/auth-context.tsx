@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     // Validate Google sign-in email domain
     if (result.user.email) {
-      const allowedDomains = ['gravyty.com', 'rakestraw.com', 'gravytylabs.com'];
+      const allowedDomains = ['gravyty.com', 'rakestraw.com', 'gravytylabs.com', 'goldhue.co'];
       const domain = result.user.email.split('@')[1];
       
       if (!allowedDomains.includes(domain)) {

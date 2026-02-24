@@ -53,7 +53,7 @@ export default function LoginPage() {
           </Button>
           
           <p className="text-xs text-gray-500 mt-1 text-center">
-            Access restricted to gravyty.com domain
+            Access restricted to gravyty.com, rakestraw.com, gravytylabs.com, and goldhue.co domains
           </p>
         </div>
       </div>
